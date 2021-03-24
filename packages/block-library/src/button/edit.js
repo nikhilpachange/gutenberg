@@ -233,7 +233,7 @@ function ButtonEdit( props ) {
 	const useEnterRef = useEnter( { content: text, clientId } );
 	const mergedRef = useMergeRefs( [ useEnterRef, richTextRef ] );
 
-	const { lockUrlControls = false } = useSelect(
+	const { lockUrlControls = false, isVisualEditMode } = useSelect(
 		( select ) => {
 			if ( ! isSelected ) {
 				return {};
@@ -332,6 +332,7 @@ function ButtonEdit( props ) {
 			</BlockControls>
 			{ isLinkTag &&
 				isSelected &&
+				isVisualEditMode &&
 				( isEditingURL || isURLSet ) &&
 				! lockUrlControls && (
 					<Popover
