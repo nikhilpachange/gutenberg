@@ -21,7 +21,7 @@ export type SearchOptions = {
 	/**
 	 * Filters by search type.
 	 */
-	type?: 'attachment' | 'post' | 'term' | 'post-format';
+	type?: 'attachment' | 'post' | 'term' | 'post-format' | 'post-type-archive';
 	/**
 	 * Slug of the post-type or taxonomy.
 	 */
@@ -233,6 +233,29 @@ export default async function fetchLinkSuggestions(
 								__( '(no title)' ),
 							type: result.type,
 							kind: 'media',
+						};
+					} );
+				} )
+				.catch( () => [] ) // Fail by returning no results.
+		);
+	}
+
+	if ( ! type || type === 'post-type-archive' ) {
+		queries.push(
+			apiFetch< SearchAPIResult[] >( {
+				path: addQueryArgs( '/wp/v2/search', {
+					search,
+					page,
+					per_page: perPage,
+					type: 'post-type-archive',
+					subtype,
+				} ),
+			} )
+				.then( ( results ) => {
+					return results.map( ( result ) => {
+						return {
+							...result,
+							meta: { kind: 'post-type-archive', subtype },
 						};
 					} );
 				} )

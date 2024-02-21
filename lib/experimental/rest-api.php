@@ -20,6 +20,9 @@ function gutenberg_register_block_editor_settings() {
 add_action( 'rest_api_init', 'gutenberg_register_block_editor_settings' );
 
 
+
+
+
 /**
  * Shim for get_sample_permalink() to add support for auto-draft status.
  *
@@ -92,3 +95,13 @@ function gutenberg_auto_draft_get_sample_permalink( $permalink, $id, $title, $na
 	return $permalink;
 }
 add_filter( 'get_sample_permalink', 'gutenberg_auto_draft_get_sample_permalink', 10, 5 );
+
+
+
+function register_post_archive_rest_search_handler( $handlers ) {
+	$handlers['post_type_archive'] = new WP_REST_Post_Archive_Search_Handler();
+
+
+	return $handlers;
+}
+add_filter( 'wp_rest_search_handlers', 'register_post_archive_rest_search_handler' );
