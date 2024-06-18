@@ -38,7 +38,7 @@ import {
 	store as blockEditorStore,
 	useBlockEditingMode,
 } from '@wordpress/block-editor';
-import { ENTER } from '@wordpress/keycodes';
+import { displayShortcut, isKeyboardEvent, ENTER } from '@wordpress/keycodes';
 import { link } from '@wordpress/icons';
 import {
 	createBlock,
@@ -172,6 +172,12 @@ function ButtonEdit( props ) {
 
 	const TagName = tagName || 'a';
 
+	function onKeyDown( event ) {
+		if ( isKeyboardEvent.primary( event, 'k' ) ) {
+			startEditing( event );
+		}
+	}
+
 	// Use internal state instead of a ref to make sure that the component
 	// re-renders when the popover's anchor updates.
 	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
@@ -184,6 +190,7 @@ function ButtonEdit( props ) {
 	const richTextRef = useRef();
 	const blockProps = useBlockProps( {
 		ref: useMergeRefs( [ setPopoverAnchor, ref ] ),
+		onKeyDown,
 	} );
 	const blockEditingMode = useBlockEditingMode();
 
@@ -192,6 +199,11 @@ function ButtonEdit( props ) {
 	const opensInNewTab = linkTarget === NEW_TAB_TARGET;
 	const nofollow = !! rel?.includes( NOFOLLOW_REL );
 	const isLinkTag = 'a' === TagName;
+
+	function startEditing( event ) {
+		event.preventDefault();
+		setIsEditingURL( true );
+	}
 
 	function unlink() {
 		setAttributes( {
@@ -300,8 +312,8 @@ function ButtonEdit( props ) {
 						name="link"
 						icon={ link }
 						title={ __( 'Link' ) }
+						shortcut={ displayShortcut.primary( 'k' ) }
 						onClick={ () => setIsEditingURL( ! isEditingURL ) }
-						isActive={ isURLSet }
 					/>
 				) }
 			</BlockControls>
