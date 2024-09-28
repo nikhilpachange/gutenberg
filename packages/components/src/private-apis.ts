@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { useDrag } from '@use-gesture/react';
+
+/**
  * Internal dependencies
  */
 import { positionToPlacement as __experimentalPopoverLegacyPositionToPlacement } from './popover/utils';
@@ -19,4 +24,5 @@ lock( privateApis, {
 	Theme,
 	Menu,
 	kebabCase,
+	useDrag,
 } );
