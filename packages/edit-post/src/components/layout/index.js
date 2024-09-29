@@ -219,29 +219,34 @@ function MetaBoxesMain( { isLegacy } ) {
 		}
 	};
 	const [ isDragging, setIsDragging ] = useState( false );
-	const bindDragGesture = useDrag( ( { movement, first, last, memo } ) => {
-		if ( first ) {
-			setIsDragging( true );
-			if ( heightRef.current === undefined ) {
-				const fromHeight = metaBoxesMainRef.current.offsetHeight;
-				return { fromHeight };
+	const bindDragGesture = useDrag(
+		( { movement, first, last, memo, swipe } ) => {
+			if ( first ) {
+				setIsDragging( true );
+				if ( heightRef.current === undefined ) {
+					const fromHeight = metaBoxesMainRef.current.offsetHeight;
+					return { fromHeight };
+				}
+				if ( heightRef.current > max ) {
+					// Starts from max in case shortening the window has imposed it.
+					return { fromHeight: max };
+				}
+				return { fromHeight: heightRef.current };
 			}
-			if ( heightRef.current > max ) {
-				// Starts from max in case shortening the window has imposed it.
-				return { fromHeight: max };
+			const [ , yMovement ] = movement;
+			if ( ! first && ! last ) {
+				applyHeight( memo.fromHeight - yMovement );
+				return memo;
 			}
-			return { fromHeight: heightRef.current };
+			setIsDragging( false );
+			const [ , swipeY ] = swipe;
+			if ( swipeY ) {
+				applyHeight( swipeY === -1 ? max : min, true );
+			} else if ( yMovement !== 0 ) {
+				applyHeight( heightRef.current, true );
+			}
 		}
-		const [ , yMovement ] = movement;
-		if ( ! first && ! last ) {
-			applyHeight( memo.fromHeight - yMovement );
-			return memo;
-		}
-		setIsDragging( false );
-		if ( yMovement !== 0 ) {
-			applyHeight( heightRef.current, true );
-		}
-	} );
+	);
 
 	if ( ! hasAnyVisible ) {
 		return;
