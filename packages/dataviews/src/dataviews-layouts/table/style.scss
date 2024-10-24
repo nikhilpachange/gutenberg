@@ -201,6 +201,11 @@
 			}
 		}
 	}
+
+	.dataviews-view-table__parent {
+		margin-left: $grid-unit-10;
+		background-color: #f0f0f0;
+	}
 }
 
 /* stylelint-disable-next-line scss/at-rule-no-unknown -- '@container' not globally permitted */
