@@ -160,6 +160,7 @@ export const registerPostTypeSchema =
 		];
 
 		const fields = [
+			{ id: 'id', type: 'text' }, // TODO: only for testing purposes
 			featuredImageField,
 			titleField,
 			authorField,
