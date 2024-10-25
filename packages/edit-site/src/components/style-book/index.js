@@ -65,6 +65,7 @@ function StyleBook( {
 	const [ textColor ] = useGlobalStyle( 'color.text' );
 	const [ backgroundColor ] = useGlobalStyle( 'color.background' );
 	const [ examples ] = useState( getExamples );
+
 	const tabs = useMemo(
 		() =>
 			getTopLevelStyleBookCategories().filter( ( category ) =>
@@ -74,6 +75,7 @@ function StyleBook( {
 			),
 		[ examples ]
 	);
+
 	const { base: baseConfig } = useContext( GlobalStylesContext );
 
 	const mergedConfig = useMemo( () => {
@@ -89,21 +91,19 @@ function StyleBook( {
 		( select ) => select( blockEditorStore ).getSettings(),
 		[]
 	);
+	const [ globalStyles ] = useGlobalStylesOutputWithConfig( mergedConfig );
 
 	const settings = useMemo(
 		() => ( {
 			...originalSettings,
+			styles:
+				! isObjectEmpty( globalStyles ) && ! isObjectEmpty( userConfig )
+					? globalStyles
+					: originalSettings.styles,
 			isPreviewMode: true,
 		} ),
-		[ originalSettings ]
+		[ globalStyles, originalSettings, userConfig ]
 	);
-
-	const [ globalStyles ] = useGlobalStylesOutputWithConfig( mergedConfig );
-
-	settings.styles =
-		! isObjectEmpty( globalStyles ) && ! isObjectEmpty( userConfig )
-			? globalStyles
-			: settings.styles;
 
 	return (
 		<EditorCanvasContainer
