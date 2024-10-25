@@ -76,7 +76,7 @@ export function CreateTemplatePartModal( {
 		<Modal
 			title={ modalTitle || defaultModalTitle }
 			onRequestClose={ restProps.closeModal }
-			overlayClassName="editor-create-template-part-modal"
+			overlayClassName="fields-create-template-part-modal"
 			focusOnMount="firstContentElement"
 			size="medium"
 		>
@@ -216,13 +216,13 @@ export function CreateTemplatePartModalContents( {
 				<BaseControl
 					__nextHasNoMarginBottom
 					label={ __( 'Area' ) }
-					id={ `editor-create-template-part-modal__area-selection-${ instanceId }` }
-					className="editor-create-template-part-modal__area-base-control"
+					id={ `fields-create-template-part-modal__area-selection-${ instanceId }` }
+					className="fields-create-template-part-modal__area-base-control"
 				>
 					<RadioGroup
 						label={ __( 'Area' ) }
-						className="editor-create-template-part-modal__area-radio-group"
-						id={ `editor-create-template-part-modal__area-selection-${ instanceId }` }
+						className="fields-create-template-part-modal__area-radio-group"
+						id={ `fields-create-template-part-modal__area-selection-${ instanceId }` }
 						onChange={ ( value ) =>
 							value && typeof value === 'string'
 								? setArea( value )
@@ -235,18 +235,18 @@ export function CreateTemplatePartModalContents( {
 								<Radio
 									key={ label }
 									value={ value }
-									className="editor-create-template-part-modal__area-radio"
+									className="fields-create-template-part-modal__area-radio"
 								>
 									<Flex align="start" justify="start">
 										<FlexItem>
 											<Icon icon={ icon } />
 										</FlexItem>
-										<FlexBlock className="editor-create-template-part-modal__option-label">
+										<FlexBlock className="fields-create-template-part-modal__option-label">
 											{ label }
 											<div>{ description }</div>
 										</FlexBlock>
 
-										<FlexItem className="editor-create-template-part-modal__checkbox">
+										<FlexItem className="fields-create-template-part-modal__checkbox">
 											{ area === value && (
 												<Icon icon={ check } />
 											) }
