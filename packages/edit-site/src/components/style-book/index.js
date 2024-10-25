@@ -179,21 +179,19 @@ function StyleBook( {
 		( select ) => select( blockEditorStore ).getSettings(),
 		[]
 	);
+	const [ globalStyles ] = useGlobalStylesOutputWithConfig( mergedConfig );
 
 	const settings = useMemo(
 		() => ( {
 			...originalSettings,
+			styles:
+				! isObjectEmpty( globalStyles ) && ! isObjectEmpty( userConfig )
+					? globalStyles
+					: originalSettings.styles,
 			isPreviewMode: true,
 		} ),
-		[ originalSettings ]
+		[ globalStyles, originalSettings, userConfig ]
 	);
-
-	const [ globalStyles ] = useGlobalStylesOutputWithConfig( mergedConfig );
-
-	settings.styles =
-		! isObjectEmpty( globalStyles ) && ! isObjectEmpty( userConfig )
-			? globalStyles
-			: settings.styles;
 
 	return (
 		<EditorCanvasContainer
