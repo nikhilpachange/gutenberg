@@ -55,34 +55,32 @@ function Palette( { name } ) {
 		? '/colors/palette'
 		: '/blocks/' + encodeURIComponent( name ) + '/colors/palette';
 
+	const paletteButtonText =
+		colors.length > 0 ? __( 'Edit palette' ) : __( 'Add colors' );
+
 	return (
 		<VStack spacing={ 3 }>
 			<Subtitle level={ 3 }>{ __( 'Palette' ) }</Subtitle>
 			<ItemGroup isBordered isSeparated>
-				<NavigationButtonAsItem path={ screenPath }>
+				<NavigationButtonAsItem
+					path={ screenPath }
+					aria-label={ paletteButtonText }
+				>
 					<HStack direction="row">
-						{ colors.length > 0 ? (
-							<>
-								<ZStack isLayered={ false } offset={ -8 }>
-									{ colors
-										.slice( 0, 5 )
-										.map( ( { color }, index ) => (
-											<ColorIndicatorWrapper
-												key={ `${ color }-${ index }` }
-											>
-												<ColorIndicator
-													colorValue={ color }
-												/>
-											</ColorIndicatorWrapper>
-										) ) }
-								</ZStack>
-								<FlexItem isBlock>
-									{ __( 'Edit palette' ) }
-								</FlexItem>
-							</>
-						) : (
+						{ colors.length <= 0 && (
 							<FlexItem>{ __( 'Add colors' ) }</FlexItem>
 						) }
+						<ZStack isLayered={ false } offset={ -8 }>
+							{ colors
+								.slice( 0, 5 )
+								.map( ( { color }, index ) => (
+									<ColorIndicatorWrapper
+										key={ `${ color }-${ index }` }
+									>
+										<ColorIndicator colorValue={ color } />
+									</ColorIndicatorWrapper>
+								) ) }
+						</ZStack>
 						<Icon icon={ isRTL() ? chevronLeft : chevronRight } />
 					</HStack>
 				</NavigationButtonAsItem>
