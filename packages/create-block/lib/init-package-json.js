@@ -47,6 +47,9 @@ module.exports = async ( {
 						build: isDynamicVariant
 							? 'wp-scripts build --webpack-copy-php'
 							: 'wp-scripts build',
+						postbuild: 'npm run build-blocks-manifest',
+						'build-blocks-manifest':
+							'wp-scripts build-blocks-manifest',
 						format: 'wp-scripts format',
 						'lint:css': 'wp-scripts lint-style',
 						'lint:js': 'wp-scripts lint-js',
