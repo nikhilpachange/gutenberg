@@ -1299,9 +1299,9 @@ export function isPreviewEmbedFallback( state: State, url: string ): boolean {
  * import { __ } from '@wordpress/i18n';
  *
  * const ExampleComponent = () => {
- *     const canUpdatePost = useSelect( ( select ) =>
+ *     const canUploadMedia = useSelect( ( select ) =>
  *         select( coreDataStore ).canUser( 'create', 'media' )
- *     );
+ *     ,[]);
  *
  *     return canUpdatePost ? (
  *         <div>{ __( 'This user can upload media' ) }</div>
@@ -1352,7 +1352,7 @@ export function canUser(
  * const ExampleComponent = () => {
  *     const canEdit = useSelect( ( select ) =>
  *         select( coreDataStore ).canUserEditEntityRecord( 'postType', 'post', 1 )
- *     );
+ *     ,[];
  *
  *     return canEdit ? (
  *         <div>{ __( 'This user can edit post ID 1' ) }</div>
@@ -1395,10 +1395,9 @@ export function canUserEditEntityRecord(
  * import { sprintf, __ } from '@wordpress/i18n';
  *
  * const ExampleComponent = () => {
- *     const postId = 1;
  *     const autosaves = useSelect( ( select ) =>
- *         select( coreDataStore ).getAutosaves( 'post', postId )
- *     );
+ *         select( coreDataStore ).getAutosaves( 'post', 1 )
+ *     ,[]);
  *
  *     return (
  *         <ul>
@@ -1441,7 +1440,7 @@ export function getAutosaves(
  *     const userId = 1;
  *     const autosave = useSelect( ( select ) =>
  *         select( coreDataStore ).getAutosave( 'post', postId, userId )
- *     );
+ *     ,[]);
  *
  *     return autosave ? (
  *         <div>{ sprintf( 'Last autosave: %s', autosave.date ) }</div>
@@ -1595,7 +1594,7 @@ export function __experimentalGetCurrentThemeGlobalStylesVariations(
  * const ExampleComponent = () => {
  *     const blockPatterns = useSelect( ( select ) =>
  *         select( coreDataStore ).getBlockPatterns()
- *     );
+ *     ,[]);
  *
  *     return (
  *         <ul>
@@ -1627,7 +1626,7 @@ export function getBlockPatterns( state: State ): Array< any > {
  * const ExampleComponent = () => {
  *     const blockPatternCategories = useSelect( ( select ) =>
  *         select( coreDataStore ).getBlockPatternCategories()
- *     );
+ *     ,[]);
  *
  *     return (
  *         <ul>

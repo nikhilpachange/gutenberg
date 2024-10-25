@@ -343,8 +343,9 @@ import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const canUpdatePost = useSelect( ( select ) =>
-		select( coreDataStore ).canUser( 'create', 'media' )
+	const canUploadMedia = useSelect(
+		( select ) => select( coreDataStore ).canUser( 'create', 'media' ),
+		[]
 	);
 
 	return canUpdatePost ? (
@@ -382,15 +383,15 @@ import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const canEdit = useSelect( ( select ) =>
-		select( coreDataStore ).canUserEditEntityRecord( 'postType', 'post', 1 )
-	);
+    const canEdit = useSelect( ( select ) =>
+        select( coreDataStore ).canUserEditEntityRecord( 'postType', 'post', 1 )
+    ,[];
 
-	return canEdit ? (
-		<div>{ __( 'This user can edit post ID 1' ) }</div>
-	) : (
-		<div>{ __( 'This user cannot edit post ID 1' ) }</div>
-	);
+    return canEdit ? (
+        <div>{ __( 'This user can edit post ID 1' ) }</div>
+    ) : (
+        <div>{ __( 'This user cannot edit post ID 1' ) }</div>
+    );
 };
 ```
 
@@ -436,7 +437,7 @@ const ExampleComponent = () => {
     const userId = 1;
     const autosave = useSelect( ( select ) =>
         select( coreDataStore ).getAutosave( 'post', postId, userId )
-    );
+    ,[]);
 
     return autosave ? (
         <div>{ sprintf( 'Last autosave: %s', autosave.date ) }</div>
@@ -471,9 +472,9 @@ import { useSelect } from '@wordpress/data';
 import { sprintf, __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const postId = 1;
-	const autosaves = useSelect( ( select ) =>
-		select( coreDataStore ).getAutosaves( 'post', postId )
+	const autosaves = useSelect(
+		( select ) => select( coreDataStore ).getAutosaves( 'post', 1 ),
+		[]
 	);
 
 	return (
@@ -510,8 +511,9 @@ import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const blockPatternCategories = useSelect( ( select ) =>
-		select( coreDataStore ).getBlockPatternCategories()
+	const blockPatternCategories = useSelect(
+		( select ) => select( coreDataStore ).getBlockPatternCategories(),
+		[]
 	);
 
 	return (
@@ -544,8 +546,9 @@ import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const blockPatterns = useSelect( ( select ) =>
-		select( coreDataStore ).getBlockPatterns()
+	const blockPatterns = useSelect(
+		( select ) => select( coreDataStore ).getBlockPatterns(),
+		[]
 	);
 
 	return (
