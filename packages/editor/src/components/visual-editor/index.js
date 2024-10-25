@@ -41,6 +41,7 @@ import {
 	TEMPLATE_PART_POST_TYPE,
 	TEMPLATE_POST_TYPE,
 } from '../../store/constants';
+import { useZoomOutModeExit } from './use-zoom-out-mode-exit';
 
 const {
 	LayoutStyle,
@@ -107,7 +108,6 @@ function VisualEditor( {
 } ) {
 	const [ resizeObserver, sizes ] = useResizeObserver();
 	const isMobileViewport = useViewportMatch( 'small', '<' );
-	const isTabletViewport = useViewportMatch( 'medium', '<' );
 	const {
 		renderingMode,
 		postContentAttributes,
@@ -128,8 +128,7 @@ function VisualEditor( {
 			getRenderingMode,
 			getDeviceType,
 		} = select( editorStore );
-		const { getPostType, canUser, getEditedEntityRecord } =
-			select( coreStore );
+		const { getPostType, getEditedEntityRecord } = select( coreStore );
 		const postTypeSlug = getCurrentPostType();
 		const _renderingMode = getRenderingMode();
 		let _wrapperBlockName;
@@ -143,10 +142,6 @@ function VisualEditor( {
 		const editorSettings = getEditorSettings();
 		const supportsTemplateMode = editorSettings.supportsTemplateMode;
 		const postTypeObject = getPostType( postTypeSlug );
-		const canEditTemplate = canUser( 'create', {
-			kind: 'postType',
-			name: 'wp_template',
-		} );
 		const currentTemplateId = getCurrentTemplateId();
 		const template = currentTemplateId
 			? getEditedEntityRecord(
@@ -163,9 +158,7 @@ function VisualEditor( {
 			// Post template fetch returns a 404 on classic themes, which
 			// messes with e2e tests, so check it's a block theme first.
 			editedPostTemplate:
-				postTypeObject?.viewable &&
-				supportsTemplateMode &&
-				canEditTemplate
+				postTypeObject?.viewable && supportsTemplateMode
 					? template
 					: undefined,
 			wrapperBlockName: _wrapperBlockName,
@@ -173,7 +166,7 @@ function VisualEditor( {
 			deviceType: getDeviceType(),
 			isFocusedEntity: !! editorSettings.onNavigateToPreviousEntityRecord,
 			postType: postTypeSlug,
-			isPreview: editorSettings.__unstableIsPreviewMode,
+			isPreview: editorSettings.isPreviewMode,
 		};
 	}, [] );
 	const { isCleanNewPost } = useSelect( editorStore );
@@ -181,17 +174,19 @@ function VisualEditor( {
 		hasRootPaddingAwareAlignments,
 		themeHasDisabledLayoutStyles,
 		themeSupportsLayout,
-		isZoomOutMode,
+		isZoomedOut,
 	} = useSelect( ( select ) => {
-		const { getSettings, __unstableGetEditorMode } =
-			select( blockEditorStore );
+		const { getSettings, isZoomOut: _isZoomOut } = unlock(
+			select( blockEditorStore )
+		);
+
 		const _settings = getSettings();
 		return {
 			themeHasDisabledLayoutStyles: _settings.disableLayoutStyles,
 			themeSupportsLayout: _settings.supportsLayout,
 			hasRootPaddingAwareAlignments:
 				_settings.__experimentalFeatures?.useRootPaddingAwareAlignments,
-			isZoomOutMode: __unstableGetEditorMode() === 'zoom-out',
+			isZoomedOut: _isZoomOut(),
 		};
 	}, [] );
 
@@ -340,15 +335,8 @@ function VisualEditor( {
 		useSelectNearestEditableBlock( {
 			isEnabled: renderingMode === 'template-locked',
 		} ),
+		useZoomOutModeExit(),
 	] );
-
-	const zoomOutProps =
-		isZoomOutMode && ! isTabletViewport
-			? {
-					scale: 'default',
-					frameSize: '48px',
-			  }
-			: {};
 
 	const forceFullHeight = postType === NAVIGATION_POST_TYPE;
 	const enableResizing =
@@ -362,15 +350,16 @@ function VisualEditor( {
 		// Disable resizing in mobile viewport.
 		! isMobileViewport &&
 		// Dsiable resizing in zoomed-out mode.
-		! isZoomOutMode;
-	const shouldIframe =
-		! disableIframe || [ 'Tablet', 'Mobile' ].includes( deviceType );
+		! isZoomedOut;
 
 	const iframeStyles = useMemo( () => {
 		return [
 			...( styles ?? [] ),
 			{
-				css: `.is-root-container{display:flow-root;${
+				// Ensures margins of children are contained so that the body background paints behind them.
+				// Otherwise, the background of html (when zoomed out) would show there and appear broken. It’s
+				// important mostly for post-only views yet conceivably an issue in templated views too.
+				css: `:where(.block-editor-iframe__body){display:flow-root;}.is-root-container{display:flow-root;${
 					// Some themes will have `min-height: 100vh` for the root container,
 					// which isn't a requirement in auto resize mode.
 					enableResizing ? 'min-height:0!important;' : ''
@@ -389,7 +378,7 @@ function VisualEditor( {
 				{
 					'has-padding': isFocusedEntity || enableResizing,
 					'is-resizable': enableResizing,
-					'is-iframed': shouldIframe,
+					'is-iframed': ! disableIframe,
 				}
 			) }
 		>
@@ -400,13 +389,12 @@ function VisualEditor( {
 				}
 			>
 				<BlockCanvas
-					shouldIframe={ shouldIframe }
+					shouldIframe={ ! disableIframe }
 					contentRef={ contentRef }
 					styles={ iframeStyles }
 					height="100%"
 					iframeProps={ {
 						...iframeProps,
-						...zoomOutProps,
 						style: {
 							...iframeProps?.style,
 							...deviceStyles,
