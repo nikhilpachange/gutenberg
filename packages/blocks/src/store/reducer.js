@@ -328,7 +328,12 @@ export const groupingBlockName = createBlockNameSetterReducer(
 export function categories( state = DEFAULT_CATEGORIES, action ) {
 	switch ( action.type ) {
 		case 'SET_CATEGORIES':
-			return action.categories || [];
+			// Ensure, that categories are unique by slug.
+			const uniqueCategories = new Map();
+			( action.categories || [] ).forEach( ( category ) => {
+				uniqueCategories.set( category.slug, category );
+			} );
+			return [ ...uniqueCategories.values() ];
 		case 'UPDATE_CATEGORY': {
 			if (
 				! action.category ||
@@ -371,19 +376,44 @@ export function collections( state = {}, action ) {
 	return state;
 }
 
+/**
+ * Merges usesContext with existing values, potentially defined in the server registration.
+ *
+ * @param {string[]} existingUsesContext Existing `usesContext`.
+ * @param {string[]} newUsesContext      Newly added `usesContext`.
+ * @return {string[]|undefined} Merged `usesContext`.
+ */
+function getMergedUsesContext( existingUsesContext = [], newUsesContext = [] ) {
+	const mergedArrays = Array.from(
+		new Set( existingUsesContext.concat( newUsesContext ) )
+	);
+	return mergedArrays.length > 0 ? mergedArrays : undefined;
+}
+
 export function blockBindingsSources( state = {}, action ) {
 	switch ( action.type ) {
 		case 'ADD_BLOCK_BINDINGS_SOURCE':
+			// Only open this API in Gutenberg and for `core/post-meta` for the moment.
+			let getFieldsList;
+			if ( globalThis.IS_GUTENBERG_PLUGIN ) {
+				getFieldsList = action.getFieldsList;
+			} else if ( action.name === 'core/post-meta' ) {
+				getFieldsList = action.getFieldsList;
+			}
 			return {
 				...state,
 				[ action.name ]: {
-					label: action.label,
-					getValue: action.getValue,
-					setValue: action.setValue,
+					label: action.label || state[ action.name ]?.label,
+					usesContext: getMergedUsesContext(
+						state[ action.name ]?.usesContext,
+						action.usesContext
+					),
+					getValues: action.getValues,
 					setValues: action.setValues,
-					getPlaceholder: action.getPlaceholder,
+					// Only set `canUserEditValue` if `setValues` is also defined.
 					canUserEditValue:
-						action.canUserEditValue || ( () => false ),
+						action.setValues && action.canUserEditValue,
+					getFieldsList,
 				},
 			};
 		case 'REMOVE_BLOCK_BINDINGS_SOURCE':

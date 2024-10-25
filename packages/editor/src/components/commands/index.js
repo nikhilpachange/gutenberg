@@ -57,7 +57,7 @@ function useEditorCommandLoader() {
 			isDistractionFree: get( 'core', 'distractionFree' ),
 			isFocusMode: get( 'core', 'focusMode' ),
 			isTopToolbar: get( 'core', 'fixedToolbar' ),
-			isPreviewMode: getSettings().__unstableIsPreviewMode,
+			isPreviewMode: getSettings().isPreviewMode,
 			isViewable: getPostType( getCurrentPostType() )?.viewable ?? false,
 			isCodeEditingEnabled: getEditorSettings().codeEditingEnabled,
 			isRichEditingEnabled: getEditorSettings().richEditingEnabled,
@@ -89,7 +89,8 @@ function useEditorCommandLoader() {
 		name: 'core/open-shortcut-help',
 		label: __( 'Keyboard shortcuts' ),
 		icon: keyboard,
-		callback: () => {
+		callback: ( { close } ) => {
+			close();
 			openModal( 'editor/keyboard-shortcut-help' );
 		},
 	} );
@@ -108,7 +109,8 @@ function useEditorCommandLoader() {
 	commands.push( {
 		name: 'core/open-preferences',
 		label: __( 'Editor preferences' ),
-		callback: () => {
+		callback: ( { close } ) => {
+			close();
 			openModal( 'editor/preferences' );
 		},
 	} );

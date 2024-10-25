@@ -1,14 +1,13 @@
 /**
  * WordPress dependencies
  */
-import { privateApis as blocksPrivateApis } from '@wordpress/blocks';
+import { registerBlockBindingsSource } from '@wordpress/blocks';
 
 /**
  * Internal dependencies
  */
 import patternOverrides from './pattern-overrides';
 import postMeta from './post-meta';
-import { unlock } from '../lock-unlock';
 
 /**
  * Function to register core block bindings sources provided by the editor.
@@ -21,7 +20,6 @@ import { unlock } from '../lock-unlock';
  * ```
  */
 export function registerCoreBlockBindingsSources() {
-	const { registerBlockBindingsSource } = unlock( blocksPrivateApis );
 	registerBlockBindingsSource( patternOverrides );
 	registerBlockBindingsSource( postMeta );
 }
