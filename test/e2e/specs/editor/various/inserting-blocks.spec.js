@@ -26,6 +26,31 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		await requestUtils.deleteAllPatternCategories();
 	} );
 
+	test( 'inserts a default block on bottom padding click', async ( {
+		admin,
+		editor,
+	} ) => {
+		await admin.createNewPost();
+		await editor.insertBlock( { name: 'core/image' } );
+		const body = editor.canvas.locator( 'body' );
+		const box = await body.boundingBox();
+		await body.click( {
+			position: {
+				x: box.width / 2,
+				y: box.height - 10,
+			},
+		} );
+
+		expect( await editor.getBlocks() ).toMatchObject( [
+			{ name: 'core/image' },
+			{ name: 'core/paragraph' },
+		] );
+
+		await expect(
+			editor.canvas.locator( '[data-type="core/paragraph"]' )
+		).toBeFocused();
+	} );
+
 	test( 'inserts blocks by dragging and dropping from the global inserter', async ( {
 		admin,
 		page,
@@ -51,11 +76,11 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		);
 
 		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
+			'role=region[name="Editor top bar"i] >> role=button[name="Block Inserter"i]'
 		);
 
 		await page.fill(
-			'role=region[name="Block Library"i] >> role=searchbox[name="Search for blocks and patterns"i]',
+			'role=region[name="Block Library"i] >> role=searchbox[name="Search"i]',
 			'Heading'
 		);
 
@@ -114,11 +139,11 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		);
 
 		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
+			'role=region[name="Editor top bar"i] >> role=button[name="Block Inserter"i]'
 		);
 
 		await page.fill(
-			'role=region[name="Block Library"i] >> role=searchbox[name="Search for blocks and patterns"i]',
+			'role=region[name="Block Library"i] >> role=searchbox[name="Search"i]',
 			'Heading'
 		);
 
@@ -170,13 +195,13 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		);
 
 		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
+			'role=region[name="Editor top bar"i] >> role=button[name="Block Inserter"i]'
 		);
 
-		const PATTERN_NAME = 'Social links with a shared background color';
+		const PATTERN_NAME = 'Standard';
 
 		await page.fill(
-			'role=region[name="Block Library"i] >> role=searchbox[name="Search for blocks and patterns"i]',
+			'role=region[name="Block Library"i] >> role=searchbox[name="Search"i]',
 			PATTERN_NAME
 		);
 
@@ -244,7 +269,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 			.click();
 		await page.getByRole( 'menuitem', { name: 'Create pattern' } ).click();
 		const createPatternDialog = page.getByRole( 'dialog', {
-			name: 'Create pattern',
+			name: 'add new pattern',
 		} );
 		await createPatternDialog
 			.getByRole( 'textbox', { name: 'Name' } )
@@ -253,7 +278,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 			.getByRole( 'checkbox', { name: 'Synced' } )
 			.setChecked( true );
 		await createPatternDialog
-			.getByRole( 'button', { name: 'Create' } )
+			.getByRole( 'button', { name: 'Add' } )
 			.click();
 		const patternBlock = page.getByRole( 'document', {
 			name: 'Block: Pattern',
@@ -262,10 +287,10 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 
 		// Insert a synced pattern.
 		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
+			'role=region[name="Editor top bar"i] >> role=button[name="Block Inserter"i]'
 		);
 		await page.fill(
-			'role=region[name="Block Library"i] >> role=searchbox[name="Search for blocks and patterns"i]',
+			'role=region[name="Block Library"i] >> role=searchbox[name="Search"i]',
 			PATTERN_NAME
 		);
 		await page.hover(
@@ -326,13 +351,13 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		);
 
 		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
+			'role=region[name="Editor top bar"i] >> role=button[name="Block Inserter"i]'
 		);
 
-		const PATTERN_NAME = 'Social links with a shared background color';
+		const PATTERN_NAME = 'Standard';
 
 		await page.fill(
-			'role=region[name="Block Library"i] >> role=searchbox[name="Search for blocks and patterns"i]',
+			'role=region[name="Block Library"i] >> role=searchbox[name="Search"i]',
 			PATTERN_NAME
 		);
 
@@ -368,7 +393,8 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		await admin.createNewPost();
 
 		const inserterButton = page.getByRole( 'button', {
-			name: 'Toggle block inserter',
+			name: 'Block Inserter',
+			exact: true,
 		} );
 		const blockLibrary = page.getByRole( 'region', {
 			name: 'Block Library',
@@ -482,7 +508,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		await editor.selectBlocks( paragraphBlock );
 		await page
 			.getByRole( 'toolbar', { name: 'Document tools' } )
-			.getByRole( 'button', { name: 'Toggle block inserter' } )
+			.getByRole( 'button', { name: 'Block Inserter', exact: true } )
 			.click();
 		await page
 			.getByRole( 'listbox', { name: 'Text' } )
@@ -575,8 +601,9 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 
 		await page
 			.getByRole( 'searchbox', {
-				name: 'Search for blocks and patterns',
+				name: 'Search',
 			} )
+			.first()
 			.fill( 'Verse' );
 		await page.getByRole( 'button', { name: 'Browse All' } ).click();
 
@@ -584,11 +611,12 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 			page
 				.getByRole( 'region', { name: 'Block Library' } )
 				.getByRole( 'searchbox', {
-					name: 'Search for blocks and patterns',
+					name: 'Search',
 				} )
+				.first()
 		).toHaveValue( 'Verse' );
 		await expect(
-			page.getByRole( 'listbox', { name: 'Blocks' } )
+			page.getByRole( 'listbox', { name: 'Blocks' } ).first()
 		).toHaveCount( 1 );
 	} );
 
@@ -601,11 +629,11 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		await admin.createNewPost();
 		await page
 			.getByRole( 'toolbar', { name: 'Document tools' } )
-			.getByRole( 'button', { name: 'Toggle block inserter' } )
+			.getByRole( 'button', { name: 'Block Inserter', exact: true } )
 			.click();
 		await page.getByRole( 'option', { name: 'More', exact: true } ).click();
 
-		// Moving focus to the More block should close the inserter.
+		// Moving focus to the More block should not close the inserter.
 		await editor.canvas
 			.getByRole( 'textbox', { name: 'Read more' } )
 			.fill( 'More' );
@@ -613,7 +641,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 			page.getByRole( 'region', {
 				name: 'Block Library',
 			} )
-		).toBeHidden();
+		).toBeVisible();
 	} );
 
 	test( 'shows block preview when hovering over block in inserter', async ( {
@@ -623,7 +651,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 		await admin.createNewPost();
 		await page
 			.getByRole( 'toolbar', { name: 'Document tools' } )
-			.getByRole( 'button', { name: 'Toggle block inserter' } )
+			.getByRole( 'button', { name: 'Block Inserter', exact: true } )
 			.click();
 		await page
 			.getByRole( 'listbox', { name: 'Text' } )
@@ -651,7 +679,7 @@ test.describe( 'Inserting blocks (@firefox, @webkit)', () => {
 
 			await page
 				.getByRole( 'toolbar', { name: 'Document tools' } )
-				.getByRole( 'button', { name: 'Toggle block inserter' } )
+				.getByRole( 'button', { name: 'Block Inserter', exact: true } )
 				.click();
 			await page
 				.getByRole( 'listbox', { name: 'Media' } )
@@ -703,18 +731,10 @@ test.describe( 'insert media from inserter', () => {
 	} ) => {
 		await admin.createNewPost();
 
-		await page.click(
-			'role=region[name="Editor top bar"i] >> role=button[name="Toggle block inserter"i]'
-		);
-		await page.click(
-			'role=region[name="Block Library"i] >> role=tab[name="Media"i]'
-		);
-		await page.click(
-			'[aria-label="Media categories"i] >> role=button[name="Images"i]'
-		);
-		await page.click(
-			`role=listbox[name="Media List"i] >> role=option[name="${ uploadedMedia.title.raw }"]`
-		);
+		await page.getByLabel( 'Block Inserter' ).click();
+		await page.getByRole( 'tab', { name: 'Media' } ).click();
+		await page.getByRole( 'tab', { name: 'Images' } ).click();
+		await page.getByLabel( uploadedMedia.title.raw ).click();
 		await expect.poll( editor.getEditedPostContent ).toBe(
 			`<!-- wp:image {"id":${ uploadedMedia.id }} -->
 <figure class="wp-block-image"><img src="${ uploadedMedia.source_url }" alt="${ uploadedMedia.alt_text }" class="wp-image-${ uploadedMedia.id }"/></figure>

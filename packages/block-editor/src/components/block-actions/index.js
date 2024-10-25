@@ -29,7 +29,6 @@ export default function BlockActions( {
 				getBlockRootClientId,
 				getBlocksByClientId,
 				getDirectInsertBlock,
-				canMoveBlocks,
 				canRemoveBlocks,
 			} = select( blockEditorStore );
 
@@ -44,8 +43,7 @@ export default function BlockActions( {
 				: null;
 
 			return {
-				canMove: canMoveBlocks( clientIds, rootClientId ),
-				canRemove: canRemoveBlocks( clientIds, rootClientId ),
+				canRemove: canRemoveBlocks( clientIds ),
 				canInsertBlock: canInsertDefaultBlock || !! directInsertBlock,
 				canCopyStyles: blocks.every( ( block ) => {
 					return (
@@ -67,8 +65,7 @@ export default function BlockActions( {
 	);
 	const { getBlocksByClientId, getBlocks } = useSelect( blockEditorStore );
 
-	const { canMove, canRemove, canInsertBlock, canCopyStyles, canDuplicate } =
-		selected;
+	const { canRemove, canInsertBlock, canCopyStyles, canDuplicate } = selected;
 
 	const {
 		removeBlocks,
@@ -77,9 +74,6 @@ export default function BlockActions( {
 		insertAfterBlock,
 		insertBeforeBlock,
 		flashBlock,
-		setBlockMovingClientId,
-		setNavigationMode,
-		selectBlock,
 	} = useDispatch( blockEditorStore );
 
 	const notifyCopy = useNotifyCopy();
@@ -89,7 +83,6 @@ export default function BlockActions( {
 		canCopyStyles,
 		canDuplicate,
 		canInsertBlock,
-		canMove,
 		canRemove,
 		onDuplicate() {
 			return duplicateBlocks( clientIds, updateSelection );
@@ -98,21 +91,10 @@ export default function BlockActions( {
 			return removeBlocks( clientIds, updateSelection );
 		},
 		onInsertBefore() {
-			const clientId = Array.isArray( clientIds )
-				? clientIds[ 0 ]
-				: clientId;
-			insertBeforeBlock( clientId );
+			insertBeforeBlock( clientIds[ 0 ] );
 		},
 		onInsertAfter() {
-			const clientId = Array.isArray( clientIds )
-				? clientIds[ clientIds.length - 1 ]
-				: clientId;
-			insertAfterBlock( clientId );
-		},
-		onMoveTo() {
-			setNavigationMode( true );
-			selectBlock( clientIds[ 0 ] );
-			setBlockMovingClientId( clientIds[ 0 ] );
+			insertAfterBlock( clientIds[ clientIds.length - 1 ] );
 		},
 		onGroup() {
 			if ( ! clientIds.length ) {

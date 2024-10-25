@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 import {
 	__experimentalItemGroup as ItemGroup,
 	__experimentalVStack as VStack,
@@ -31,36 +31,28 @@ function ElementItem( { parentMenu, element, label } ) {
 	const [ fontFamily ] = useGlobalStyle( prefix + 'typography.fontFamily' );
 	const [ fontStyle ] = useGlobalStyle( prefix + 'typography.fontStyle' );
 	const [ fontWeight ] = useGlobalStyle( prefix + 'typography.fontWeight' );
-	const [ letterSpacing ] = useGlobalStyle(
-		prefix + 'typography.letterSpacing'
-	);
 	const [ backgroundColor ] = useGlobalStyle( prefix + 'color.background' );
+	const [ fallbackBackgroundColor ] = useGlobalStyle( 'color.background' );
 	const [ gradientValue ] = useGlobalStyle( prefix + 'color.gradient' );
 	const [ color ] = useGlobalStyle( prefix + 'color.text' );
 
-	const navigationButtonLabel = sprintf(
-		// translators: %s: is a subset of Typography, e.g., 'text' or 'links'.
-		__( 'Typography %s styles' ),
-		label
-	);
-
 	return (
-		<NavigationButtonAsItem
-			path={ parentMenu + '/typography/' + element }
-			aria-label={ navigationButtonLabel }
-		>
+		<NavigationButtonAsItem path={ parentMenu + '/typography/' + element }>
 			<HStack justify="flex-start">
 				<FlexItem
 					className="edit-site-global-styles-screen-typography__indicator"
 					style={ {
 						fontFamily: fontFamily ?? 'serif',
-						background: gradientValue ?? backgroundColor,
+						background:
+							gradientValue ??
+							backgroundColor ??
+							fallbackBackgroundColor,
 						color,
 						fontStyle,
 						fontWeight,
-						letterSpacing,
 						...extraStyles,
 					} }
+					aria-hidden="true"
 				>
 					{ __( 'Aa' ) }
 				</FlexItem>

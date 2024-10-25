@@ -12,7 +12,7 @@ const { directive } = privateApis(
 directive(
 	'show-mock',
 	( { directives: { 'show-mock': showMock }, element, evaluate } ) => {
-		const entry = showMock.find( ( { suffix } ) => suffix === 'default' );
+		const entry = showMock.find( ( { suffix } ) => suffix === null );
 		if ( ! evaluate( entry ) ) {
 			return null;
 		}
@@ -25,6 +25,8 @@ const { state } = store( 'directive-on-window', {
 		counter: 0,
 		isVisible: true,
 		isEventAttached: 'no',
+		resizeHandler: 'no',
+		resizeSecondHandler: 'no',
 	},
 	callbacks: {
 		resizeHandler() {
@@ -32,12 +34,18 @@ const { state } = store( 'directive-on-window', {
 		},
 		init() {
 			state.isEventAttached = 'yes';
-		}
+		},
 	},
 	actions: {
 		visibilityHandler: () => {
 			state.isEventAttached = 'no';
 			state.isVisible = ! state.isVisible;
 		},
-	}
+		resizeHandler: () => {
+			state.resizeHandler = 'yes';
+		},
+		resizeSecondHandler: () => {
+			state.resizeSecondHandler = 'yes';
+		},
+	},
 } );

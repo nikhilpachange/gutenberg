@@ -10,7 +10,8 @@ import {
 	Button,
 	FlexItem,
 	Dropdown,
-	privateApis as componentsPrivateApis,
+	Composite,
+	Tooltip,
 } from '@wordpress/components';
 import { useMemo } from '@wordpress/element';
 import { shadow as shadowIcon, Icon, check } from '@wordpress/icons';
@@ -18,12 +19,7 @@ import { shadow as shadowIcon, Icon, check } from '@wordpress/icons';
 /**
  * External dependencies
  */
-import classNames from 'classnames';
-
-/**
- * Internal dependencies
- */
-import { unlock } from '../../lock-unlock';
+import clsx from 'clsx';
 
 /**
  * Shared reference to an empty array for cases where it is important to avoid
@@ -47,6 +43,7 @@ export function ShadowPopoverContainer( { shadow, onShadowChange, settings } ) {
 				/>
 				<div className="block-editor-global-styles__clear-shadow">
 					<Button
+						__next40pxDefaultSize
 						variant="tertiary"
 						onClick={ () => onShadowChange( undefined ) }
 					>
@@ -59,12 +56,8 @@ export function ShadowPopoverContainer( { shadow, onShadowChange, settings } ) {
 }
 
 export function ShadowPresets( { presets, activeShadow, onSelect } ) {
-	const { CompositeV2: Composite, useCompositeStoreV2: useCompositeStore } =
-		unlock( componentsPrivateApis );
-	const compositeStore = useCompositeStore();
 	return ! presets ? null : (
 		<Composite
-			store={ compositeStore }
 			role="listbox"
 			className="block-editor-global-styles__shadow__list"
 			aria-label={ __( 'Drop shadows' ) }
@@ -86,35 +79,32 @@ export function ShadowPresets( { presets, activeShadow, onSelect } ) {
 }
 
 export function ShadowIndicator( { type, label, isActive, onSelect, shadow } ) {
-	const { CompositeItemV2: CompositeItem } = unlock( componentsPrivateApis );
 	return (
-		<CompositeItem
-			role="option"
-			aria-label={ label }
-			aria-selected={ isActive }
-			className={ classNames(
-				'block-editor-global-styles__shadow__item',
-				{
+		<Tooltip text={ label }>
+			<Composite.Item
+				role="option"
+				aria-label={ label }
+				aria-selected={ isActive }
+				className={ clsx( 'block-editor-global-styles__shadow__item', {
 					'is-active': isActive,
+				} ) }
+				render={
+					<button
+						className={ clsx(
+							'block-editor-global-styles__shadow-indicator',
+							{
+								unset: type === 'unset',
+							}
+						) }
+						onClick={ onSelect }
+						style={ { boxShadow: shadow } }
+						aria-label={ label }
+					>
+						{ isActive && <Icon icon={ check } /> }
+					</button>
 				}
-			) }
-			render={
-				<Button
-					className={ classNames(
-						'block-editor-global-styles__shadow-indicator',
-						{
-							unset: type === 'unset',
-						}
-					) }
-					onClick={ onSelect }
-					label={ label }
-					style={ { boxShadow: shadow } }
-					showTooltip
-				>
-					{ isActive && <Icon icon={ check } /> }
-				</Button>
-			}
-		/>
+			/>
+		</Tooltip>
 	);
 }
 
@@ -147,12 +137,12 @@ function renderShadowToggle() {
 	return ( { onToggle, isOpen } ) => {
 		const toggleProps = {
 			onClick: onToggle,
-			className: classNames( { 'is-open': isOpen } ),
+			className: clsx( { 'is-open': isOpen } ),
 			'aria-expanded': isOpen,
 		};
 
 		return (
-			<Button { ...toggleProps }>
+			<Button __next40pxDefaultSize { ...toggleProps }>
 				<HStack justify="flex-start">
 					<Icon
 						className="block-editor-global-styles__toggle-icon"
@@ -173,8 +163,11 @@ export function useShadowPresets( settings ) {
 		}
 
 		const defaultPresetsEnabled = settings?.shadow?.defaultPresets;
-		const { default: defaultShadows, theme: themeShadows } =
-			settings?.shadow?.presets ?? {};
+		const {
+			default: defaultShadows,
+			theme: themeShadows,
+			custom: customShadows,
+		} = settings?.shadow?.presets ?? {};
 		const unsetShadow = {
 			name: __( 'Unset' ),
 			slug: 'unset',
@@ -184,6 +177,7 @@ export function useShadowPresets( settings ) {
 		const shadowPresets = [
 			...( ( defaultPresetsEnabled && defaultShadows ) || EMPTY_ARRAY ),
 			...( themeShadows || EMPTY_ARRAY ),
+			...( customShadows || EMPTY_ARRAY ),
 		];
 		if ( shadowPresets.length ) {
 			shadowPresets.unshift( unsetShadow );

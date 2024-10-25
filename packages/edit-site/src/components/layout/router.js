@@ -2,149 +2,85 @@
  * WordPress dependencies
  */
 import { privateApis as routerPrivateApis } from '@wordpress/router';
-
+import { useEffect, useMemo } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
 /**
  * Internal dependencies
  */
 import { unlock } from '../../lock-unlock';
-import { useIsSiteEditorLoading } from './hooks';
-import Editor from '../editor';
-import PagePages from '../page-pages';
-import PagePatterns from '../page-patterns';
-import PageTemplatesTemplateParts from '../page-templates-template-parts';
-
 import {
-	TEMPLATE_POST_TYPE,
+	NAVIGATION_POST_TYPE,
+	PATTERN_TYPES,
 	TEMPLATE_PART_POST_TYPE,
+	TEMPLATE_POST_TYPE,
 } from '../../utils/constants';
+import { store as editSiteStore } from '../../store';
 
-const { useLocation } = unlock( routerPrivateApis );
+const { useLocation, useHistory } = unlock( routerPrivateApis );
 
-export default function useLayoutAreas() {
-	const isSiteEditorLoading = useIsSiteEditorLoading();
+function useRedirectOldPaths() {
+	const history = useHistory();
 	const { params } = useLocation();
-	const { postType, postId, path, layout, isCustom, canvas } = params ?? {};
+	useEffect( () => {
+		const { postType, path, categoryType, ...rest } = params;
 
-	// Note: Since "sidebar" is not yet supported here,
-	// returning undefined from "mobile" means show the sidebar.
+		if ( path === '/wp_template_part/all' ) {
+			history.replace( { postType: TEMPLATE_PART_POST_TYPE } );
+		}
 
-	// Regular page
-	if ( path === '/page' ) {
+		if ( path === '/page' ) {
+			history.replace( {
+				postType: 'page',
+				...rest,
+			} );
+		}
+
+		if ( path === '/wp_template' ) {
+			history.replace( {
+				postType: TEMPLATE_POST_TYPE,
+				...rest,
+			} );
+		}
+
+		if ( path === '/patterns' ) {
+			history.replace( {
+				postType:
+					categoryType === TEMPLATE_PART_POST_TYPE
+						? TEMPLATE_PART_POST_TYPE
+						: PATTERN_TYPES.user,
+				...rest,
+			} );
+		}
+
+		if ( path === '/navigation' ) {
+			history.replace( {
+				postType: NAVIGATION_POST_TYPE,
+				...rest,
+			} );
+		}
+	}, [ history, params ] );
+}
+
+export default function useActiveRoute() {
+	const { params } = useLocation();
+	useRedirectOldPaths();
+	const routes = useSelect( ( select ) => {
+		return unlock( select( editSiteStore ) ).getRoutes();
+	}, [] );
+	return useMemo( () => {
+		const matchedRoute = routes.find( ( route ) => route.match( params ) );
+		if ( ! matchedRoute ) {
+			return {
+				key: 404,
+				areas: {},
+				widths: {},
+			};
+		}
+
 		return {
-			areas: {
-				content: undefined,
-				preview: <Editor isLoading={ isSiteEditorLoading } />,
-				mobile:
-					canvas === 'edit' ? (
-						<Editor isLoading={ isSiteEditorLoading } />
-					) : undefined,
-			},
-			widths: {
-				content: undefined,
-			},
+			name: matchedRoute.name,
+			areas: matchedRoute.areas,
+			widths: matchedRoute.widths,
 		};
-	}
-
-	// List layout is still experimental.
-	// Extracted it here out of the conditionals so it doesn't unintentionally becomes stable.
-	const isListLayout =
-		isCustom !== 'true' &&
-		layout === 'list' &&
-		window?.__experimentalAdminViews;
-
-	if ( path === '/pages' ) {
-		return {
-			areas: {
-				content: <PagePages />,
-				preview: isListLayout && (
-					<Editor isLoading={ isSiteEditorLoading } />
-				),
-			},
-			widths: {
-				content: isListLayout ? 380 : undefined,
-			},
-		};
-	}
-
-	// Regular other post types
-	if ( postType && postId ) {
-		return {
-			areas: {
-				preview: <Editor isLoading={ isSiteEditorLoading } />,
-				mobile:
-					canvas === 'edit' ? (
-						<Editor isLoading={ isSiteEditorLoading } />
-					) : undefined,
-			},
-		};
-	}
-
-	// Templates
-	if ( path === '/wp_template/all' ) {
-		return {
-			areas: {
-				content: (
-					<PageTemplatesTemplateParts
-						postType={ TEMPLATE_POST_TYPE }
-					/>
-				),
-				preview: isListLayout && (
-					<Editor isLoading={ isSiteEditorLoading } />
-				),
-				mobile: (
-					<PageTemplatesTemplateParts
-						postType={ TEMPLATE_POST_TYPE }
-					/>
-				),
-			},
-			widths: {
-				content: isListLayout ? 380 : undefined,
-			},
-		};
-	}
-
-	// Template parts
-	if ( path === '/wp_template_part/all' ) {
-		return {
-			areas: {
-				content: (
-					<PageTemplatesTemplateParts
-						postType={ TEMPLATE_PART_POST_TYPE }
-					/>
-				),
-				preview: isListLayout && (
-					<Editor isLoading={ isSiteEditorLoading } />
-				),
-				mobile: (
-					<PageTemplatesTemplateParts
-						postType={ TEMPLATE_PART_POST_TYPE }
-					/>
-				),
-			},
-			widths: {
-				content: isListLayout ? 380 : undefined,
-			},
-		};
-	}
-
-	// Patterns
-	if ( path === '/patterns' ) {
-		return {
-			areas: {
-				content: <PagePatterns />,
-				mobile: <PagePatterns />,
-			},
-		};
-	}
-
-	// Fallback shows the home page preview
-	return {
-		areas: {
-			preview: <Editor isLoading={ isSiteEditorLoading } />,
-			mobile:
-				canvas === 'edit' ? (
-					<Editor isLoading={ isSiteEditorLoading } />
-				) : undefined,
-		},
-	};
+	}, [ routes, params ] );
 }

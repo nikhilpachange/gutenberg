@@ -2,9 +2,13 @@
  * WordPress dependencies
  */
 import { useSelect, useDispatch } from '@wordpress/data';
+import { isTextField } from '@wordpress/dom';
 import { Popover } from '@wordpress/components';
 import { __unstableUseShortcutEventMatch as useShortcutEventMatch } from '@wordpress/keyboard-shortcuts';
 import { useRef } from '@wordpress/element';
+import { switchToBlockType, store as blocksStore } from '@wordpress/blocks';
+import { speak } from '@wordpress/a11y';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -15,31 +19,31 @@ import {
 	default as InsertionPoint,
 } from './insertion-point';
 import BlockToolbarPopover from './block-toolbar-popover';
-import BlockToolbarBreadcrumb from './block-toolbar-breadcrumb';
 import { store as blockEditorStore } from '../../store';
 import usePopoverScroll from '../block-popover/use-popover-scroll';
 import ZoomOutModeInserters from './zoom-out-mode-inserters';
 import { useShowBlockTools } from './use-show-block-tools';
+import { unlock } from '../../lock-unlock';
 
 function selector( select ) {
 	const {
 		getSelectedBlockClientId,
 		getFirstMultiSelectedBlockClientId,
 		getSettings,
-		__unstableGetEditorMode,
 		isTyping,
-	} = select( blockEditorStore );
+		isDragging,
+		isZoomOut,
+	} = unlock( select( blockEditorStore ) );
 
 	const clientId =
 		getSelectedBlockClientId() || getFirstMultiSelectedBlockClientId();
-
-	const editorMode = __unstableGetEditorMode();
 
 	return {
 		clientId,
 		hasFixedToolbar: getSettings().hasFixedToolbar,
 		isTyping: isTyping(),
-		isZoomOutMode: editorMode === 'zoom-out',
+		isZoomOutMode: isZoomOut(),
+		isDragging: isDragging(),
 	};
 }
 
@@ -57,32 +61,36 @@ export default function BlockTools( {
 	__unstableContentRef,
 	...props
 } ) {
-	const { clientId, hasFixedToolbar, isTyping, isZoomOutMode } = useSelect(
-		selector,
-		[]
-	);
-	const isMatch = useShortcutEventMatch();
-	const { getSelectedBlockClientIds, getBlockRootClientId } =
-		useSelect( blockEditorStore );
+	const { clientId, hasFixedToolbar, isTyping, isZoomOutMode, isDragging } =
+		useSelect( selector, [] );
 
+	const isMatch = useShortcutEventMatch();
 	const {
-		showEmptyBlockSideInserter,
-		showBreadcrumb,
-		showBlockToolbarPopover,
-	} = useShowBlockTools();
+		getBlocksByClientId,
+		getSelectedBlockClientIds,
+		getBlockRootClientId,
+		isGroupable,
+	} = useSelect( blockEditorStore );
+	const { getGroupingBlockName } = useSelect( blocksStore );
+	const { showEmptyBlockSideInserter, showBlockToolbarPopover } =
+		useShowBlockTools();
 
 	const {
 		duplicateBlocks,
 		removeBlocks,
+		replaceBlocks,
 		insertAfterBlock,
 		insertBeforeBlock,
 		selectBlock,
 		moveBlocksUp,
 		moveBlocksDown,
-	} = useDispatch( blockEditorStore );
+		expandBlock,
+	} = unlock( useDispatch( blockEditorStore ) );
 
 	function onKeyDown( event ) {
-		if ( event.defaultPrevented ) return;
+		if ( event.defaultPrevented ) {
+			return;
+		}
 
 		if ( isMatch( 'core/block-editor/move-up', event ) ) {
 			const clientIds = getSelectedBlockClientIds();
@@ -140,9 +148,35 @@ export default function BlockTools( {
 				// In effect, to the user this feels like deselecting the multi-selection.
 				selectBlock( clientIds[ 0 ] );
 			}
+		} else if ( isMatch( 'core/block-editor/collapse-list-view', event ) ) {
+			// If focus is currently within a text field, such as a rich text block or other editable field,
+			// skip collapsing the list view, and allow the keyboard shortcut to be handled by the text field.
+			// This condition checks for both the active element and the active element within an iframed editor.
+			if (
+				isTextField( event.target ) ||
+				isTextField(
+					event.target?.contentWindow?.document?.activeElement
+				)
+			) {
+				return;
+			}
+			event.preventDefault();
+			expandBlock( clientId );
+		} else if ( isMatch( 'core/block-editor/group', event ) ) {
+			const clientIds = getSelectedBlockClientIds();
+			if ( clientIds.length > 1 && isGroupable( clientIds ) ) {
+				event.preventDefault();
+				const blocks = getBlocksByClientId( clientIds );
+				const groupingBlockName = getGroupingBlockName();
+				const newBlocks = switchToBlockType(
+					blocks,
+					groupingBlockName
+				);
+				replaceBlocks( clientIds, newBlocks );
+				speak( __( 'Selected blocks are grouped.' ) );
+			}
 		}
 	}
-
 	const blockToolbarRef = usePopoverScroll( __unstableContentRef );
 	const blockToolbarAfterRef = usePopoverScroll( __unstableContentRef );
 
@@ -150,7 +184,7 @@ export default function BlockTools( {
 		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
 		<div { ...props } onKeyDown={ onKeyDown }>
 			<InsertionPointOpenRef.Provider value={ useRef( false ) }>
-				{ ! isTyping && (
+				{ ! isTyping && ! isZoomOutMode && (
 					<InsertionPoint
 						__unstableContentRef={ __unstableContentRef }
 					/>
@@ -171,13 +205,6 @@ export default function BlockTools( {
 					/>
 				) }
 
-				{ showBreadcrumb && (
-					<BlockToolbarBreadcrumb
-						__unstableContentRef={ __unstableContentRef }
-						clientId={ clientId }
-					/>
-				) }
-
 				{ /* Used for the inline rich text toolbar. Until this toolbar is combined into BlockToolbar, someone implementing their own BlockToolbar will also need to use this to see the image caption toolbar. */ }
 				{ ! isZoomOutMode && ! hasFixedToolbar && (
 					<Popover.Slot
@@ -191,7 +218,7 @@ export default function BlockTools( {
 					name="__unstable-block-tools-after"
 					ref={ blockToolbarAfterRef }
 				/>
-				{ isZoomOutMode && (
+				{ isZoomOutMode && ! isDragging && (
 					<ZoomOutModeInserters
 						__unstableContentRef={ __unstableContentRef }
 					/>

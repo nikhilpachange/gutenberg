@@ -8,7 +8,6 @@ import FastImage from 'react-native-fast-image';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Icon } from '@wordpress/components';
 import { image, offline } from '@wordpress/icons';
 import { usePreferredColorSchemeStyle } from '@wordpress/compose';
 import { useEffect, useState, Platform } from '@wordpress/element';
@@ -20,6 +19,7 @@ import { getImageWithFocalPointStyles } from './utils';
 import styles from './style.scss';
 import SvgIconRetry from './icon-retry';
 import ImageEditingButton from './image-editing-button';
+import Icon from '../../icon';
 
 const ICON_TYPE = {
 	OFFLINE: 'offline',
@@ -112,9 +112,7 @@ const ImageComponent = ( {
 			}
 		}
 		return () => ( isCurrent = false );
-		// Disable reason: deferring this refactor to the native team.
-		// see https://github.com/WordPress/gutenberg/pull/41166
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// See https://github.com/WordPress/gutenberg/pull/41166
 	}, [ url ] );
 
 	const onContainerLayout = ( event ) => {
@@ -285,7 +283,7 @@ const ImageComponent = ( {
 				disabled={ ! isSelected }
 				accessibilityLabel={ alt }
 				accessibilityHint={ __( 'Double tap and hold to edit' ) }
-				accessibilityRole={ 'imagebutton' }
+				accessibilityRole="imagebutton"
 				key={ url }
 				style={ imageContainerStyles }
 			>

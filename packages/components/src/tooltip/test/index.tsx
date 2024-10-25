@@ -42,14 +42,6 @@ const hoverOutside = async () => {
 };
 
 describe( 'Tooltip', () => {
-	// Wait enough time to make sure that tooltips don't show immediately, ignoring
-	// the showTimeout delay. For more context, see:
-	// - https://github.com/WordPress/gutenberg/pull/57345#discussion_r1435167187
-	// - https://ariakit.org/reference/tooltip-provider#skiptimeout
-	afterEach( async () => {
-		await sleep( 300 );
-	} );
-
 	describe( 'basic behavior', () => {
 		it( 'should not render the tooltip if multiple children are passed', async () => {
 			render(
@@ -67,7 +59,6 @@ describe( 'Tooltip', () => {
 				screen.getByRole( 'button', { name: 'Second button' } )
 			).toBeVisible();
 
-			await sleep();
 			await press.Tab();
 
 			expectTooltipToBeHidden();
@@ -113,6 +104,24 @@ describe( 'Tooltip', () => {
 				screen.getByRole( 'button', { name: 'Anchor' } )
 			).not.toHaveAttribute( 'data-foo' );
 		} );
+
+		it( 'should add default and custom class names to the tooltip', async () => {
+			render( <Tooltip { ...props } className="foo" /> );
+
+			// Hover over the anchor, tooltip should show
+			await hover(
+				screen.getByRole( 'button', { name: 'Tooltip anchor' } )
+			);
+
+			// Check default and custom classnames
+			await waitFor( () =>
+				expect(
+					screen.getByRole( 'tooltip', {
+						name: 'tooltip text',
+					} )
+				).toHaveClass( 'components-tooltip', 'foo' )
+			);
+		} );
 	} );
 
 	describe( 'keyboard focus', () => {
@@ -135,7 +144,6 @@ describe( 'Tooltip', () => {
 			);
 
 			// Focus the anchor, tooltip should show
-			await sleep();
 			await press.Tab();
 			expect(
 				screen.getByRole( 'button', { name: 'Tooltip anchor' } )
@@ -143,7 +151,6 @@ describe( 'Tooltip', () => {
 			await waitExpectTooltipToShow();
 
 			// Focus the other button, tooltip should hide
-			await sleep();
 			await press.Tab();
 			expect(
 				screen.getByRole( 'button', { name: 'Focus me' } )
@@ -169,13 +176,11 @@ describe( 'Tooltip', () => {
 			expect( anchor ).toHaveAttribute( 'aria-disabled', 'true' );
 
 			// Focus anchor, tooltip should show
-			await sleep();
 			await press.Tab();
 			expect( anchor ).toHaveFocus();
 			await waitExpectTooltipToShow();
 
 			// Focus another button, tooltip should hide
-			await sleep();
 			await press.Tab();
 			expect(
 				screen.getByRole( 'button', {
@@ -312,6 +317,11 @@ describe( 'Tooltip', () => {
 			// Hover outside of the anchor, tooltip should hide
 			await hoverOutside();
 			await waitExpectTooltipToHide();
+
+			// Prevent this test from interfering with the next one.
+			// "Tooltips appear instantly if another tooltip has just been hidden."
+			// See: https://github.com/WordPress/gutenberg/pull/57345#discussion_r1435495655
+			await sleep( 3000 );
 		} );
 
 		it( 'should not show tooltip if the mouse leaves the tooltip anchor before set delay', async () => {
@@ -504,6 +514,84 @@ describe( 'Tooltip', () => {
 			expect(
 				screen.getByRole( 'button', { name: 'Anchor' } )
 			).not.toHaveClass( 'components-tooltip' );
+		} );
+	} );
+
+	describe( 'aria-describedby', () => {
+		it( "should not override the anchor's aria-describedby attribute if specified", async () => {
+			render(
+				<>
+					<Tooltip { ...props }>
+						<button aria-describedby="tooltip-test-description">
+							Tooltip anchor
+						</button>
+					</Tooltip>
+					{ /* eslint-disable-next-line no-restricted-syntax */ }
+					<p id="tooltip-test-description">Tooltip description</p>
+					<button>focus trap outside</button>
+				</>
+			);
+
+			expect(
+				screen.getByRole( 'button', { name: 'Tooltip anchor' } )
+			).toHaveAccessibleDescription( 'Tooltip description' );
+
+			// Focus the anchor, tooltip should show
+			await press.Tab();
+			expect(
+				screen.getByRole( 'button', { name: 'Tooltip anchor' } )
+			).toHaveFocus();
+			await waitExpectTooltipToShow();
+
+			// The anchors should retain its previous accessible description,
+			// since the tooltip shouldn't override it.
+			expect(
+				screen.getByRole( 'button', { name: 'Tooltip anchor' } )
+			).toHaveAccessibleDescription( 'Tooltip description' );
+
+			// Focus the other button, tooltip should hide
+			await press.Tab();
+			expect(
+				screen.getByRole( 'button', { name: 'focus trap outside' } )
+			).toHaveFocus();
+			await waitExpectTooltipToHide();
+		} );
+
+		it( "should not add the aria-describedby attribute to the anchor if the tooltip text matches the anchor's aria-label", async () => {
+			render(
+				<>
+					<Tooltip { ...props }>
+						<button aria-label={ props.text }>
+							Tooltip anchor
+						</button>
+					</Tooltip>
+					<button>focus trap outside</button>
+				</>
+			);
+
+			expect(
+				screen.getByRole( 'button', { name: props.text } )
+			).not.toHaveAccessibleDescription();
+
+			// Focus the anchor, tooltip should show
+			await press.Tab();
+			expect(
+				screen.getByRole( 'button', { name: props.text } )
+			).toHaveFocus();
+			await waitExpectTooltipToShow();
+
+			// The anchor shouldn't have an aria-describedby prop
+			// because its aria-label matches the tooltip text.
+			expect(
+				screen.getByRole( 'button', { name: props.text } )
+			).not.toHaveAccessibleDescription();
+
+			// Focus the other button, tooltip should hide
+			await press.Tab();
+			expect(
+				screen.getByRole( 'button', { name: 'focus trap outside' } )
+			).toHaveFocus();
+			await waitExpectTooltipToHide();
 		} );
 	} );
 } );

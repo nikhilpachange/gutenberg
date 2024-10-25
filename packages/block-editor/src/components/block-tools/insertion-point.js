@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -18,6 +18,7 @@ import Inserter from '../inserter';
 import { store as blockEditorStore } from '../../store';
 import BlockPopoverInbetween from '../block-popover/inbetween';
 import BlockDropZonePopover from '../block-popover/drop-zone';
+import { unlock } from '../../lock-unlock';
 
 export const InsertionPointOpenRef = createContext();
 
@@ -37,7 +38,7 @@ function InbetweenInsertionPointPopover( {
 		rootClientId,
 		isInserterShown,
 		isDistractionFree,
-		isNavigationMode,
+		isZoomOutMode,
 	} = useSelect( ( select ) => {
 		const {
 			getBlockOrder,
@@ -47,8 +48,8 @@ function InbetweenInsertionPointPopover( {
 			getPreviousBlockClientId,
 			getNextBlockClientId,
 			getSettings,
-			isNavigationMode: _isNavigationMode,
-		} = select( blockEditorStore );
+			isZoomOut,
+		} = unlock( select( blockEditorStore ) );
 		const insertionPoint = getBlockInsertionPoint();
 		const order = getBlockOrder( insertionPoint.rootClientId );
 
@@ -76,9 +77,9 @@ function InbetweenInsertionPointPopover( {
 				getBlockListSettings( insertionPoint.rootClientId )
 					?.orientation || 'vertical',
 			rootClientId: insertionPoint.rootClientId,
-			isNavigationMode: _isNavigationMode(),
 			isDistractionFree: settings.isDistractionFree,
 			isInserterShown: insertionPoint?.__unstableWithInserter,
+			isZoomOutMode: isZoomOut(),
 		};
 	}, [] );
 	const { getBlockEditingMode } = useSelect( blockEditorStore );
@@ -141,7 +142,15 @@ function InbetweenInsertionPointPopover( {
 		},
 	};
 
-	if ( isDistractionFree && ! isNavigationMode ) {
+	if ( isDistractionFree ) {
+		return null;
+	}
+
+	// Zoom out mode should only show the insertion point for the insert operation.
+	// Other operations such as "group" are when the editor tries to create a row
+	// block by grouping the block being dragged with the block it's being dropped
+	// onto.
+	if ( isZoomOutMode && operation !== 'insert' ) {
 		return null;
 	}
 
@@ -150,7 +159,7 @@ function InbetweenInsertionPointPopover( {
 			? 'is-horizontal'
 			: 'is-vertical';
 
-	const className = classnames(
+	const className = clsx(
 		'block-editor-block-list__insertion-point',
 		orientationClassname
 	);
@@ -175,7 +184,7 @@ function InbetweenInsertionPointPopover( {
 				tabIndex={ -1 }
 				onClick={ onClick }
 				onFocus={ onFocus }
-				className={ classnames( className, {
+				className={ clsx( className, {
 					'is-with-inserter': isInserterShown,
 				} ) }
 				onHoverEnd={ maybeHideInserterPoint }
@@ -188,7 +197,7 @@ function InbetweenInsertionPointPopover( {
 				{ isInserterShown && (
 					<motion.div
 						variants={ inserterVariants }
-						className={ classnames(
+						className={ clsx(
 							'block-editor-block-list__insertion-point-inserter'
 						) }
 					>

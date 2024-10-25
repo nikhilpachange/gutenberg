@@ -28,6 +28,7 @@ function gutenberg_get_global_stylesheet( $types = array() ) {
 		}
 	}
 	$tree = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data();
+	$tree = WP_Theme_JSON_Resolver_Gutenberg::resolve_theme_file_uris( $tree );
 
 	$supports_theme_json = wp_theme_has_theme_json();
 	if ( empty( $types ) && ! $supports_theme_json ) {
@@ -72,6 +73,7 @@ function gutenberg_get_global_stylesheet( $types = array() ) {
 		 * @see wp_add_global_styles_for_blocks
 		 */
 		$origins = array( 'default', 'theme', 'custom' );
+
 		/*
 		* If the theme doesn't have theme.json but supports both appearance tools and color palette,
 		* the 'theme' origin should be included so color palette presets are also output.
@@ -143,6 +145,7 @@ function gutenberg_get_global_settings( $path = array(), $context = array() ) {
  * @return string
  */
 function gutenberg_get_global_styles_custom_css() {
+	_deprecated_function( __FUNCTION__, 'Gutenberg 18.6.0', 'gutenberg_get_global_stylesheet' );
 	// Ignore cache when `WP_DEBUG` is enabled, so it doesn't interfere with the theme developers workflow.
 	$can_use_cached = ! WP_DEBUG;
 	$cache_key      = 'gutenberg_get_global_custom_css';
@@ -176,6 +179,7 @@ function gutenberg_get_global_styles_custom_css() {
  * @return string The global base custom CSS.
  */
 function gutenberg_get_global_styles_base_custom_css() {
+	_deprecated_function( __FUNCTION__, 'Gutenberg 18.6.0', 'gutenberg_get_global_stylesheet' );
 	if ( ! wp_theme_has_theme_json() ) {
 		return '';
 	}
@@ -207,9 +211,10 @@ function gutenberg_get_global_styles_base_custom_css() {
  *
  * @since 6.6.0
  *
- *  @global WP_Styles $wp_styles
+ * @global WP_Styles $wp_styles
  */
 function gutenberg_add_global_styles_block_custom_css() {
+	_deprecated_function( __FUNCTION__, 'Gutenberg 18.6.0', 'gutenberg_add_global_styles_for_blocks' );
 	global $wp_styles;
 
 	if ( ! wp_theme_has_theme_json() || ! wp_should_load_separate_core_block_assets() ) {
@@ -247,16 +252,54 @@ function gutenberg_add_global_styles_block_custom_css() {
 /**
  * Adds global style rules to the inline style for each block.
  *
- * @return void
- *
  * @global WP_Styles $wp_styles
+ *
+ * @return void
  */
 function gutenberg_add_global_styles_for_blocks() {
 	global $wp_styles;
 	$tree        = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data();
+	$tree        = WP_Theme_JSON_Resolver_Gutenberg::resolve_theme_file_uris( $tree );
 	$block_nodes = $tree->get_styles_block_nodes();
+
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+	$update_cache   = false;
+
+	if ( $can_use_cached ) {
+		// Hash the merged WP_Theme_JSON data to bust cache on settings or styles change.
+		$cache_hash = md5( wp_json_encode( $tree->get_raw_data() ) );
+		$cache_key  = 'wp_styles_for_blocks';
+		$cached     = get_transient( $cache_key );
+
+		// Reset the cached data if there is no value or if the hash has changed.
+		if ( ! is_array( $cached ) || $cached['hash'] !== $cache_hash ) {
+			$cached = array(
+				'hash'   => $cache_hash,
+				'blocks' => array(),
+			);
+
+			// Update the cache if the hash has changed.
+			$update_cache = true;
+		}
+	}
+
 	foreach ( $block_nodes as $metadata ) {
-		$block_css = $tree->get_styles_for_block( $metadata );
+		if ( $can_use_cached ) {
+			// Use the block name as the key for cached CSS data. Otherwise, use a hash of the metadata.
+			$cache_node_key = isset( $metadata['name'] ) ? $metadata['name'] : md5( wp_json_encode( $metadata ) );
+
+			if ( isset( $cached['blocks'][ $cache_node_key ] ) ) {
+				$block_css = $cached['blocks'][ $cache_node_key ];
+			} else {
+				$block_css                           = $tree->get_styles_for_block( $metadata );
+				$cached['blocks'][ $cache_node_key ] = $block_css;
+
+				// Update the cache if the cache contents have changed.
+				$update_cache = true;
+			}
+		} else {
+			$block_css = $tree->get_styles_for_block( $metadata );
+		}
 
 		if ( ! wp_should_load_separate_core_block_assets() ) {
 			wp_add_inline_style( 'global-styles', $block_css );
@@ -264,6 +307,7 @@ function gutenberg_add_global_styles_for_blocks() {
 		}
 
 		$stylesheet_handle = 'global-styles';
+
 		/*
 		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
 		 * enqueued for each block on the page in class WP_Block's render function.
@@ -300,6 +344,10 @@ function gutenberg_add_global_styles_for_blocks() {
 				}
 			}
 		}
+	}
+
+	if ( $update_cache ) {
+		set_transient( $cache_key, $cached );
 	}
 }
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classNames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -31,6 +31,9 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 		ref.current.focus();
 	}
 
+	// Note: radio inputs aren't implemented yet.
+	const isCheckboxOrRadio = type === 'checkbox' || type === 'radio';
+
 	const controls = (
 		<>
 			{ 'hidden' !== type && (
@@ -38,6 +41,7 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 					<PanelBody title={ __( 'Settings' ) }>
 						{ 'checkbox' !== type && (
 							<CheckboxControl
+								__nextHasNoMarginBottom
 								label={ __( 'Inline label' ) }
 								checked={ inlineLabel }
 								onChange={ ( newVal ) => {
@@ -48,6 +52,7 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 							/>
 						) }
 						<CheckboxControl
+							__nextHasNoMarginBottom
 							label={ __( 'Required' ) }
 							checked={ required }
 							onChange={ ( newVal ) => {
@@ -61,6 +66,8 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 			) }
 			<InspectorControls group="advanced">
 				<TextControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
 					autoComplete="off"
 					label={ __( 'Name' ) }
 					value={ name }
@@ -77,13 +84,25 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 		</>
 	);
 
+	const content = (
+		<RichText
+			tagName="span"
+			className="wp-block-form-input__label-content"
+			value={ label }
+			onChange={ ( newLabel ) => setAttributes( { label: newLabel } ) }
+			aria-label={ label ? __( 'Label' ) : __( 'Empty label' ) }
+			data-empty={ ! label }
+			placeholder={ __( 'Type the label for this input' ) }
+		/>
+	);
+
 	if ( 'hidden' === type ) {
 		return (
 			<>
 				{ controls }
 				<input
 					type="hidden"
-					className={ classNames(
+					className={ clsx(
 						className,
 						'wp-block-form-input__input',
 						colorProps.className,
@@ -103,24 +122,14 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 		<div { ...blockProps }>
 			{ controls }
 			<span
-				className={ classNames( 'wp-block-form-input__label', {
+				className={ clsx( 'wp-block-form-input__label', {
 					'is-label-inline': inlineLabel || 'checkbox' === type,
 				} ) }
 			>
-				<RichText
-					tagName="span"
-					className="wp-block-form-input__label-content"
-					value={ label }
-					onChange={ ( newLabel ) =>
-						setAttributes( { label: newLabel } )
-					}
-					aria-label={ label ? __( 'Label' ) : __( 'Empty label' ) }
-					data-empty={ label ? false : true }
-					placeholder={ __( 'Type the label for this input' ) }
-				/>
+				{ ! isCheckboxOrRadio && content }
 				<TagName
 					type={ 'textarea' === type ? undefined : type }
-					className={ classNames(
+					className={ clsx(
 						className,
 						'wp-block-form-input__input',
 						colorProps.className,
@@ -143,6 +152,7 @@ function InputFieldBlock( { attributes, setAttributes, className } ) {
 						...colorProps.style,
 					} }
 				/>
+				{ isCheckboxOrRadio && content }
 			</span>
 		</div>
 	);

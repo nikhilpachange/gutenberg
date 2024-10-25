@@ -12,8 +12,10 @@ const { directive } = privateApis(
 directive(
 	'show-mock',
 	( { directives: { 'show-mock': showMock }, element, evaluate } ) => {
-		const entry = showMock.find( ( { suffix } ) => suffix === 'default' );
-		if ( ! evaluate( entry ) ) return null;
+		const entry = showMock.find( ( { suffix } ) => suffix === null );
+		if ( ! evaluate( entry ) ) {
+			return null;
+		}
 		return element;
 	}
 );

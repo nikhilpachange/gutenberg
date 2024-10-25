@@ -9,6 +9,7 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interface',
 	'@wordpress/sync',
 	'@wordpress/undo-manager',
+	'@wordpress/fields',
 ];
 
 /**
@@ -42,6 +43,10 @@ function defaultRequestToExternal( request ) {
 
 		case 'react-dom':
 			return 'ReactDOM';
+
+		case 'react/jsx-runtime':
+		case 'react/jsx-dev-runtime':
+			return 'ReactJSXRuntime';
 	}
 
 	if ( request.includes( 'react-refresh/runtime' ) ) {
@@ -85,9 +90,10 @@ function defaultRequestToExternalModule( request ) {
 		return `module ${ request }`;
 	}
 
-	if ( request === '@wordpress/interactivity-router' ) {
-		// Assumes this is usually going to be used as a dynamic import.
-		return `import ${ request }`;
+	switch ( request ) {
+		case '@wordpress/interactivity-router':
+		case '@wordpress/a11y':
+			return `import ${ request }`;
 	}
 
 	const isWordPressScript = Boolean( defaultRequestToExternal( request ) );
@@ -113,10 +119,13 @@ function defaultRequestToExternalModule( request ) {
 function defaultRequestToHandle( request ) {
 	switch ( request ) {
 		case '@babel/runtime/regenerator':
-			return 'wp-polyfill';
+			return 'regenerator-runtime';
 
 		case 'lodash-es':
 			return 'lodash';
+
+		case 'react/jsx-runtime':
+			return 'react-jsx-runtime';
 	}
 
 	if ( request.includes( 'react-refresh/runtime' ) ) {

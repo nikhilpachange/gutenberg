@@ -1,6 +1,6 @@
 # The block in the Editor
 
-The Block Editor is a React Single Page Application (SPA). Every block in the Editor is displayed through a React component defined in the `edit` property of the settings object used to [register the block](https://developer.wordpress.org/block-editor/getting-started/fundamentals/registration-of-a-block/#registration-of-the-block-with-javascript-client-side) on the client. 
+The Block Editor is a React Single Page Application (SPA). Every block in the Editor is displayed through a React component defined in the `edit` property of the settings object used to [register the block](https://developer.wordpress.org/block-editor/getting-started/fundamentals/registration-of-a-block/#registering-a-block-with-javascript-client-side) on the client. 
 
 The `props` object received by the block's `Edit` React component includes:
 
@@ -124,7 +124,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						<legend className="blocks-base-control__label">
 							{ __( 'Background color', 'block-development-examples' ) }
 						</legend>
-						<ColorPalette // Element Tag for Gutenberg standard colour selector
+						<ColorPalette // Element Tag for Gutenberg standard color selector
 							onChange={ onChangeBGColor } // onChange event callback
 						/>
 					</fieldset>

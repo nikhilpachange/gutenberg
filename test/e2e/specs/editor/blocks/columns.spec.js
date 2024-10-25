@@ -33,14 +33,12 @@ test.describe( 'Columns', () => {
 			.first()
 			.click();
 
-		// Toggle Block inserter
-		await page
-			.locator( 'role=button[name="Toggle block inserter"i]' )
-			.click();
+		// Block Inserter
+		await page.locator( 'role=button[name="Block Inserter"i]' ).click();
 
 		// Verify Column
 		const inserterOptions = page.locator(
-			'role=region[name="Block Library"i] >> role=option'
+			'role=region[name="Block Library"i] >> .block-editor-inserter__insertable-blocks-at-selection >> role=option'
 		);
 		await expect( inserterOptions ).toHaveCount( 1 );
 		await expect( inserterOptions ).toHaveText( 'Column' );
@@ -379,5 +377,34 @@ test.describe( 'Columns', () => {
 				paragraphBlock,
 			] );
 		} );
+	} );
+
+	test( 'should arrow up into empty columns', async ( { editor, page } ) => {
+		await editor.insertBlock( {
+			name: 'core/columns',
+			innerBlocks: [ { name: 'core/column' }, { name: 'core/column' } ],
+		} );
+		await editor.insertBlock( {
+			name: 'core/paragraph',
+		} );
+
+		await page.keyboard.press( 'ArrowUp' );
+		await page.keyboard.press( 'ArrowUp' );
+		await page.keyboard.press( 'Delete' );
+
+		await expect.poll( editor.getBlocks ).toMatchObject( [
+			{
+				name: 'core/columns',
+				innerBlocks: [
+					{
+						name: 'core/column',
+					},
+				],
+			},
+			{
+				name: 'core/paragraph',
+				attributes: { content: '' },
+			},
+		] );
 	} );
 } );

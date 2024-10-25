@@ -1,13 +1,14 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 import type { MouseEventHandler, ReactNode } from 'react';
 
 /**
  * WordPress dependencies
  */
 import { useRefEffect } from '@wordpress/compose';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -19,7 +20,9 @@ const handleMouseDown: MouseEventHandler = ( e ) => {
 	e.preventDefault();
 };
 
-export function SuggestionsList< T extends string | { value: string } >( {
+export function SuggestionsList<
+	T extends string | { value: string; disabled?: boolean },
+>( {
 	selectedIndex,
 	scrollIntoView,
 	match,
@@ -103,10 +106,18 @@ export function SuggestionsList< T extends string | { value: string } >( {
 		>
 			{ suggestions.map( ( suggestion, index ) => {
 				const matchText = computeSuggestionMatch( suggestion );
-				const className = classnames(
+				const isSelected = index === selectedIndex;
+				const isDisabled =
+					typeof suggestion === 'object' && suggestion?.disabled;
+				const key =
+					typeof suggestion === 'object' && 'value' in suggestion
+						? suggestion?.value
+						: displayTransform( suggestion );
+
+				const className = clsx(
 					'components-form-token-field__suggestion',
 					{
-						'is-selected': index === selectedIndex,
+						'is-selected': isSelected,
 					}
 				);
 
@@ -134,22 +145,23 @@ export function SuggestionsList< T extends string | { value: string } >( {
 						id={ `components-form-token-suggestions-${ instanceId }-${ index }` }
 						role="option"
 						className={ className }
-						key={
-							typeof suggestion === 'object' &&
-							'value' in suggestion
-								? suggestion?.value
-								: displayTransform( suggestion )
-						}
+						key={ key }
 						onMouseDown={ handleMouseDown }
 						onClick={ handleClick( suggestion ) }
 						onMouseEnter={ handleHover( suggestion ) }
 						aria-selected={ index === selectedIndex }
+						aria-disabled={ isDisabled }
 					>
 						{ output }
 					</li>
 				);
 				/* eslint-enable jsx-a11y/click-events-have-key-events */
 			} ) }
+			{ suggestions.length === 0 && (
+				<li className="components-form-token-field__suggestion is-empty">
+					{ __( 'No items found' ) }
+				</li>
+			) }
 		</ul>
 	);
 }

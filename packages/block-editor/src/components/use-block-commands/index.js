@@ -16,7 +16,6 @@ import {
 	plus as add,
 	group,
 	ungroup,
-	moveTo as move,
 } from '@wordpress/icons';
 
 /**
@@ -27,37 +26,55 @@ import { store as blockEditorStore } from '../../store';
 
 export const useTransformCommands = () => {
 	const { replaceBlocks, multiSelect } = useDispatch( blockEditorStore );
-	const { blocks, clientIds, canRemove, possibleBlockTransformations } =
-		useSelect( ( select ) => {
-			const {
-				getBlockRootClientId,
-				getBlockTransformItems,
-				getSelectedBlockClientIds,
-				getBlocksByClientId,
-				canRemoveBlocks,
-			} = select( blockEditorStore );
+	const {
+		blocks,
+		clientIds,
+		canRemove,
+		possibleBlockTransformations,
+		invalidSelection,
+	} = useSelect( ( select ) => {
+		const {
+			getBlockRootClientId,
+			getBlockTransformItems,
+			getSelectedBlockClientIds,
+			getBlocksByClientId,
+			canRemoveBlocks,
+		} = select( blockEditorStore );
 
-			const selectedBlockClientIds = getSelectedBlockClientIds();
-			const selectedBlocks = getBlocksByClientId(
-				selectedBlockClientIds
-			);
-			const rootClientId = getBlockRootClientId(
-				selectedBlockClientIds[ 0 ]
-			);
+		const selectedBlockClientIds = getSelectedBlockClientIds();
+		const selectedBlocks = getBlocksByClientId( selectedBlockClientIds );
+
+		// selectedBlocks can have `null`s when something tries to call `selectBlock` with an inexistent clientId.
+		// These nulls will cause fatal errors down the line.
+		// In order to prevent discrepancies between selectedBlockClientIds and selectedBlocks, we effectively treat the entire selection as invalid.
+		// @see https://github.com/WordPress/gutenberg/pull/59410#issuecomment-2006304536
+		if ( selectedBlocks.filter( ( block ) => ! block ).length > 0 ) {
 			return {
-				blocks: selectedBlocks,
-				clientIds: selectedBlockClientIds,
-				possibleBlockTransformations: getBlockTransformItems(
-					selectedBlocks,
-					rootClientId
-				),
-				canRemove: canRemoveBlocks(
-					selectedBlockClientIds,
-					rootClientId
-				),
+				invalidSelection: true,
 			};
-		}, [] );
+		}
 
+		const rootClientId = getBlockRootClientId(
+			selectedBlockClientIds[ 0 ]
+		);
+		return {
+			blocks: selectedBlocks,
+			clientIds: selectedBlockClientIds,
+			possibleBlockTransformations: getBlockTransformItems(
+				selectedBlocks,
+				rootClientId
+			),
+			canRemove: canRemoveBlocks( selectedBlockClientIds ),
+			invalidSelection: false,
+		};
+	}, [] );
+
+	if ( invalidSelection ) {
+		return {
+			isLoading: false,
+			commands: [],
+		};
+	}
 	const isTemplate = blocks.length === 1 && isTemplatePart( blocks[ 0 ] );
 
 	function selectForMultipleBlocks( insertedBlocks ) {
@@ -107,60 +124,6 @@ export const useTransformCommands = () => {
 	} );
 
 	return { isLoading: false, commands };
-};
-
-const useActionsCommands = () => {
-	const { clientIds } = useSelect( ( select ) => {
-		const { getSelectedBlockClientIds } = select( blockEditorStore );
-		const selectedBlockClientIds = getSelectedBlockClientIds();
-
-		return {
-			clientIds: selectedBlockClientIds,
-		};
-	}, [] );
-
-	const { getBlockRootClientId, canMoveBlocks, getBlockCount } =
-		useSelect( blockEditorStore );
-
-	const { setBlockMovingClientId, setNavigationMode, selectBlock } =
-		useDispatch( blockEditorStore );
-
-	if ( ! clientIds || clientIds.length < 1 ) {
-		return { isLoading: false, commands: [] };
-	}
-
-	const rootClientId = getBlockRootClientId( clientIds[ 0 ] );
-
-	const canMove =
-		canMoveBlocks( clientIds, rootClientId ) &&
-		getBlockCount( rootClientId ) !== 1;
-
-	const commands = [];
-
-	if ( canMove ) {
-		commands.push( {
-			name: 'move-to',
-			label: __( 'Move to' ),
-			callback: () => {
-				setNavigationMode( true );
-				selectBlock( clientIds[ 0 ] );
-				setBlockMovingClientId( clientIds[ 0 ] );
-			},
-			icon: move,
-		} );
-	}
-
-	return {
-		isLoading: false,
-		commands: commands.map( ( command ) => ( {
-			...command,
-			name: 'core/block-editor/action-' + command.name,
-			callback: ( { close } ) => {
-				command.callback();
-				close();
-			},
-		} ) ),
-	};
 };
 
 const useQuickActionsCommands = () => {
@@ -242,7 +205,7 @@ const useQuickActionsCommands = () => {
 			canInsertBlockType( block.name, rootClientId )
 		);
 	} );
-	const canRemove = canRemoveBlocks( clientIds, rootClientId );
+	const canRemove = canRemoveBlocks( clientIds );
 
 	const commands = [];
 
@@ -326,10 +289,6 @@ export const useBlockCommands = () => {
 	useCommandLoader( {
 		name: 'core/block-editor/blockTransforms',
 		hook: useTransformCommands,
-	} );
-	useCommandLoader( {
-		name: 'core/block-editor/blockActions',
-		hook: useActionsCommands,
 	} );
 	useCommandLoader( {
 		name: 'core/block-editor/blockQuickActions',

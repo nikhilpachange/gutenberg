@@ -2,11 +2,15 @@
  * WordPress dependencies
  */
 import { Platform } from '@wordpress/element';
+import deprecated from '@wordpress/deprecated';
+import { speak } from '@wordpress/a11y';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
-import { undoIgnoreBlocks } from './undo-ignore';
+import { store as blockEditorStore } from './index';
+import { unlock } from '../lock-unlock';
 
 const castArray = ( maybeArray ) =>
 	Array.isArray( maybeArray ) ? maybeArray : [ maybeArray ];
@@ -38,14 +42,32 @@ export function __experimentalUpdateSettings(
 	settings,
 	{ stripExperimentalSettings = false, reset = false } = {}
 ) {
-	let cleanSettings = settings;
+	let incomingSettings = settings;
+
+	if ( Object.hasOwn( incomingSettings, '__unstableIsPreviewMode' ) ) {
+		deprecated(
+			"__unstableIsPreviewMode argument in wp.data.dispatch('core/block-editor').updateSettings",
+			{
+				since: '6.8',
+				alternative: 'isPreviewMode',
+			}
+		);
+
+		incomingSettings = { ...incomingSettings };
+		incomingSettings.isPreviewMode =
+			incomingSettings.__unstableIsPreviewMode;
+		delete incomingSettings.__unstableIsPreviewMode;
+	}
+
+	let cleanSettings = incomingSettings;
+
 	// There are no plugins in the mobile apps, so there is no
 	// need to strip the experimental settings:
 	if ( stripExperimentalSettings && Platform.OS === 'web' ) {
 		cleanSettings = {};
-		for ( const key in settings ) {
+		for ( const key in incomingSettings ) {
 			if ( ! privateSettings.includes( key ) ) {
-				cleanSettings[ key ] = settings[ key ];
+				cleanSettings[ key ] = incomingSettings[ key ];
 			}
 		}
 	}
@@ -103,11 +125,7 @@ export const privateRemoveBlocks =
 		}
 
 		clientIds = castArray( clientIds );
-		const rootClientId = select.getBlockRootClientId( clientIds[ 0 ] );
-		const canRemoveBlocks = select.canRemoveBlocks(
-			clientIds,
-			rootClientId
-		);
+		const canRemoveBlocks = select.canRemoveBlocks( clientIds );
 
 		if ( ! canRemoveBlocks ) {
 			return;
@@ -291,34 +309,6 @@ export function deleteStyleOverride( id ) {
 }
 
 /**
- * A higher-order action that mark every change inside a callback as "non-persistent"
- * and ignore pushing to the undo history stack. It's primarily used for synchronized
- * derived updates from the block editor without affecting the undo history.
- *
- * @param {() => void} callback The synchronous callback to derive updates.
- */
-export function syncDerivedUpdates( callback ) {
-	return ( { dispatch, select, registry } ) => {
-		registry.batch( () => {
-			// Mark every change in the `callback` as non-persistent.
-			dispatch( {
-				type: 'SET_EXPLICIT_PERSISTENT',
-				isPersistentChange: false,
-			} );
-			callback();
-			dispatch( {
-				type: 'SET_EXPLICIT_PERSISTENT',
-				isPersistentChange: undefined,
-			} );
-
-			// Ignore pushing undo stack for the updated blocks.
-			const updatedBlocks = select.getBlocks();
-			undoIgnoreBlocks.add( updatedBlocks );
-		} );
-	};
-}
-
-/**
  * Action that sets the element that had focus when focus leaves the editor canvas.
  *
  * @param {Object} lastFocus The last focused element.
@@ -339,9 +329,10 @@ export function setLastFocus( lastFocus = null ) {
  * @param {string} clientId The block's clientId.
  */
 export function stopEditingAsBlocks( clientId ) {
-	return ( { select, dispatch } ) => {
-		const focusModeToRevert =
-			select.__unstableGetTemporarilyEditingFocusModeToRevert();
+	return ( { select, dispatch, registry } ) => {
+		const focusModeToRevert = unlock(
+			registry.select( blockEditorStore )
+		).getTemporarilyEditingFocusModeToRevert();
 		dispatch.__unstableMarkNextChangeAsNotPersistent();
 		dispatch.updateBlockAttributes( clientId, {
 			templateLock: 'contentOnly',
@@ -374,5 +365,121 @@ export function startDragging() {
 export function stopDragging() {
 	return {
 		type: 'STOP_DRAGGING',
+	};
+}
+
+/**
+ * @param {string|null} clientId The block's clientId, or `null` to clear.
+ *
+ * @return  {Object} Action object.
+ */
+export function expandBlock( clientId ) {
+	return {
+		type: 'SET_BLOCK_EXPANDED_IN_LIST_VIEW',
+		clientId,
+	};
+}
+
+/**
+ * @param {Object} value
+ * @param {string} value.rootClientId The root client ID to insert at.
+ * @param {number} value.index        The index to insert at.
+ *
+ * @return {Object} Action object.
+ */
+export function setInsertionPoint( value ) {
+	return {
+		type: 'SET_INSERTION_POINT',
+		value,
+	};
+}
+
+/**
+ * Temporarily modify/unlock the content-only block for editions.
+ *
+ * @param {string} clientId The client id of the block.
+ */
+export const modifyContentLockBlock =
+	( clientId ) =>
+	( { select, dispatch } ) => {
+		dispatch.selectBlock( clientId );
+		dispatch.__unstableMarkNextChangeAsNotPersistent();
+		dispatch.updateBlockAttributes( clientId, {
+			templateLock: undefined,
+		} );
+		dispatch.updateBlockListSettings( clientId, {
+			...select.getBlockListSettings( clientId ),
+			templateLock: false,
+		} );
+		const focusModeToRevert = select.getSettings().focusMode;
+		dispatch.updateSettings( { focusMode: true } );
+		dispatch.__unstableSetTemporarilyEditingAsBlocks(
+			clientId,
+			focusModeToRevert
+		);
+	};
+
+/**
+ * Sets the zoom level.
+ *
+ * @param {number} zoom the new zoom level
+ * @return {Object} Action object.
+ */
+export const setZoomLevel =
+	( zoom = 100 ) =>
+	( { select, dispatch } ) => {
+		// When switching to zoom-out mode, we need to select the parent section
+		if ( zoom !== 100 ) {
+			const firstSelectedClientId = select.getBlockSelectionStart();
+			const sectionRootClientId = select.getSectionRootClientId();
+
+			if ( firstSelectedClientId ) {
+				let sectionClientId;
+
+				if ( sectionRootClientId ) {
+					const sectionClientIds =
+						select.getBlockOrder( sectionRootClientId );
+
+					// If the selected block is a section block, use it.
+					if ( sectionClientIds?.includes( firstSelectedClientId ) ) {
+						sectionClientId = firstSelectedClientId;
+					} else {
+						// If the selected block is not a section block, find
+						// the parent section that contains the selected block.
+						sectionClientId = select
+							.getBlockParents( firstSelectedClientId )
+							.find( ( parent ) =>
+								sectionClientIds.includes( parent )
+							);
+					}
+				} else {
+					sectionClientId = select.getBlockHierarchyRootClientId(
+						firstSelectedClientId
+					);
+				}
+
+				if ( sectionClientId ) {
+					dispatch.selectBlock( sectionClientId );
+				} else {
+					dispatch.clearSelectedBlock();
+				}
+
+				speak( __( 'You are currently in zoom-out mode.' ) );
+			}
+		}
+
+		dispatch( {
+			type: 'SET_ZOOM_LEVEL',
+			zoom,
+		} );
+	};
+
+/**
+ * Resets the Zoom state.
+ * @return {Object} Action object.
+ */
+export function resetZoomLevel() {
+	return {
+		type: 'RESET_ZOOM_LEVEL',
 	};
 }

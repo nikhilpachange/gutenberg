@@ -28,13 +28,16 @@ import {
 	isMultiSelecting,
 	preferences,
 	blocksMode,
+	insertionCue,
 	insertionPoint,
 	template,
 	blockListSettings,
+	settings,
 	lastBlockAttributesChange,
 	lastBlockInserted,
 	blockEditingModes,
 	openedBlockSettingsMenu,
+	expandedBlock,
 } from '../reducer';
 
 const noop = () => {};
@@ -2377,15 +2380,15 @@ describe( 'state', () => {
 		} );
 	} );
 
-	describe( 'insertionPoint', () => {
+	describe( 'insertionCue', () => {
 		it( 'should default to null', () => {
-			const state = insertionPoint( undefined, {} );
+			const state = insertionCue( undefined, {} );
 
 			expect( state ).toBe( null );
 		} );
 
 		it( 'should set insertion point', () => {
-			const state = insertionPoint( null, {
+			const state = insertionCue( null, {
 				type: 'SHOW_INSERTION_POINT',
 				rootClientId: 'clientId1',
 				index: 0,
@@ -2402,7 +2405,7 @@ describe( 'state', () => {
 				rootClientId: 'clientId1',
 				index: 0,
 			} );
-			const state = insertionPoint( original, {
+			const state = insertionCue( original, {
 				type: 'HIDE_INSERTION_POINT',
 			} );
 
@@ -3068,6 +3071,28 @@ describe( 'state', () => {
 		} );
 	} );
 
+	describe( 'settings', () => {
+		it( 'should warn about __unstableIsPreviewMode deprecation', () => {
+			const consoleWarn = jest
+				.spyOn( global.console, 'warn' )
+				.mockImplementation();
+
+			const settingsObject = settings( undefined, {
+				type: 'UPDATE_SETTINGS',
+				reset: true,
+			} );
+
+			expect( settingsObject.__unstableIsPreviewMode ).toBeDefined();
+			expect( settingsObject.isPreviewMode ).toBeDefined();
+
+			expect( consoleWarn ).toHaveBeenCalledWith(
+				'__unstableIsPreviewMode is deprecated since version 6.8. Please use isPreviewMode instead.'
+			);
+
+			consoleWarn.mockRestore();
+		} );
+	} );
+
 	describe( 'blockListSettings', () => {
 		it( 'should add new settings', () => {
 			const original = deepFreeze( {} );
@@ -3456,6 +3481,66 @@ describe( 'state', () => {
 					type: 'SET_OPENED_BLOCK_SETTINGS_MENU',
 				}
 			);
+			expect( state ).toBe( null );
+		} );
+	} );
+
+	describe( 'expandedBlock', () => {
+		it( 'should return null by default', () => {
+			expect( expandedBlock( undefined, {} ) ).toBe( null );
+		} );
+
+		it( 'should set client id for expanded block', () => {
+			const state = expandedBlock( null, {
+				type: 'SET_BLOCK_EXPANDED_IN_LIST_VIEW',
+				clientId: '14501cc2-90a6-4f52-aa36-ab6e896135d1',
+			} );
+			expect( state ).toBe( '14501cc2-90a6-4f52-aa36-ab6e896135d1' );
+		} );
+
+		it( 'should clear the state when a block is selected', () => {
+			const state = expandedBlock(
+				'14501cc2-90a6-4f52-aa36-ab6e896135d1',
+				{
+					type: 'SELECT_BLOCK',
+					clientId: 'a-different-block',
+				}
+			);
+			expect( state ).toBe( null );
+		} );
+	} );
+
+	describe( 'insertionPoint', () => {
+		it( 'should default to null', () => {
+			const state = insertionPoint( undefined, {} );
+
+			expect( state ).toBe( null );
+		} );
+
+		it( 'should set insertion point', () => {
+			const state = insertionPoint( null, {
+				type: 'SET_INSERTION_POINT',
+				value: {
+					rootClientId: 'clientId1',
+					index: 4,
+				},
+			} );
+
+			expect( state ).toEqual( {
+				rootClientId: 'clientId1',
+				index: 4,
+			} );
+		} );
+
+		it( 'should clear the insertion point on block selection', () => {
+			const original = deepFreeze( {
+				rootClientId: 'clientId1',
+				index: 4,
+			} );
+			const state = insertionPoint( original, {
+				type: 'SELECT_BLOCK',
+			} );
+
 			expect( state ).toBe( null );
 		} );
 	} );

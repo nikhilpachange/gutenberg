@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -70,14 +70,14 @@ const v4 = {
 			selector: 'blockquote',
 			multiline: 'p',
 			default: '',
-			__experimentalRole: 'content',
+			role: 'content',
 		},
 		citation: {
 			type: 'string',
 			source: 'html',
 			selector: 'cite',
 			default: '',
-			__experimentalRole: 'content',
+			role: 'content',
 		},
 		align: {
 			type: 'string',
@@ -115,7 +115,7 @@ const v4 = {
 	isEligible: ( { align } ) => TEXT_ALIGN_OPTIONS.includes( align ),
 	save( { attributes } ) {
 		const { align, citation } = attributes;
-		const className = classnames( {
+		const className = clsx( {
 			[ `has-text-align-${ align }` ]: align,
 		} );
 		return (
@@ -138,14 +138,14 @@ const v3 = {
 			selector: 'blockquote',
 			multiline: 'p',
 			default: '',
-			__experimentalRole: 'content',
+			role: 'content',
 		},
 		citation: {
 			type: 'string',
 			source: 'html',
 			selector: 'cite',
 			default: '',
-			__experimentalRole: 'content',
+			role: 'content',
 		},
 		align: {
 			type: 'string',
@@ -170,7 +170,7 @@ const v3 = {
 	save( { attributes } ) {
 		const { align, value, citation } = attributes;
 
-		const className = classnames( {
+		const className = clsx( {
 			[ `has-text-align-${ align }` ]: align,
 		} );
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -39,6 +39,7 @@ import {
 	DEFAULT_BLOCK_EDIT_CONTEXT,
 } from '../block-edit/context';
 import { useTypingObserver } from '../observe-typing';
+import { ZoomOutSeparator } from './zoom-out-separator';
 import { unlock } from '../../lock-unlock';
 
 export const IntersectionObserver = createContext();
@@ -46,26 +47,17 @@ const pendingBlockVisibilityUpdatesPerRegistry = new WeakMap();
 
 function Root( { className, ...settings } ) {
 	const isLargeViewport = useViewportMatch( 'medium' );
-	const {
-		isOutlineMode,
-		isFocusMode,
-		editorMode,
-		temporarilyEditingAsBlocks,
-	} = useSelect( ( select ) => {
-		const {
-			getSettings,
-			__unstableGetEditorMode,
-			__unstableGetTemporarilyEditingAsBlocks,
-		} = select( blockEditorStore );
-		const { outlineMode, focusMode } = getSettings();
-		return {
-			isOutlineMode: outlineMode,
-			isFocusMode: focusMode,
-			editorMode: __unstableGetEditorMode(),
-			temporarilyEditingAsBlocks:
-				__unstableGetTemporarilyEditingAsBlocks(),
-		};
-	}, [] );
+	const { isOutlineMode, isFocusMode, temporarilyEditingAsBlocks } =
+		useSelect( ( select ) => {
+			const { getSettings, getTemporarilyEditingAsBlocks, isTyping } =
+				unlock( select( blockEditorStore ) );
+			const { outlineMode, focusMode } = getSettings();
+			return {
+				isOutlineMode: outlineMode && ! isTyping(),
+				isFocusMode: focusMode,
+				temporarilyEditingAsBlocks: getTemporarilyEditingAsBlocks(),
+			};
+		}, [] );
 	const registry = useRegistry();
 	const { setBlockVisibility } = useDispatch( blockEditorStore );
 
@@ -111,10 +103,9 @@ function Root( { className, ...settings } ) {
 				useInBetweenInserter(),
 				useTypingObserver(),
 			] ),
-			className: classnames( 'is-root-container', className, {
+			className: clsx( 'is-root-container', className, {
 				'is-outline-mode': isOutlineMode,
 				'is-focus-mode': isFocusMode && isLargeViewport,
-				'is-navigate-mode': editorMode === 'navigation',
 			} ),
 		},
 		settings
@@ -160,6 +151,9 @@ export default function BlockList( settings ) {
 	);
 }
 
+const EMPTY_ARRAY = [];
+const EMPTY_SET = new Set();
+
 function Items( {
 	placeholder,
 	rootClientId,
@@ -171,36 +165,57 @@ function Items( {
 	// function on every render.
 	const hasAppender = CustomAppender !== false;
 	const hasCustomAppender = !! CustomAppender;
-	const { order, selectedBlocks, visibleBlocks, shouldRenderAppender } =
-		useSelect(
-			( select ) => {
-				const {
-					getBlockOrder,
-					getSelectedBlockClientId,
-					getSelectedBlockClientIds,
-					__unstableGetVisibleBlocks,
-					getTemplateLock,
-					getBlockEditingMode,
-					__unstableGetEditorMode,
-				} = select( blockEditorStore );
-				const selectedBlockClientId = getSelectedBlockClientId();
+	const {
+		order,
+		isZoomOut,
+		selectedBlocks,
+		visibleBlocks,
+		shouldRenderAppender,
+	} = useSelect(
+		( select ) => {
+			const {
+				getSettings,
+				getBlockOrder,
+				getSelectedBlockClientId,
+				getSelectedBlockClientIds,
+				__unstableGetVisibleBlocks,
+				getTemplateLock,
+				getBlockEditingMode,
+				isSectionBlock,
+				isZoomOut: _isZoomOut,
+			} = unlock( select( blockEditorStore ) );
+
+			const _order = getBlockOrder( rootClientId );
+
+			if ( getSettings().isPreviewMode ) {
 				return {
-					order: getBlockOrder( rootClientId ),
-					selectedBlocks: getSelectedBlockClientIds(),
-					visibleBlocks: __unstableGetVisibleBlocks(),
-					shouldRenderAppender:
-						hasAppender &&
-						( hasCustomAppender
-							? ! getTemplateLock( rootClientId ) &&
-							  getBlockEditingMode( rootClientId ) !==
-									'disabled' &&
-							  __unstableGetEditorMode() !== 'zoom-out'
-							: rootClientId === selectedBlockClientId ||
-							  ( ! rootClientId && ! selectedBlockClientId ) ),
+					order: _order,
+					selectedBlocks: EMPTY_ARRAY,
+					visibleBlocks: EMPTY_SET,
 				};
-			},
-			[ rootClientId, hasAppender, hasCustomAppender ]
-		);
+			}
+
+			const selectedBlockClientId = getSelectedBlockClientId();
+			return {
+				order: _order,
+				selectedBlocks: getSelectedBlockClientIds(),
+				visibleBlocks: __unstableGetVisibleBlocks(),
+				isZoomOut: _isZoomOut(),
+				shouldRenderAppender:
+					! isSectionBlock( rootClientId ) &&
+					getBlockEditingMode( rootClientId ) !== 'disabled' &&
+					! getTemplateLock( rootClientId ) &&
+					hasAppender &&
+					! _isZoomOut() &&
+					( hasCustomAppender ||
+						rootClientId === selectedBlockClientId ||
+						( ! rootClientId &&
+							! selectedBlockClientId &&
+							! _order.length ) ),
+			};
+		},
+		[ rootClientId, hasAppender, hasCustomAppender ]
+	);
 
 	return (
 		<LayoutProvider value={ layout }>
@@ -214,10 +229,24 @@ function Items( {
 						! selectedBlocks.includes( clientId )
 					}
 				>
+					{ isZoomOut && (
+						<ZoomOutSeparator
+							clientId={ clientId }
+							rootClientId={ rootClientId }
+							position="top"
+						/>
+					) }
 					<BlockListBlock
 						rootClientId={ rootClientId }
 						clientId={ clientId }
 					/>
+					{ isZoomOut && (
+						<ZoomOutSeparator
+							clientId={ clientId }
+							rootClientId={ rootClientId }
+							position="bottom"
+						/>
+					) }
 				</AsyncModeProvider>
 			) ) }
 			{ order.length < 1 && placeholder }

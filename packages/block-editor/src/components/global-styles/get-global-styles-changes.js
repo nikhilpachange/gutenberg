@@ -26,6 +26,7 @@ const translationMap = {
 	'settings.typography': __( 'Typography' ),
 	'styles.color': __( 'Colors' ),
 	'styles.spacing': __( 'Spacing' ),
+	'styles.background': __( 'Background' ),
 	'styles.typography': __( 'Typography' ),
 };
 const getBlockNames = memoize( () =>
@@ -126,6 +127,7 @@ export function getGlobalStylesChangelist( next, previous ) {
 	const changedValueTree = deepCompare(
 		{
 			styles: {
+				background: next?.styles?.background,
 				color: next?.styles?.color,
 				typography: next?.styles?.typography,
 				spacing: next?.styles?.spacing,
@@ -136,6 +138,7 @@ export function getGlobalStylesChangelist( next, previous ) {
 		},
 		{
 			styles: {
+				background: previous?.styles?.background,
 				color: previous?.styles?.color,
 				typography: previous?.styles?.typography,
 				spacing: previous?.styles?.spacing,
@@ -199,7 +202,10 @@ export default function getGlobalStylesChanges( next, previous, options = {} ) {
 			}, {} )
 		).map( ( [ key, changeValues ] ) => {
 			const changeValuesLength = changeValues.length;
-			const joinedChangesValue = changeValues.join( __( ', ' ) );
+			const joinedChangesValue = changeValues.join(
+				/* translators: Used between list items, there is a space after the comma. */
+				__( ', ' ) // eslint-disable-line @wordpress/i18n-no-flanking-whitespace
+			);
 			switch ( key ) {
 				case 'blocks': {
 					return sprintf(

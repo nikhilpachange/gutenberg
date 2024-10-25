@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { useState, useLayoutEffect } from '@wordpress/element';
+import { useState, useLayoutEffect, useEffect } from '@wordpress/element';
 import {
 	getTextContent,
 	applyFormat,
@@ -12,7 +12,7 @@ import {
 	insert,
 	create,
 } from '@wordpress/rich-text';
-import { isURL, isEmail } from '@wordpress/url';
+import { isURL, isEmail, isPhoneNumber } from '@wordpress/url';
 import {
 	RichTextToolbarButton,
 	RichTextShortcut,
@@ -39,8 +39,18 @@ function Edit( {
 	contentRef,
 } ) {
 	const [ addingLink, setAddingLink ] = useState( false );
+
 	// We only need to store the button element that opened the popover. We can ignore the other states, as they will be handled by the onFocus prop to return to the rich text field.
 	const [ openedBy, setOpenedBy ] = useState( null );
+
+	useEffect( () => {
+		// When the link becomes inactive (i.e. isActive is false), reset the editingLink state
+		// and the creatingLink state. This means that if the Link UI is displayed and the link
+		// becomes inactive (e.g. used arrow keys to move cursor outside of link bounds), the UI will close.
+		if ( ! isActive ) {
+			setAddingLink( false );
+		}
+	}, [ isActive ] );
 
 	useLayoutEffect( () => {
 		const editableContentElement = contentRef.current;
@@ -52,14 +62,22 @@ function Edit( {
 			// There is a situation whereby there is an existing link in the rich text
 			// and the user clicks on the leftmost edge of that link and fails to activate
 			// the link format, but the click event still fires on the `<a>` element.
-			// This causes the `addingLink` state to be set to `true` and the link UI
+			// This causes the `editingLink` state to be set to `true` and the link UI
 			// to be rendered in "creating" mode. We need to check isActive to see if
 			// we have an active link format.
-			if ( event.target.tagName !== 'A' || ! isActive ) {
+			const link = event.target.closest( '[contenteditable] a' );
+			if (
+				! link || // other formats (e.g. bold) may be nested within the link.
+				! isActive
+			) {
 				return;
 			}
 
 			setAddingLink( true );
+			setOpenedBy( {
+				el: link,
+				action: 'click',
+			} );
 		}
 
 		editableContentElement.addEventListener( 'click', handleClick );
@@ -86,9 +104,19 @@ function Edit( {
 					attributes: { url: `mailto:${ text }` },
 				} )
 			);
+		} else if ( ! isActive && text && isPhoneNumber( text ) ) {
+			onChange(
+				applyFormat( value, {
+					type: name,
+					attributes: { url: `tel:${ text.replace( /\D/g, '' ) }` },
+				} )
+			);
 		} else {
 			if ( target ) {
-				setOpenedBy( target );
+				setOpenedBy( {
+					el: target,
+					action: null, // We don't need to distinguish between click or keyboard here
+				} );
 			}
 			setAddingLink( true );
 		}
@@ -110,9 +138,10 @@ function Edit( {
 
 		// Close the popover
 		setAddingLink( false );
+
 		// Return focus to the toolbar button or the rich text field
-		if ( openedBy?.tagName === 'BUTTON' ) {
-			openedBy.focus();
+		if ( openedBy?.el?.tagName === 'BUTTON' ) {
+			openedBy.el.focus();
 		} else {
 			onFocus();
 		}
@@ -136,9 +165,22 @@ function Edit( {
 		speak( __( 'Link removed.' ), 'assertive' );
 	}
 
+	// Only autofocus if we have clicked a link within the editor
+	const shouldAutoFocus = ! (
+		openedBy?.el?.tagName === 'A' && openedBy?.action === 'click'
+	);
+
+	const hasSelection = ! isCollapsed( value );
+
 	return (
 		<>
-			<RichTextShortcut type="primary" character="k" onUse={ addLink } />
+			{ hasSelection && (
+				<RichTextShortcut
+					type="primary"
+					character="k"
+					onUse={ addLink }
+				/>
+			) }
 			<RichTextShortcut
 				type="primaryShift"
 				character="k"
@@ -166,6 +208,7 @@ function Edit( {
 					value={ value }
 					onChange={ onChange }
 					contentRef={ contentRef }
+					focusOnMount={ shouldAutoFocus ? 'firstElement' : false }
 				/>
 			) }
 		</>

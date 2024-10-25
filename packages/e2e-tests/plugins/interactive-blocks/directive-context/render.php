@@ -4,8 +4,6 @@
  *
  * @package gutenberg-test-interactive-blocks
  */
-
-wp_enqueue_script_module( 'directive-context-view' );
 ?>
 
 <div data-wp-interactive='{"namespace": "directive-context"}'>
@@ -117,6 +115,24 @@ wp_enqueue_script_module( 'directive-context-view' );
 			>
 				obj.prop6
 			</button>
+			<button
+				data-testid="child copy obj"
+				data-wp-on--click="actions.copyObj"
+			>
+				Copy obj
+			</button>
+			<div>
+				Is proxy preserved? <span
+					data-testid="is proxy preserved"
+					data-wp-text="state.isProxyPreserved"
+				></span>
+			</div>
+			<div>
+				Is proxy preserved on copy? <span
+					data-testid="is proxy preserved on copy"
+					data-wp-text="state.isProxyPreservedOnCopy"
+				></span>
+			</div>
 		</div>
 		<br />
 
@@ -193,6 +209,27 @@ wp_enqueue_script_module( 'directive-context-view' );
 		<span
 			data-testid="counter changes"
 			data-wp-text="context.changes"
+		></span>
+	</div>
+</div>
+
+
+<div
+	data-testid="inheritance from other namespaces"
+	data-wp-interactive="directive-context/parent"
+	data-wp-context='{ "prop": "fromParentNs" }'
+>
+	<div
+		data-wp-interactive="directive-context/child"
+		data-wp-context='{ "prop": "fromChildNs" }'
+	>
+		<span
+			data-testid="parent"
+			data-wp-text="directive-context/parent::context.prop"
+		></span>
+		<span
+			data-testid="child"
+			data-wp-text="directive-context/child::context.prop"
 		></span>
 	</div>
 </div>

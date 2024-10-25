@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -23,7 +23,9 @@ import {
 	isUnmodifiedBlock,
 	isReusableBlock,
 	getBlockDefaultClassName,
+	hasBlockSupport,
 	store as blocksStore,
+	privateApis as blocksPrivateApis,
 } from '@wordpress/blocks';
 import { withFilters } from '@wordpress/components';
 import { withDispatch, useDispatch, useSelect } from '@wordpress/data';
@@ -45,6 +47,8 @@ import { PrivateBlockContext } from './private-block-context';
 
 import { unlock } from '../../lock-unlock';
 
+const { isUnmodifiedBlockContent } = unlock( blocksPrivateApis );
+
 /**
  * Merges wrapper props with special handling for classNames and styles.
  *
@@ -64,7 +68,7 @@ function mergeWrapperProps( propsA, propsB ) {
 		propsA?.hasOwnProperty( 'className' ) &&
 		propsB?.hasOwnProperty( 'className' )
 	) {
-		newProps.className = classnames( propsA.className, propsB.className );
+		newProps.className = clsx( propsA.className, propsB.className );
 	}
 
 	if (
@@ -112,7 +116,10 @@ function BlockListBlock( {
 		...context
 	} = useContext( PrivateBlockContext );
 	const { removeBlock } = useDispatch( blockEditorStore );
-	const onRemove = useCallback( () => removeBlock( clientId ), [ clientId ] );
+	const onRemove = useCallback(
+		() => removeBlock( clientId ),
+		[ clientId, removeBlock ]
+	);
 
 	const parentLayout = useLayout() || {};
 
@@ -140,6 +147,7 @@ function BlockListBlock( {
 			mayDisplayControls={ mayDisplayControls }
 			mayDisplayParentControls={ mayDisplayParentControls }
 			blockEditingMode={ context.blockEditingMode }
+			isPreviewMode={ context.isPreviewMode }
 		/>
 	);
 
@@ -173,7 +181,7 @@ function BlockListBlock( {
 	if ( isAligned ) {
 		blockEdit = (
 			<div
-				className={ classnames( 'wp-block', isSticky && className ) }
+				className={ clsx( 'wp-block', isSticky && className ) }
 				data-align={ wrapperProps[ 'data-align' ] }
 			>
 				{ blockEdit }
@@ -212,20 +220,27 @@ function BlockListBlock( {
 	}
 
 	const { 'data-align': dataAlign, ...restWrapperProps } = wrapperProps ?? {};
-
-	restWrapperProps.className = classnames(
-		restWrapperProps.className,
-		dataAlign && themeSupportsLayout && `align${ dataAlign }`,
-		! ( dataAlign && isSticky ) && className
-	);
+	const updatedWrapperProps = {
+		...restWrapperProps,
+		className: clsx(
+			restWrapperProps.className,
+			dataAlign && themeSupportsLayout && `align${ dataAlign }`,
+			! ( dataAlign && isSticky ) && className
+		),
+	};
 
 	// We set a new context with the adjusted and filtered wrapperProps (through
 	// `editor.BlockListBlock`), which the `BlockListBlockProvider` did not have
 	// access to.
+	// Note that the context value doesn't have to be memoized in this case
+	// because when it changes, this component will be re-rendered anyway, and
+	// none of the consumers (BlockListBlock and useBlockProps) are memoized or
+	// "pure". This is different from the public BlockEditContext, where
+	// consumers might be memoized or "pure".
 	return (
 		<PrivateBlockContext.Provider
 			value={ {
-				wrapperProps: restWrapperProps,
+				wrapperProps: updatedWrapperProps,
 				isAligned,
 				...context,
 			} }
@@ -253,6 +268,7 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 		__unstableMarkLastChangeAsPersistent,
 		moveBlocksToPosition,
 		removeBlock,
+		selectBlock,
 	} = dispatch( blockEditorStore );
 
 	// Do not add new properties here, use `useDispatch` instead to avoid
@@ -294,6 +310,28 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 				canInsertBlockType,
 			} = registry.select( blockEditorStore );
 
+			function switchToDefaultOrRemove() {
+				const block = getBlock( clientId );
+				const defaultBlockName = getDefaultBlockName();
+				if ( getBlockName( clientId ) !== defaultBlockName ) {
+					const replacement = switchToBlockType(
+						block,
+						defaultBlockName
+					);
+					if ( replacement && replacement.length ) {
+						replaceBlocks( clientId, replacement );
+					}
+				} else if ( isUnmodifiedDefaultBlock( block ) ) {
+					const nextBlockClientId = getNextBlockClientId( clientId );
+					if ( nextBlockClientId ) {
+						registry.batch( () => {
+							removeBlock( clientId );
+							selectBlock( nextBlockClientId );
+						} );
+					}
+				}
+			}
+
 			/**
 			 * Moves the block with clientId up one level. If the block type
 			 * cannot be inserted at the new location, it will be attempted to
@@ -315,12 +353,48 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 					removeBlock( _clientId );
 				} else {
 					registry.batch( () => {
+						const firstBlock = getBlock( firstClientId );
+						const isFirstBlockContentUnmodified =
+							isUnmodifiedBlockContent( firstBlock );
+						const defaultBlockName = getDefaultBlockName();
+						const replacement = switchToBlockType(
+							firstBlock,
+							defaultBlockName
+						);
+						const canTransformToDefaultBlock =
+							!! replacement?.length &&
+							replacement.every( ( block ) =>
+								canInsertBlockType( block.name, _clientId )
+							);
+
 						if (
+							isFirstBlockContentUnmodified &&
+							canTransformToDefaultBlock
+						) {
+							// Step 1: If the block is empty and can be transformed to the default block type.
+							replaceBlocks(
+								firstClientId,
+								replacement,
+								changeSelection
+							);
+						} else if (
+							isFirstBlockContentUnmodified &&
+							firstBlock.name === defaultBlockName
+						) {
+							// Step 2: If the block is empty and is already the default block type.
+							removeBlock( firstClientId );
+							const nextBlockClientId =
+								getNextBlockClientId( clientId );
+							if ( nextBlockClientId ) {
+								selectBlock( nextBlockClientId );
+							}
+						} else if (
 							canInsertBlockType(
-								getBlockName( firstClientId ),
+								firstBlock.name,
 								targetRootClientId
 							)
 						) {
+							// Step 3: If the block can be moved up.
 							moveBlocksToPosition(
 								[ firstClientId ],
 								_clientId,
@@ -328,12 +402,17 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 								getBlockIndex( _clientId )
 							);
 						} else {
-							const replacement = switchToBlockType(
-								getBlock( firstClientId ),
-								getDefaultBlockName()
-							);
+							const canLiftAndTransformToDefaultBlock =
+								!! replacement?.length &&
+								replacement.every( ( block ) =>
+									canInsertBlockType(
+										block.name,
+										targetRootClientId
+									)
+								);
 
-							if ( replacement && replacement.length ) {
+							if ( canLiftAndTransformToDefaultBlock ) {
+								// Step 4: If the block can be transformed to the default block type and moved up.
 								insertBlocks(
 									replacement,
 									getBlockIndex( _clientId ),
@@ -341,6 +420,9 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 									changeSelection
 								);
 								removeBlock( firstClientId, false );
+							} else {
+								// Step 5: Continue the default behavior.
+								switchToDefaultOrRemove();
 							}
 						}
 
@@ -452,7 +534,7 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 
 					moveFirstItemUp( rootClientId );
 				} else {
-					removeBlock( clientId );
+					switchToDefaultOrRemove();
 				}
 			}
 		},
@@ -503,21 +585,22 @@ function BlockListBlockProvider( props ) {
 				getBlockMode,
 				isSelectionEnabled,
 				getTemplateLock,
+				isSectionBlock: _isSectionBlock,
 				getBlockWithoutAttributes,
 				getBlockAttributes,
 				canRemoveBlock,
 				canMoveBlock,
 
 				getSettings,
-				__unstableGetTemporarilyEditingAsBlocks,
+				getTemporarilyEditingAsBlocks,
 				getBlockEditingMode,
 				getBlockName,
 				isFirstMultiSelectedBlock,
 				getMultiSelectedBlockClientIds,
 				hasSelectedInnerBlock,
+				getBlocksByName,
 
 				getBlockIndex,
-				isTyping,
 				isBlockMultiSelected,
 				isBlockSubtreeDisabled,
 				isBlockHighlighted,
@@ -525,10 +608,7 @@ function BlockListBlockProvider( props ) {
 				__unstableSelectionHasUnmergeableBlock,
 				isBlockBeingDragged,
 				isDragging,
-				hasBlockMovingClientId,
-				canInsertBlockType,
 				__unstableHasActiveBlockOverlayActive,
-				__unstableGetEditorMode,
 				getSelectedBlocksInitialCaretPosition,
 			} = unlock( select( blockEditorStore ) );
 			const blockWithoutAttributes =
@@ -546,40 +626,69 @@ function BlockListBlockProvider( props ) {
 				hasBlockSupport: _hasBlockSupport,
 				getActiveBlockVariation,
 			} = select( blocksStore );
-			const _isSelected = isBlockSelected( clientId );
-			const canRemove = canRemoveBlock( clientId, rootClientId );
-			const canMove = canMoveBlock( clientId, rootClientId );
 			const attributes = getBlockAttributes( clientId );
 			const { name: blockName, isValid } = blockWithoutAttributes;
 			const blockType = getBlockType( blockName );
+			const { supportsLayout, isPreviewMode } = getSettings();
+			const hasLightBlockWrapper = blockType?.apiVersion > 1;
+			const previewContext = {
+				isPreviewMode,
+				blockWithoutAttributes,
+				name: blockName,
+				attributes,
+				isValid,
+				themeSupportsLayout: supportsLayout,
+				index: getBlockIndex( clientId ),
+				isReusable: isReusableBlock( blockType ),
+				className: hasLightBlockWrapper
+					? attributes.className
+					: undefined,
+				defaultClassName: hasLightBlockWrapper
+					? getBlockDefaultClassName( blockName )
+					: undefined,
+				blockTitle: blockType?.title,
+			};
+
+			// When in preview mode, we can avoid a lot of selection and
+			// editing related selectors.
+			if ( isPreviewMode ) {
+				return previewContext;
+			}
+
+			const _isSelected = isBlockSelected( clientId );
+			const canRemove = canRemoveBlock( clientId );
+			const canMove = canMoveBlock( clientId );
 			const match = getActiveBlockVariation( blockName, attributes );
-			const { outlineMode, supportsLayout } = getSettings();
 			const isMultiSelected = isBlockMultiSelected( clientId );
 			const checkDeep = true;
 			const isAncestorOfSelectedBlock = hasSelectedInnerBlock(
 				clientId,
 				checkDeep
 			);
-			const typing = isTyping();
-			const hasLightBlockWrapper = blockType?.apiVersion > 1;
-			const movingClientId = hasBlockMovingClientId();
 			const blockEditingMode = getBlockEditingMode( clientId );
 
+			const multiple = hasBlockSupport( blockName, 'multiple', true );
+
+			// For block types with `multiple` support, there is no "original
+			// block" to be found in the content, as the block itself is valid.
+			const blocksWithSameName = multiple
+				? []
+				: getBlocksByName( blockName );
+			const isInvalid =
+				blocksWithSameName.length &&
+				blocksWithSameName[ 0 ] !== clientId;
+
 			return {
+				...previewContext,
 				mode: getBlockMode( clientId ),
 				isSelectionEnabled: isSelectionEnabled(),
 				isLocked: !! getTemplateLock( rootClientId ),
-				templateLock: getTemplateLock( clientId ),
+				isSectionBlock: _isSectionBlock( clientId ),
 				canRemove,
 				canMove,
-				blockWithoutAttributes,
-				name: blockName,
-				attributes,
-				isValid,
 				isSelected: _isSelected,
-				themeSupportsLayout: supportsLayout,
 				isTemporarilyEditingAsBlocks:
-					__unstableGetTemporarilyEditingAsBlocks() === clientId,
+					getTemporarilyEditingAsBlocks() === clientId,
 				blockEditingMode,
 				mayDisplayControls:
 					_isSelected ||
@@ -593,63 +702,51 @@ function BlockListBlockProvider( props ) {
 						'__experimentalExposeControlsToChildren',
 						false
 					) && hasSelectedInnerBlock( clientId ),
-				index: getBlockIndex( clientId ),
 				blockApiVersion: blockType?.apiVersion || 1,
 				blockTitle: match?.title || blockType?.title,
 				isSubtreeDisabled:
 					blockEditingMode === 'disabled' &&
 					isBlockSubtreeDisabled( clientId ),
-				isOutlineEnabled: outlineMode,
 				hasOverlay:
 					__unstableHasActiveBlockOverlayActive( clientId ) &&
 					! isDragging(),
-				initialPosition:
-					_isSelected && __unstableGetEditorMode() === 'edit'
-						? getSelectedBlocksInitialCaretPosition()
-						: undefined,
+				initialPosition: _isSelected
+					? getSelectedBlocksInitialCaretPosition()
+					: undefined,
 				isHighlighted: isBlockHighlighted( clientId ),
 				isMultiSelected,
 				isPartiallySelected:
 					isMultiSelected &&
 					! __unstableIsFullySelected() &&
 					! __unstableSelectionHasUnmergeableBlock(),
-				isReusable: isReusableBlock( blockType ),
 				isDragging: isBlockBeingDragged( clientId ),
 				hasChildSelected: isAncestorOfSelectedBlock,
-				removeOutline: _isSelected && outlineMode && typing,
-				isBlockMovingMode: !! movingClientId,
-				canInsertMovingBlock:
-					movingClientId &&
-					canInsertBlockType(
-						getBlockName( movingClientId ),
-						rootClientId
-					),
 				isEditingDisabled: blockEditingMode === 'disabled',
 				hasEditableOutline:
 					blockEditingMode !== 'disabled' &&
 					getBlockEditingMode( rootClientId ) === 'disabled',
-				className: hasLightBlockWrapper
-					? attributes.className
-					: undefined,
-				defaultClassName: hasLightBlockWrapper
-					? getBlockDefaultClassName( blockName )
-					: undefined,
+				originalBlockClientId: isInvalid
+					? blocksWithSameName[ 0 ]
+					: false,
 			};
 		},
 		[ clientId, rootClientId ]
 	);
 
 	const {
-		mode,
-		isSelectionEnabled,
-		isLocked,
-		canRemove,
-		canMove,
+		isPreviewMode,
+		// Fill values that end up as a public API and may not be defined in
+		// preview mode.
+		mode = 'visual',
+		isSelectionEnabled = false,
+		isLocked = false,
+		canRemove = false,
+		canMove = false,
 		blockWithoutAttributes,
 		name,
 		attributes,
 		isValid,
-		isSelected,
+		isSelected = false,
 		themeSupportsLayout,
 		isTemporarilyEditingAsBlocks,
 		blockEditingMode,
@@ -659,7 +756,6 @@ function BlockListBlockProvider( props ) {
 		blockApiVersion,
 		blockTitle,
 		isSubtreeDisabled,
-		isOutlineEnabled,
 		hasOverlay,
 		initialPosition,
 		isHighlighted,
@@ -668,14 +764,12 @@ function BlockListBlockProvider( props ) {
 		isReusable,
 		isDragging,
 		hasChildSelected,
-		removeOutline,
-		isBlockMovingMode,
-		canInsertMovingBlock,
-		templateLock,
+		isSectionBlock,
 		isEditingDisabled,
 		hasEditableOutline,
 		className,
 		defaultClassName,
+		originalBlockClientId,
 	} = selectedProps;
 
 	// Users of the editor.BlockListBlock filter used to be able to
@@ -695,6 +789,7 @@ function BlockListBlockProvider( props ) {
 	}
 
 	const privateContext = {
+		isPreviewMode,
 		clientId,
 		className,
 		index,
@@ -704,7 +799,6 @@ function BlockListBlockProvider( props ) {
 		blockTitle,
 		isSelected,
 		isSubtreeDisabled,
-		isOutlineEnabled,
 		hasOverlay,
 		initialPosition,
 		blockEditingMode,
@@ -714,16 +808,14 @@ function BlockListBlockProvider( props ) {
 		isReusable,
 		isDragging,
 		hasChildSelected,
-		removeOutline,
-		isBlockMovingMode,
-		canInsertMovingBlock,
-		templateLock,
+		isSectionBlock,
 		isEditingDisabled,
 		hasEditableOutline,
 		isTemporarilyEditingAsBlocks,
 		defaultClassName,
 		mayDisplayControls,
 		mayDisplayParentControls,
+		originalBlockClientId,
 		themeSupportsLayout,
 	};
 

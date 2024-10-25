@@ -18,28 +18,21 @@ import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
 import { store as preferencesStore } from '@wordpress/preferences';
 import { store as coreStore } from '@wordpress/core-data';
-import { useViewportMatch } from '@wordpress/compose';
 
 /**
  * Internal dependencies
  */
 import { unlock } from '../../lock-unlock';
 import { store as editSiteStore } from '../../store';
-import getIsListPage from '../../utils/get-is-list-page';
 
 const { useGlobalStylesReset } = unlock( blockEditorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
 
 function useGlobalStylesOpenStylesCommands() {
-	const { openGeneralSidebar, setCanvasMode } = unlock(
-		useDispatch( editSiteStore )
-	);
+	const { openGeneralSidebar } = unlock( useDispatch( editSiteStore ) );
 	const { params } = useLocation();
-	const isMobileViewport = useViewportMatch( 'medium', '<' );
-	const isEditorPage = ! getIsListPage( params, isMobileViewport );
-	const { getCanvasMode } = unlock( useSelect( editSiteStore ) );
+	const { canvas = 'view' } = params;
 	const history = useHistory();
-
 	const isBlockBasedTheme = useSelect( ( select ) => {
 		return select( coreStore ).getCurrentTheme().is_block_theme;
 	}, [] );
@@ -55,28 +48,27 @@ function useGlobalStylesOpenStylesCommands() {
 				label: __( 'Open styles' ),
 				callback: ( { close } ) => {
 					close();
-					if ( ! isEditorPage ) {
+					if ( ! params.postId ) {
 						history.push( {
 							path: '/wp_global_styles',
 							canvas: 'edit',
 						} );
 					}
-					if ( isEditorPage && getCanvasMode() !== 'edit' ) {
-						setCanvasMode( 'edit' );
+					if ( params.postId && canvas !== 'edit' ) {
+						history.push(
+							{ ...params, canvas: 'edit' },
+							undefined,
+							{
+								transition: 'canvas-mode-edit-transition',
+							}
+						);
 					}
 					openGeneralSidebar( 'edit-site/global-styles' );
 				},
 				icon: styles,
 			},
 		];
-	}, [
-		history,
-		openGeneralSidebar,
-		setCanvasMode,
-		isEditorPage,
-		getCanvasMode,
-		isBlockBasedTheme,
-	] );
+	}, [ history, openGeneralSidebar, params, canvas, isBlockBasedTheme ] );
 
 	return {
 		isLoading: false,
@@ -85,13 +77,9 @@ function useGlobalStylesOpenStylesCommands() {
 }
 
 function useGlobalStylesToggleWelcomeGuideCommands() {
-	const { openGeneralSidebar, setCanvasMode } = unlock(
-		useDispatch( editSiteStore )
-	);
+	const { openGeneralSidebar } = unlock( useDispatch( editSiteStore ) );
 	const { params } = useLocation();
-	const isMobileViewport = useViewportMatch( 'medium', '<' );
-	const isEditorPage = ! getIsListPage( params, isMobileViewport );
-	const { getCanvasMode } = unlock( useSelect( editSiteStore ) );
+	const { canvas = 'view' } = params;
 	const { set } = useDispatch( preferencesStore );
 
 	const history = useHistory();
@@ -110,14 +98,23 @@ function useGlobalStylesToggleWelcomeGuideCommands() {
 				label: __( 'Learn about styles' ),
 				callback: ( { close } ) => {
 					close();
-					if ( ! isEditorPage ) {
+					if ( ! params.postId ) {
 						history.push( {
 							path: '/wp_global_styles',
 							canvas: 'edit',
 						} );
 					}
-					if ( isEditorPage && getCanvasMode() !== 'edit' ) {
-						setCanvasMode( 'edit' );
+					if ( params.postId && canvas !== 'edit' ) {
+						history.push(
+							{
+								...params,
+								canvas: 'edit',
+							},
+							undefined,
+							{
+								transition: 'canvas-mode-edit-transition',
+							}
+						);
 					}
 					openGeneralSidebar( 'edit-site/global-styles' );
 					set( 'core/edit-site', 'welcomeGuideStyles', true );
@@ -133,11 +130,10 @@ function useGlobalStylesToggleWelcomeGuideCommands() {
 	}, [
 		history,
 		openGeneralSidebar,
-		setCanvasMode,
-		isEditorPage,
-		getCanvasMode,
+		canvas,
 		isBlockBasedTheme,
 		set,
+		params,
 	] );
 
 	return {
@@ -173,12 +169,11 @@ function useGlobalStylesResetCommands() {
 }
 
 function useGlobalStylesOpenCssCommands() {
-	const { openGeneralSidebar, setEditorCanvasContainerView, setCanvasMode } =
-		unlock( useDispatch( editSiteStore ) );
+	const { openGeneralSidebar, setEditorCanvasContainerView } = unlock(
+		useDispatch( editSiteStore )
+	);
 	const { params } = useLocation();
-	const isMobileViewport = useViewportMatch( 'medium', '<' );
-	const isListPage = getIsListPage( params, isMobileViewport );
-	const isEditorPage = ! isListPage;
+	const { canvas = 'view' } = params;
 	const history = useHistory();
 	const { canEditCSS } = useSelect( ( select ) => {
 		const { getEntityRecord, __experimentalGetCurrentGlobalStylesId } =
@@ -193,7 +188,6 @@ function useGlobalStylesOpenCssCommands() {
 			canEditCSS: !! globalStyles?._links?.[ 'wp:action-edit-css' ],
 		};
 	}, [] );
-	const { getCanvasMode } = unlock( useSelect( editSiteStore ) );
 
 	const commands = useMemo( () => {
 		if ( ! canEditCSS ) {
@@ -207,14 +201,23 @@ function useGlobalStylesOpenCssCommands() {
 				icon: brush,
 				callback: ( { close } ) => {
 					close();
-					if ( ! isEditorPage ) {
+					if ( ! params.postId ) {
 						history.push( {
 							path: '/wp_global_styles',
 							canvas: 'edit',
 						} );
 					}
-					if ( isEditorPage && getCanvasMode() !== 'edit' ) {
-						setCanvasMode( 'edit' );
+					if ( params.postId && canvas !== 'edit' ) {
+						history.push(
+							{
+								...params,
+								canvas: 'edit',
+							},
+							undefined,
+							{
+								transition: 'canvas-mode-edit-transition',
+							}
+						);
 					}
 					openGeneralSidebar( 'edit-site/global-styles' );
 					setEditorCanvasContainerView( 'global-styles-css' );
@@ -226,9 +229,8 @@ function useGlobalStylesOpenCssCommands() {
 		openGeneralSidebar,
 		setEditorCanvasContainerView,
 		canEditCSS,
-		isEditorPage,
-		getCanvasMode,
-		setCanvasMode,
+		canvas,
+		params,
 	] );
 	return {
 		isLoading: false,
@@ -237,12 +239,11 @@ function useGlobalStylesOpenCssCommands() {
 }
 
 function useGlobalStylesOpenRevisionsCommands() {
-	const { openGeneralSidebar, setEditorCanvasContainerView, setCanvasMode } =
-		unlock( useDispatch( editSiteStore ) );
-	const { getCanvasMode } = unlock( useSelect( editSiteStore ) );
+	const { openGeneralSidebar, setEditorCanvasContainerView } = unlock(
+		useDispatch( editSiteStore )
+	);
 	const { params } = useLocation();
-	const isMobileViewport = useViewportMatch( 'medium', '<' );
-	const isEditorPage = ! getIsListPage( params, isMobileViewport );
+	const { canvas = 'view' } = params;
 	const history = useHistory();
 	const hasRevisions = useSelect( ( select ) => {
 		const { getEntityRecord, __experimentalGetCurrentGlobalStylesId } =
@@ -266,14 +267,23 @@ function useGlobalStylesOpenRevisionsCommands() {
 				icon: backup,
 				callback: ( { close } ) => {
 					close();
-					if ( ! isEditorPage ) {
+					if ( ! params.postId ) {
 						history.push( {
 							path: '/wp_global_styles',
 							canvas: 'edit',
 						} );
 					}
-					if ( isEditorPage && getCanvasMode() !== 'edit' ) {
-						setCanvasMode( 'edit' );
+					if ( params.postId && canvas !== 'edit' ) {
+						history.push(
+							{
+								...params,
+								canvas: 'edit',
+							},
+							undefined,
+							{
+								transition: 'canvas-mode-edit-transition',
+							}
+						);
 					}
 					openGeneralSidebar( 'edit-site/global-styles' );
 					setEditorCanvasContainerView( 'global-styles-revisions' );
@@ -285,9 +295,8 @@ function useGlobalStylesOpenRevisionsCommands() {
 		history,
 		openGeneralSidebar,
 		setEditorCanvasContainerView,
-		isEditorPage,
-		getCanvasMode,
-		setCanvasMode,
+		canvas,
+		params,
 	] );
 
 	return {
@@ -298,11 +307,9 @@ function useGlobalStylesOpenRevisionsCommands() {
 
 export function useCommonCommands() {
 	const homeUrl = useSelect( ( select ) => {
-		const {
-			getUnstableBase, // Site index.
-		} = select( coreStore );
-
-		return getUnstableBase()?.home;
+		// Site index.
+		return select( coreStore ).getEntityRecord( 'root', '__unstableBase' )
+			?.home;
 	}, [] );
 
 	useCommand( {

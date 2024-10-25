@@ -2,9 +2,8 @@
  * WordPress dependencies
  */
 import {
-	__experimentalNavigatorProvider as NavigatorProvider,
-	__experimentalNavigatorScreen as NavigatorScreen,
-	__experimentalUseNavigator as useNavigator,
+	Navigator,
+	useNavigator,
 	createSlotFill,
 	DropdownMenu,
 	MenuGroup,
@@ -33,8 +32,12 @@ import {
 import ScreenBlock from './screen-block';
 import ScreenTypography from './screen-typography';
 import ScreenTypographyElement from './screen-typography-element';
+import FontSize from './font-sizes/font-size';
+import FontSizes from './font-sizes/font-sizes';
 import ScreenColors from './screen-colors';
 import ScreenColorPalette from './screen-color-palette';
+import ScreenBackground from './screen-background';
+import { ScreenShadows, ScreenShadowsEdit } from './screen-shadows';
 import ScreenLayout from './screen-layout';
 import ScreenStyleVariations from './screen-style-variations';
 import StyleBook from '../style-book';
@@ -42,6 +45,7 @@ import ScreenCSS from './screen-css';
 import ScreenRevisions from './screen-revisions';
 import { unlock } from '../../lock-unlock';
 import { store as editSiteStore } from '../../store';
+import { STYLE_BOOK_COLOR_GROUPS } from '../style-book/constants';
 
 const SLOT_FILL_NAME = 'GlobalStylesMenu';
 const { useGlobalStylesReset } = unlock( blockEditorPrivateApis );
@@ -67,15 +71,17 @@ function GlobalStylesActionMenu() {
 	const { setEditorCanvasContainerView } = unlock(
 		useDispatch( editSiteStore )
 	);
-	const { goTo } = useNavigator();
 	const loadCustomCSS = () => {
 		setEditorCanvasContainerView( 'global-styles-css' );
-		goTo( '/css' );
 	};
 
 	return (
 		<GlobalStylesMenuFill>
-			<DropdownMenu icon={ moreVertical } label={ __( 'More' ) }>
+			<DropdownMenu
+				icon={ moreVertical }
+				label={ __( 'More' ) }
+				toggleProps={ { size: 'compact' } }
+			>
 				{ ( { onClose } ) => (
 					<>
 						<MenuGroup>
@@ -116,7 +122,7 @@ function GlobalStylesActionMenu() {
 
 function GlobalStylesNavigationScreen( { className, ...props } ) {
 	return (
-		<NavigatorScreen
+		<Navigator.Screen
 			className={ [
 				'edit-site-global-styles-sidebar__navigator-screen',
 				className,
@@ -186,6 +192,16 @@ function GlobalStylesStyleBook() {
 				)
 			}
 			onSelect={ ( blockName ) => {
+				if (
+					STYLE_BOOK_COLOR_GROUPS.find(
+						( group ) => group.slug === blockName
+					)
+				) {
+					// Go to color palettes Global Styles.
+					navigator.goTo( '/colors/palette' );
+					return;
+				}
+
 				// Now go to the selected block.
 				navigator.goTo( '/blocks/' + encodeURIComponent( blockName ) );
 			} }
@@ -246,35 +262,30 @@ function GlobalStylesEditorCanvasContainerLink() {
 		switch ( editorCanvasContainerView ) {
 			case 'global-styles-revisions':
 			case 'global-styles-revisions:style-book':
-				goTo( '/revisions' );
+				if ( ! isRevisionsOpen ) {
+					goTo( '/revisions' );
+				}
 				break;
 			case 'global-styles-css':
 				goTo( '/css' );
 				break;
+			// The stand-alone style book is open
+			// and the revisions panel is open,
+			// close the revisions panel.
+			// Otherwise keep the style book open while
+			// browsing global styles panel.
+			//
+			// Falling through as it matches the default scenario.
 			case 'style-book':
-				/*
-				 * The stand-alone style book is open
-				 * and the revisions panel is open,
-				 * close the revisions panel.
-				 * Otherwise keep the style book open while
-				 * browsing global styles panel.
-				 */
-				if ( isRevisionsOpen ) {
-					goTo( '/' );
-				}
-				break;
 			default:
-				/*
-				 * Example: the user has navigated to "Browse styles" or elsewhere
-				 * and changes the editorCanvasContainerView, e.g., closes the style book.
-				 * The panel should not be affected.
-				 * Exclude revisions panel from this behavior,
-				 * as it should close when the editorCanvasContainerView doesn't correspond.
-				 */
-				if ( path !== '/' && ! isRevisionsOpen ) {
-					return;
+				// In general, if the revision screen is in view but the
+				// `editorCanvasContainerView` is not a revision view, close it.
+				// This also includes the scenario when the stand-alone style
+				// book is open, in which case we want the user to close the
+				// revisions screen and browse global styles.
+				if ( isRevisionsOpen ) {
+					goTo( '/', { isBack: true } );
 				}
-				goTo( '/' );
 				break;
 		}
 	}, [ editorCanvasContainerView, isRevisionsOpen, goTo ] );
@@ -288,7 +299,7 @@ function GlobalStylesUI() {
 		[]
 	);
 	return (
-		<NavigatorProvider
+		<Navigator
 			className="edit-site-global-styles-sidebar__navigator-provider"
 			initialPath="/"
 		>
@@ -306,6 +317,14 @@ function GlobalStylesUI() {
 
 			<GlobalStylesNavigationScreen path="/typography">
 				<ScreenTypography />
+			</GlobalStylesNavigationScreen>
+
+			<GlobalStylesNavigationScreen path="/typography/font-sizes">
+				<FontSizes />
+			</GlobalStylesNavigationScreen>
+
+			<GlobalStylesNavigationScreen path="/typography/font-sizes/:origin/:slug">
+				<FontSize />
 			</GlobalStylesNavigationScreen>
 
 			<GlobalStylesNavigationScreen path="/typography/text">
@@ -332,6 +351,14 @@ function GlobalStylesUI() {
 				<ScreenColors />
 			</GlobalStylesNavigationScreen>
 
+			<GlobalStylesNavigationScreen path="/shadows">
+				<ScreenShadows />
+			</GlobalStylesNavigationScreen>
+
+			<GlobalStylesNavigationScreen path="/shadows/edit/:category/:slug">
+				<ScreenShadowsEdit />
+			</GlobalStylesNavigationScreen>
+
 			<GlobalStylesNavigationScreen path="/layout">
 				<ScreenLayout />
 			</GlobalStylesNavigationScreen>
@@ -340,8 +367,12 @@ function GlobalStylesUI() {
 				<ScreenCSS />
 			</GlobalStylesNavigationScreen>
 
-			<GlobalStylesNavigationScreen path={ '/revisions' }>
+			<GlobalStylesNavigationScreen path="/revisions">
 				<ScreenRevisions />
+			</GlobalStylesNavigationScreen>
+
+			<GlobalStylesNavigationScreen path="/background">
+				<ScreenBackground />
 			</GlobalStylesNavigationScreen>
 
 			{ blocks.map( ( block ) => (
@@ -370,7 +401,7 @@ function GlobalStylesUI() {
 			<GlobalStylesActionMenu />
 			<GlobalStylesBlockLink />
 			<GlobalStylesEditorCanvasContainerLink />
-		</NavigatorProvider>
+		</Navigator>
 	);
 }
 export { GlobalStylesMenuSlot };

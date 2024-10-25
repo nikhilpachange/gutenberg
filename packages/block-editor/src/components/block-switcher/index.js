@@ -1,12 +1,14 @@
 /**
  * WordPress dependencies
  */
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __, _n, sprintf, _x } from '@wordpress/i18n';
 import {
 	DropdownMenu,
 	ToolbarButton,
 	ToolbarGroup,
 	ToolbarItem,
+	__experimentalText as Text,
+	MenuGroup,
 } from '@wordpress/components';
 import {
 	switchToBlockType,
@@ -36,32 +38,37 @@ function BlockSwitcherDropdownMenuContents( {
 } ) {
 	const { replaceBlocks, multiSelect, updateBlockAttributes } =
 		useDispatch( blockEditorStore );
-	const { possibleBlockTransformations, patterns, blocks } = useSelect(
-		( select ) => {
-			const {
-				getBlocksByClientId,
-				getBlockRootClientId,
-				getBlockTransformItems,
-				__experimentalGetPatternTransformItems,
-			} = select( blockEditorStore );
-			const rootClientId = getBlockRootClientId(
-				Array.isArray( clientIds ) ? clientIds[ 0 ] : clientIds
-			);
-			const _blocks = getBlocksByClientId( clientIds );
-			return {
-				blocks: _blocks,
-				possibleBlockTransformations: getBlockTransformItems(
-					_blocks,
-					rootClientId
-				),
-				patterns: __experimentalGetPatternTransformItems(
-					_blocks,
-					rootClientId
-				),
-			};
-		},
-		[ clientIds ]
-	);
+	const { possibleBlockTransformations, patterns, blocks, isUsingBindings } =
+		useSelect(
+			( select ) => {
+				const {
+					getBlockAttributes,
+					getBlocksByClientId,
+					getBlockRootClientId,
+					getBlockTransformItems,
+					__experimentalGetPatternTransformItems,
+				} = select( blockEditorStore );
+				const rootClientId = getBlockRootClientId( clientIds[ 0 ] );
+				const _blocks = getBlocksByClientId( clientIds );
+				return {
+					blocks: _blocks,
+					possibleBlockTransformations: getBlockTransformItems(
+						_blocks,
+						rootClientId
+					),
+					patterns: __experimentalGetPatternTransformItems(
+						_blocks,
+						rootClientId
+					),
+					isUsingBindings: clientIds.every(
+						( clientId ) =>
+							!! getBlockAttributes( clientId )?.metadata
+								?.bindings
+					),
+				};
+			},
+			[ clientIds ]
+		);
 	const blockVariationTransformations = useBlockVariationTransforms( {
 		clientIds,
 		blocks,
@@ -118,6 +125,17 @@ function BlockSwitcherDropdownMenuContents( {
 			</p>
 		);
 	}
+
+	const connectedBlockDescription = isSingleBlock
+		? _x(
+				'This block is connected.',
+				'block toolbar button label and description'
+		  )
+		: _x(
+				'These blocks are connected.',
+				'block toolbar button label and description'
+		  );
+
 	return (
 		<div className="block-editor-block-switcher__container">
 			{ hasPatternTransformation && (
@@ -156,25 +174,50 @@ function BlockSwitcherDropdownMenuContents( {
 					onSwitch={ onClose }
 				/>
 			) }
+			{ isUsingBindings && (
+				<MenuGroup>
+					<Text className="block-editor-block-switcher__binding-indicator">
+						{ connectedBlockDescription }
+					</Text>
+				</MenuGroup>
+			) }
 		</div>
 	);
 }
 
+const BlockIndicator = ( { icon, showTitle, blockTitle } ) => (
+	<>
+		<BlockIcon
+			className="block-editor-block-switcher__toggle"
+			icon={ icon }
+			showColors
+		/>
+		{ showTitle && blockTitle && (
+			<span className="block-editor-block-switcher__toggle-text">
+				{ blockTitle }
+			</span>
+		) }
+	</>
+);
+
 export const BlockSwitcher = ( { clientIds } ) => {
 	const {
+		hasContentOnlyLocking,
 		canRemove,
 		hasBlockStyles,
 		icon,
 		invalidBlocks,
 		isReusable,
 		isTemplate,
+		isDisabled,
 	} = useSelect(
 		( select ) => {
 			const {
-				getBlockRootClientId,
+				getTemplateLock,
 				getBlocksByClientId,
 				getBlockAttributes,
 				canRemoveBlocks,
+				getBlockEditingMode,
 			} = select( blockEditorStore );
 			const { getBlockStyles, getBlockType, getActiveBlockVariation } =
 				select( blocksStore );
@@ -182,12 +225,13 @@ export const BlockSwitcher = ( { clientIds } ) => {
 			if ( ! _blocks.length || _blocks.some( ( block ) => ! block ) ) {
 				return { invalidBlocks: true };
 			}
-			const rootClientId = getBlockRootClientId( clientIds );
 			const [ { name: firstBlockName } ] = _blocks;
 			const _isSingleBlockSelected = _blocks.length === 1;
 			const blockType = getBlockType( firstBlockName );
+			const editingMode = getBlockEditingMode( clientIds[ 0 ] );
 
 			let _icon;
+			let _hasTemplateLock;
 			if ( _isSingleBlockSelected ) {
 				const match = getActiveBlockVariation(
 					firstBlockName,
@@ -195,16 +239,21 @@ export const BlockSwitcher = ( { clientIds } ) => {
 				);
 				// Take into account active block variations.
 				_icon = match?.icon || blockType.icon;
+				_hasTemplateLock =
+					getTemplateLock( clientIds[ 0 ] ) === 'contentOnly';
 			} else {
 				const isSelectionOfSameType =
 					new Set( _blocks.map( ( { name } ) => name ) ).size === 1;
+				_hasTemplateLock = clientIds.some(
+					( id ) => getTemplateLock( id ) === 'contentOnly'
+				);
 				// When selection consists of blocks of multiple types, display an
 				// appropriate icon to communicate the non-uniformity.
 				_icon = isSelectionOfSameType ? blockType.icon : copy;
 			}
 
 			return {
-				canRemove: canRemoveBlocks( clientIds, rootClientId ),
+				canRemove: canRemoveBlocks( clientIds ),
 				hasBlockStyles:
 					_isSingleBlockSelected &&
 					!! getBlockStyles( firstBlockName )?.length,
@@ -213,6 +262,8 @@ export const BlockSwitcher = ( { clientIds } ) => {
 					_isSingleBlockSelected && isReusableBlock( _blocks[ 0 ] ),
 				isTemplate:
 					_isSingleBlockSelected && isTemplatePart( _blocks[ 0 ] ),
+				hasContentOnlyLocking: _hasTemplateLock,
+				isDisabled: editingMode !== 'default',
 			};
 		},
 		[ clientIds ]
@@ -221,6 +272,7 @@ export const BlockSwitcher = ( { clientIds } ) => {
 		clientId: clientIds?.[ 0 ],
 		maximumLength: 35,
 	} );
+
 	if ( invalidBlocks ) {
 		return null;
 	}
@@ -229,7 +281,11 @@ export const BlockSwitcher = ( { clientIds } ) => {
 	const blockSwitcherLabel = isSingleBlock
 		? blockTitle
 		: __( 'Multiple blocks selected' );
-	const hideDropdown = ! hasBlockStyles && ! canRemove;
+
+	const hideDropdown =
+		isDisabled ||
+		( ! hasBlockStyles && ! canRemove ) ||
+		hasContentOnlyLocking;
 
 	if ( hideDropdown ) {
 		return (
@@ -239,14 +295,11 @@ export const BlockSwitcher = ( { clientIds } ) => {
 					className="block-editor-block-switcher__no-switcher-icon"
 					title={ blockSwitcherLabel }
 					icon={
-						<>
-							<BlockIcon icon={ icon } showColors />
-							{ ( isReusable || isTemplate ) && (
-								<span className="block-editor-block-switcher__toggle-text">
-									{ blockTitle }
-								</span>
-							) }
-						</>
+						<BlockIndicator
+							icon={ icon }
+							showTitle={ isReusable || isTemplate }
+							blockTitle={ blockTitle }
+						/>
 					}
 				/>
 			</ToolbarGroup>
@@ -276,21 +329,14 @@ export const BlockSwitcher = ( { clientIds } ) => {
 							className: 'block-editor-block-switcher__popover',
 						} }
 						icon={
-							<>
-								<BlockIcon
-									icon={ icon }
-									className="block-editor-block-switcher__toggle"
-									showColors
-								/>
-								{ ( isReusable || isTemplate ) && (
-									<span className="block-editor-block-switcher__toggle-text">
-										{ blockTitle }
-									</span>
-								) }
-							</>
+							<BlockIndicator
+								icon={ icon }
+								showTitle={ isReusable || isTemplate }
+								blockTitle={ blockTitle }
+							/>
 						}
 						toggleProps={ {
-							describedBy: blockSwitcherDescription,
+							description: blockSwitcherDescription,
 							...toggleProps,
 						} }
 						menuProps={ { orientation: 'both' } }

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -44,12 +44,14 @@ export default function QuickInserter( {
 	} );
 	const [ blockTypes ] = useBlockTypesState(
 		destinationRootClientId,
-		onInsertBlocks
+		onInsertBlocks,
+		true
 	);
-
 	const [ patterns ] = usePatternsState(
 		onInsertBlocks,
-		destinationRootClientId
+		destinationRootClientId,
+		undefined,
+		true
 	);
 
 	const { setInserterIsOpened, insertionIndex } = useSelect(
@@ -84,7 +86,12 @@ export default function QuickInserter( {
 	// When clicking Browse All select the appropriate block so as
 	// the insertion point can work as expected.
 	const onBrowseAll = () => {
-		setInserterIsOpened( { rootClientId, insertionIndex, filterValue } );
+		setInserterIsOpened( {
+			filterValue,
+			onSelect,
+			rootClientId,
+			insertionIndex,
+		} );
 	};
 
 	let maxBlockPatterns = 0;
@@ -96,7 +103,7 @@ export default function QuickInserter( {
 
 	return (
 		<div
-			className={ classnames( 'block-editor-inserter__quick-inserter', {
+			className={ clsx( 'block-editor-inserter__quick-inserter', {
 				'has-search': showSearch,
 				'has-expand': setInserterIsOpened,
 			} ) }
@@ -109,7 +116,7 @@ export default function QuickInserter( {
 					onChange={ ( value ) => {
 						setFilterValue( value );
 					} }
-					label={ __( 'Search for blocks and patterns' ) }
+					label={ __( 'Search' ) }
 					placeholder={ __( 'Search' ) }
 				/>
 			) }
@@ -126,11 +133,13 @@ export default function QuickInserter( {
 					isDraggable={ false }
 					prioritizePatterns={ prioritizePatterns }
 					selectBlockOnInsert={ selectBlockOnInsert }
+					isQuick
 				/>
 			</div>
 
 			{ setInserterIsOpened && (
 				<Button
+					__next40pxDefaultSize
 					className="block-editor-inserter__quick-inserter-expand"
 					onClick={ onBrowseAll }
 					aria-label={ __(

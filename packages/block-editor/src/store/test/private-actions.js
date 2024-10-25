@@ -4,7 +4,9 @@
 import {
 	hideBlockInterface,
 	showBlockInterface,
+	expandBlock,
 	__experimentalUpdateSettings,
+	setInsertionPoint,
 	setOpenedBlockSettingsMenu,
 	startDragging,
 	stopDragging,
@@ -110,6 +112,29 @@ describe( 'private actions', () => {
 		it( 'should return the STOP_DRAGGING action', () => {
 			expect( stopDragging() ).toEqual( {
 				type: 'STOP_DRAGGING',
+			} );
+		} );
+	} );
+
+	describe( 'expandBlock', () => {
+		it( 'should return the SET_BLOCK_EXPANDED_IN_LIST_VIEW action', () => {
+			expect( expandBlock( 'block-1' ) ).toEqual( {
+				type: 'SET_BLOCK_EXPANDED_IN_LIST_VIEW',
+				clientId: 'block-1',
+			} );
+		} );
+	} );
+
+	describe( 'setInsertionPoint', () => {
+		it( 'should return the SET_INSERTION_POINT action', () => {
+			expect(
+				setInsertionPoint( {
+					rootClientId: '',
+					index: '123',
+				} )
+			).toEqual( {
+				type: 'SET_INSERTION_POINT',
+				value: { rootClientId: '', index: '123' },
 			} );
 		} );
 	} );

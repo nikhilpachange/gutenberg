@@ -2,16 +2,14 @@
  * External dependencies
  */
 import styled from '@emotion/styled';
-import { css } from '@emotion/react';
 
 /**
  * Internal dependencies
  */
 import Button from '../button';
 import { Heading } from '../heading';
-import { HStack } from '../h-stack';
 import { space } from '../utils/space';
-import { COLORS, CONFIG, font } from '../utils';
+import { COLORS, CONFIG } from '../utils';
 import { View } from '../view';
 import InputControl from '../input-control';
 import {
@@ -32,7 +30,7 @@ export const IndicatorStyled = styled( ColorIndicator )`
 export const NameInputControl = styled( InputControl )`
 	${ InputControlContainer } {
 		background: ${ COLORS.gray[ 100 ] };
-		border-radius: ${ CONFIG.controlBorderRadius };
+		border-radius: ${ CONFIG.radiusXSmall };
 		${ Input }${ Input }${ Input }${ Input } {
 			height: ${ space( 8 ) };
 		}
@@ -40,71 +38,6 @@ export const NameInputControl = styled( InputControl )`
 			border-color: transparent;
 			box-shadow: none;
 		}
-	}
-`;
-
-const buttonStyleReset = ( {
-	as,
-}: {
-	as: React.ComponentProps< typeof View >[ 'as' ];
-} ) => {
-	if ( as === 'button' ) {
-		return css`
-			display: flex;
-			align-items: center;
-			width: 100%;
-			appearance: none;
-			background: transparent;
-			border: none;
-			border-radius: 0;
-			padding: 0;
-			cursor: pointer;
-
-			&:hover {
-				color: ${ COLORS.theme.accent };
-			}
-		`;
-	}
-	return null;
-};
-
-export const PaletteItem = styled( View )`
-	${ buttonStyleReset }
-
-	padding-block: 3px;
-	padding-inline-start: ${ space( 3 ) };
-	border: 1px solid ${ CONFIG.surfaceBorderColor };
-	border-bottom-color: transparent;
-	font-size: ${ font( 'default.fontSize' ) };
-
-	&:focus-visible {
-		border-color: transparent;
-		box-shadow: 0 0 0 var( --wp-admin-border-width-focus )
-			${ COLORS.theme.accent };
-		// Windows high contrast mode.
-		outline: 2px solid transparent;
-		outline-offset: 0;
-	}
-
-	border-top-left-radius: ${ CONFIG.controlBorderRadius };
-	border-top-right-radius: ${ CONFIG.controlBorderRadius };
-
-	& + & {
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-	}
-
-	&:last-child {
-		border-bottom-left-radius: ${ CONFIG.controlBorderRadius };
-		border-bottom-right-radius: ${ CONFIG.controlBorderRadius };
-		border-bottom-color: ${ CONFIG.surfaceBorderColor };
-	}
-
-	&.is-selected + & {
-		border-top-color: transparent;
-	}
-	&.is-selected {
-		border-color: ${ COLORS.theme.accent };
 	}
 `;
 
@@ -131,8 +64,8 @@ export const PaletteActionsContainer = styled( View )`
 	display: flex;
 `;
 
-export const PaletteHStackHeader = styled( HStack )`
-	margin-bottom: ${ space( 2 ) };
+export const PaletteEditContents = styled( View )`
+	margin-top: ${ space( 2 ) };
 `;
 
 export const PaletteEditStyles = styled( View )`

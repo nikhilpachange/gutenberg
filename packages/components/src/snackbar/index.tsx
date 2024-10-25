@@ -2,7 +2,7 @@
  * External dependencies
  */
 import type { ForwardedRef, KeyboardEvent, MouseEvent } from 'react';
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -96,24 +96,24 @@ function UnforwardedSnackbar(
 
 	// The `onDismiss/onRemove` can have unstable references,
 	// trigger side-effect cleanup, and reset timers.
-	const callbackRefs = useRef( { onDismiss, onRemove } );
+	const callbacksRef = useRef( { onDismiss, onRemove } );
 	useLayoutEffect( () => {
-		callbackRefs.current = { onDismiss, onRemove };
+		callbacksRef.current = { onDismiss, onRemove };
 	} );
 
 	useEffect( () => {
 		// Only set up the timeout dismiss if we're not explicitly dismissing.
 		const timeoutHandle = setTimeout( () => {
 			if ( ! explicitDismiss ) {
-				callbackRefs.current.onDismiss?.();
-				callbackRefs.current.onRemove?.();
+				callbacksRef.current.onDismiss?.();
+				callbacksRef.current.onRemove?.();
 			}
 		}, NOTICE_TIMEOUT );
 
 		return () => clearTimeout( timeoutHandle );
 	}, [ explicitDismiss ] );
 
-	const classes = classnames( className, 'components-snackbar', {
+	const classes = clsx( className, 'components-snackbar', {
 		'components-snackbar-explicit-dismiss': !! explicitDismiss,
 	} );
 	if ( actions && actions.length > 1 ) {
@@ -125,12 +125,9 @@ function UnforwardedSnackbar(
 		actions = [ actions[ 0 ] ];
 	}
 
-	const snackbarContentClassnames = classnames(
-		'components-snackbar__content',
-		{
-			'components-snackbar__content-with-icon': !! icon,
-		}
-	);
+	const snackbarContentClassnames = clsx( 'components-snackbar__content', {
+		'components-snackbar__content-with-icon': !! icon,
+	} );
 
 	return (
 		<div
@@ -168,7 +165,7 @@ function UnforwardedSnackbar(
 				{ explicitDismiss && (
 					<span
 						role="button"
-						aria-label="Dismiss this notice"
+						aria-label={ __( 'Dismiss this notice' ) }
 						tabIndex={ 0 }
 						className="components-snackbar__dismiss-button"
 						onClick={ dismissMe }

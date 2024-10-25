@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { createRoot } from '@wordpress/element';
+import { createRoot, StrictMode } from '@wordpress/element';
 import {
 	registerCoreBlocks,
 	__experimentalGetCoreBlocks,
@@ -17,6 +17,7 @@ import {
 	store as blocksStore,
 } from '@wordpress/blocks';
 import { dispatch } from '@wordpress/data';
+import { privateApis as editorPrivateApis } from '@wordpress/editor';
 import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
@@ -26,6 +27,7 @@ import CustomizeWidgets from './components/customize-widgets';
 import getSidebarSection from './controls/sidebar-section';
 import getSidebarControl from './controls/sidebar-control';
 import './filters';
+import { unlock } from './lock-unlock';
 
 const { wp } = window;
 
@@ -36,6 +38,8 @@ const DISABLED_BLOCKS = [
 	'core/template-part',
 ];
 const ENABLE_EXPERIMENTAL_FSE_BLOCKS = false;
+
+const { registerCoreBlockBindingsSources } = unlock( editorPrivateApis );
 
 /**
  * Initializes the widgets block editor in the customizer.
@@ -60,8 +64,9 @@ export function initialize( editorName, blockEditorSettings ) {
 		);
 	} );
 	registerCoreBlocks( coreBlocks );
+	registerCoreBlockBindingsSources();
 	registerLegacyWidgetBlock();
-	if ( process.env.IS_GUTENBERG_PLUGIN ) {
+	if ( globalThis.IS_GUTENBERG_PLUGIN ) {
 		__experimentalRegisterExperimentalCoreBlocks( {
 			enableFSEBlocks: ENABLE_EXPERIMENTAL_FSE_BLOCKS,
 		} );
@@ -92,11 +97,13 @@ export function initialize( editorName, blockEditorSettings ) {
 		} );
 
 		createRoot( container ).render(
-			<CustomizeWidgets
-				api={ wp.customize }
-				sidebarControls={ sidebarControls }
-				blockEditorSettings={ blockEditorSettings }
-			/>
+			<StrictMode>
+				<CustomizeWidgets
+					api={ wp.customize }
+					sidebarControls={ sidebarControls }
+					blockEditorSettings={ blockEditorSettings }
+				/>
+			</StrictMode>
 		);
 	} );
 }

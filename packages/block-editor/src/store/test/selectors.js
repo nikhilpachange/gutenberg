@@ -8,11 +8,16 @@ import {
 } from '@wordpress/blocks';
 import { RawHTML } from '@wordpress/element';
 import { symbol } from '@wordpress/icons';
+import { select, dispatch } from '@wordpress/data';
+import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
  * Internal dependencies
  */
 import * as selectors from '../selectors';
+import { store } from '../';
+import { sectionRootClientIdKey } from '../private-keys';
+import { lock } from '../../lock-unlock';
 
 const {
 	getBlockName,
@@ -55,7 +60,6 @@ const {
 	isSelectionEnabled,
 	canInsertBlockType,
 	canInsertBlocks,
-	getInserterItems,
 	getBlockTransformItems,
 	isValidTemplate,
 	getTemplate,
@@ -2422,7 +2426,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: {
+				insertionCue: {
 					rootClientId: undefined,
 					index: 0,
 				},
@@ -2463,7 +2467,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			expect( getBlockInsertionPoint( state ) ).toEqual( {
@@ -2501,7 +2505,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			const insertionPoint1 = getBlockInsertionPoint( state );
@@ -2543,7 +2547,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			expect( getBlockInsertionPoint( state ) ).toEqual( {
@@ -2585,7 +2589,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			expect( getBlockInsertionPoint( state ) ).toEqual( {
@@ -2627,7 +2631,7 @@ describe( 'selectors', () => {
 						} )
 					),
 				},
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			expect( getBlockInsertionPoint( state ) ).toEqual( {
@@ -2640,7 +2644,7 @@ describe( 'selectors', () => {
 	describe( 'isBlockInsertionPointVisible', () => {
 		it( 'should return false if no assigned insertion point', () => {
 			const state = {
-				insertionPoint: null,
+				insertionCue: null,
 			};
 
 			expect( isBlockInsertionPointVisible( state ) ).toBe( false );
@@ -2648,7 +2652,7 @@ describe( 'selectors', () => {
 
 		it( 'should return true if assigned insertion point', () => {
 			const state = {
-				insertionPoint: {
+				insertionCue: {
 					rootClientId: undefined,
 					index: 5,
 				},
@@ -2693,6 +2697,7 @@ describe( 'selectors', () => {
 					byClientId: new Map(),
 					attributes: new Map(),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {
@@ -2710,6 +2715,7 @@ describe( 'selectors', () => {
 				blocks: {
 					byClientId: new Map(),
 					attributes: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {
@@ -2727,6 +2733,7 @@ describe( 'selectors', () => {
 					byClientId: new Map(),
 					attributes: new Map(),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2747,6 +2754,7 @@ describe( 'selectors', () => {
 					byClientId: new Map(),
 					attributes: new Map(),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2771,6 +2779,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2795,6 +2804,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					block1: {},
@@ -2821,6 +2831,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					block1: {},
@@ -2847,6 +2858,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					block1: {
@@ -2875,6 +2887,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					block1: {
@@ -2903,6 +2916,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2931,6 +2945,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					block1: {
@@ -2959,6 +2974,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2975,6 +2991,7 @@ describe( 'selectors', () => {
 					byClientId: new Map(),
 					attributes: new Map(),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {},
 				settings: {},
@@ -2991,7 +3008,7 @@ describe( 'selectors', () => {
 					byClientId: new Map(
 						Object.entries( {
 							block1: { name: 'core/test-block-ancestor' },
-							block2: { name: 'core/block' },
+							block2: { name: 'core/block1' },
 						} )
 					),
 					attributes: new Map(
@@ -3005,6 +3022,10 @@ describe( 'selectors', () => {
 							block2: 'block1',
 						} )
 					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3020,6 +3041,37 @@ describe( 'selectors', () => {
 					'block2'
 				)
 			).toBe( true );
+		} );
+
+		it( 'should prevent blocks from being inserted within sections', () => {
+			const state = {
+				blocks: {
+					byClientId: new Map(
+						Object.entries( {
+							block1: { name: 'core/block' }, // reusable blocks are always sections.
+						} )
+					),
+					attributes: new Map(
+						Object.entries( {
+							block1: {},
+						} )
+					),
+					parents: new Map(
+						Object.entries( {
+							block1: '',
+						} )
+					),
+					order: new Map( [ [ '', [ 'block1' ] ] ] ),
+				},
+				blockListSettings: {
+					block1: {},
+				},
+				settings: {},
+				blockEditingModes: new Map(),
+			};
+			expect(
+				canInsertBlockType( state, 'core/test-block-a', 'block1' )
+			).toBe( false );
 		} );
 
 		it( 'should allow blocks to be inserted if both parent and ancestor restrictions are met', () => {
@@ -3045,6 +3097,11 @@ describe( 'selectors', () => {
 							block3: 'block2',
 						} )
 					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+						[ 'block2', [ 'block3' ] ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3085,6 +3142,11 @@ describe( 'selectors', () => {
 							block3: 'block2',
 						} )
 					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+						[ 'block2', [ 'block3' ] ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3125,6 +3187,11 @@ describe( 'selectors', () => {
 							block3: 'block2',
 						} )
 					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+						[ 'block2', [ 'block3' ] ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3158,11 +3225,14 @@ describe( 'selectors', () => {
 							block2: {},
 						} )
 					),
-					parents: new Map(
-						Object.entries( {
-							block2: 'block1',
-						} )
-					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+					] ),
+					parents: new Map( [
+						[ 'block2', 'block1' ],
+						[ 'block1', '' ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3202,6 +3272,10 @@ describe( 'selectors', () => {
 							block2: 'block1',
 						} )
 					),
+					order: new Map( [
+						[ '', [ 'block1' ] ],
+						[ 'block1', [ 'block2' ] ],
+					] ),
 				},
 				blockListSettings: {
 					block1: {},
@@ -3239,6 +3313,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					1: {
@@ -3272,6 +3347,7 @@ describe( 'selectors', () => {
 						} )
 					),
 					parents: new Map(),
+					order: new Map(),
 				},
 				blockListSettings: {
 					1: {
@@ -3286,41 +3362,26 @@ describe( 'selectors', () => {
 	} );
 
 	describe( 'getInserterItems', () => {
-		it( 'should properly list block type and reusable block items', () => {
-			const state = {
-				blocks: {
-					byClientId: new Map(),
-					attributes: new Map(),
-					order: new Map(),
-					parents: new Map(),
-					tree: new Map(
-						Object.entries( {
-							'': {
-								innerBlocks: [],
-							},
-						} )
-					),
-				},
-				settings: {
-					__experimentalReusableBlocks: [
-						{
-							id: 1,
-							isTemporary: false,
-							clientId: 'block1',
-							title: { raw: 'Reusable Block 1' },
-							content: { raw: '<!-- /wp:test-block-a -->' },
-						},
-					],
-				},
-				// Intentionally include a test case which considers
-				// `insertUsage` as not present within preferences.
-				//
-				// See: https://github.com/WordPress/gutenberg/issues/14580
-				preferences: {},
-				blockListSettings: {},
-				blockEditingModes: new Map(),
-			};
-			const items = getInserterItems( state );
+		afterAll( async () => {
+			await dispatch( store ).updateSettings( {
+				__experimentalReusableBlocks: [],
+			} );
+			await dispatch( store ).resetBlocks( [] );
+		} );
+
+		it( 'should properly list block type and reusable block items', async () => {
+			await dispatch( store ).updateSettings( {
+				__experimentalReusableBlocks: [
+					{
+						id: 1,
+						isTemporary: false,
+						clientId: 'block1',
+						title: { raw: 'Reusable Block 1' },
+						content: { raw: '<!-- /wp:test-block-a -->' },
+					},
+				],
+			} );
+			const items = select( store ).getInserterItems();
 			const testBlockAItem = items.find(
 				( item ) => item.id === 'core/test-block-a'
 			);
@@ -3361,93 +3422,48 @@ describe( 'selectors', () => {
 			} );
 		} );
 
-		it( 'should correctly cache the return values', () => {
-			const state = {
-				blocks: {
-					byClientId: new Map(
-						Object.entries( {
-							block3: { name: 'core/test-block-a' },
-							block4: { name: 'core/test-block-a' },
-						} )
-					),
-					attributes: new Map(
-						Object.entries( {
-							block3: {},
-							block4: {},
-						} )
-					),
-					order: new Map(
-						Object.entries( {
-							'': [ 'block3', 'block4' ],
-						} )
-					),
-					parents: new Map(
-						Object.entries( {
-							block3: '',
-							block4: '',
-						} )
-					),
-					tree: new Map(
-						Object.entries( {
-							block3: {
-								clientId: 'block3',
-								name: 'core/test-block-a',
-								attributes: {},
-								innerBlocks: [],
-							},
-							block4: {
-								clientId: 'block4',
-								name: 'core/test-block-a',
-								attributes: {},
-								innerBlocks: [],
-							},
-						} )
-					),
-					controlledInnerBlocks: {},
-				},
-				settings: {
-					__experimentalReusableBlocks: [
-						{
-							id: 1,
-							isTemporary: false,
-							clientId: 'block1',
-							title: { raw: 'Reusable Block 1' },
-							content: { raw: '<!-- /wp:test-block-a -->' },
-						},
-						{
-							id: 2,
-							isTemporary: false,
-							clientId: 'block2',
-							title: { raw: 'Reusable Block 2' },
-							content: { raw: '<!-- /wp:test-block-b -->' },
-						},
-					],
-				},
-				preferences: {
-					insertUsage: {},
-				},
-				blockListSettings: {
-					block3: {},
-					block4: {},
-				},
-				blockEditingModes: new Map(),
-			};
-
-			const stateSecondBlockRestricted = {
-				...state,
-				blockListSettings: {
-					...state.blockListSettings,
-					block4: {
-						allowedBlocks: [ 'core/test-block-b' ],
+		it( 'should correctly cache the return values', async () => {
+			await dispatch( store ).updateSettings( {
+				__experimentalReusableBlocks: [
+					{
+						id: 1,
+						isTemporary: false,
+						clientId: 'block1',
+						title: { raw: 'Reusable Block 1' },
+						content: { raw: '<!-- /wp:test-block-a -->' },
 					},
+					{
+						id: 2,
+						isTemporary: false,
+						clientId: 'block2',
+						title: { raw: 'Reusable Block 2' },
+						content: { raw: '<!-- /wp:test-block-b -->' },
+					},
+				],
+			} );
+			await dispatch( store ).resetBlocks( [
+				{
+					clientId: 'block3',
+					name: 'core/test-block-a',
+					innerBlocks: [],
 				},
-			};
+				{
+					clientId: 'block4',
+					name: 'core/test-block-a',
+					innerBlocks: [],
+				},
+			] );
+			await dispatch( store ).updateBlockListSettings( 'block3', {} );
+			await dispatch( store ).updateBlockListSettings( 'block4', {} );
 
-			const firstBlockFirstCall = getInserterItems( state, 'block3' );
-			const firstBlockSecondCall = getInserterItems(
-				stateSecondBlockRestricted,
-				'block3'
-			);
+			const firstBlockFirstCall =
+				select( store ).getInserterItems( 'block3' );
+			await dispatch( store ).updateBlockListSettings( 'block4', {
+				allowedBlocks: [ 'core/test-block-b' ],
+			} );
+			const firstBlockSecondCall =
+				select( store ).getInserterItems( 'block3' );
+			await dispatch( store ).updateBlockListSettings( 'block4', {} );
 			expect( firstBlockFirstCall ).toBe( firstBlockSecondCall );
 			expect( firstBlockFirstCall.map( ( item ) => item.id ) ).toEqual( [
 				'core/test-block-a',
@@ -3459,11 +3475,14 @@ describe( 'selectors', () => {
 				'core/block/2',
 			] );
 
-			const secondBlockFirstCall = getInserterItems( state, 'block4' );
-			const secondBlockSecondCall = getInserterItems(
-				stateSecondBlockRestricted,
-				'block4'
-			);
+			const secondBlockFirstCall =
+				select( store ).getInserterItems( 'block4' );
+			await dispatch( store ).updateBlockListSettings( 'block4', {
+				allowedBlocks: [ 'core/test-block-b' ],
+			} );
+			const secondBlockSecondCall =
+				select( store ).getInserterItems( 'block4' );
+			await dispatch( store ).updateBlockListSettings( 'block4', {} );
 			expect( secondBlockFirstCall ).not.toBe( secondBlockSecondCall );
 			expect( secondBlockFirstCall.map( ( item ) => item.id ) ).toEqual( [
 				'core/test-block-a',
@@ -3479,77 +3498,37 @@ describe( 'selectors', () => {
 			);
 		} );
 
-		it( 'should set isDisabled when a block with `multiple: false` has been used', () => {
-			const state = {
-				blocks: {
-					byClientId: new Map(
-						Object.entries( {
-							block1: {
-								clientId: 'block1',
-								name: 'core/test-block-b',
-							},
-						} )
-					),
-					attributes: new Map(
-						Object.entries( {
-							block1: { attribute: {} },
-						} )
-					),
-					order: new Map(
-						Object.entries( {
-							'': [ 'block1' ],
-						} )
-					),
-					tree: new Map(
-						Object.entries( {
-							block1: {
-								clientId: 'block1',
-								name: 'core/test-block-b',
-								attributes: {},
-								innerBlocks: [],
-							},
-						} )
-					),
-					controlledInnerBlocks: {},
-					parents: new Map(),
+		it( 'should set isDisabled when a block with `multiple: false` has been used', async () => {
+			await dispatch( store ).resetBlocks( [
+				{
+					clientId: 'block1',
+					name: 'core/test-block-b',
+					innerBlocks: [],
 				},
-				preferences: {
-					insertUsage: {},
-				},
-				blockListSettings: {},
-				settings: {},
-				blockEditingModes: new Map(),
-			};
-			const items = getInserterItems( state );
+			] );
+			const items = select( store ).getInserterItems();
 			const testBlockBItem = items.find(
 				( item ) => item.id === 'core/test-block-b'
 			);
 			expect( testBlockBItem.isDisabled ).toBe( true );
 		} );
 
-		it( 'should set a frecency', () => {
-			const state = {
-				blocks: {
-					byClientId: new Map(),
-					attributes: new Map(),
-					order: new Map(),
-					parents: new Map(),
-					cache: {},
-				},
-				preferences: {
-					insertUsage: {
-						'core/test-block-b': { count: 10, time: 1000 },
+		it( 'should set a frecency', async () => {
+			for ( let i = 0; i < 10; i++ ) {
+				await dispatch( store ).insertBlocks( [
+					{
+						clientId: 'block1',
+						name: 'core/test-block-b',
+						innerBlocks: [],
 					},
-				},
-				blockListSettings: {},
-				settings: {},
-				blockEditingModes: new Map(),
-			};
-			const items = getInserterItems( state );
+				] );
+			}
+
+			const items = select( store ).getInserterItems();
 			const reusableBlock2Item = items.find(
 				( item ) => item.id === 'core/test-block-b'
 			);
-			expect( reusableBlock2Item.frecency ).toBe( 2.5 );
+			expect( reusableBlock2Item.frecency ).toBe( 40 );
 		} );
 	} );
 
@@ -4304,20 +4283,7 @@ describe( 'getInserterItems with core blocks prioritization', () => {
 		].forEach( unregisterBlockType );
 	} );
 	it( 'should prioritize core blocks by sorting them at the top of the returned list', () => {
-		const state = {
-			blocks: {
-				byClientId: new Map(),
-				attributes: new Map(),
-				order: new Map(),
-				parents: new Map(),
-				cache: {},
-			},
-			settings: {},
-			preferences: {},
-			blockListSettings: {},
-			blockEditingModes: new Map(),
-		};
-		const items = getInserterItems( state );
+		const items = select( store ).getInserterItems();
 		const expectedResult = [
 			'core/block',
 			'core/test-block-a',
@@ -4419,12 +4385,28 @@ describe( 'getBlockEditingMode', () => {
 		settings: {},
 		blocks: {
 			byClientId: new Map( [
-				[ '6cf70164-9097-4460-bcbf-200560546988', {} ], // Header
-				[ 'ef45d5fd-5234-4fd5-ac4f-c3736c7f9337', {} ], // Group
-				[ 'b26fc763-417d-4f01-b81c-2ec61e14a972', {} ], // |  Post Title
-				[ '9b9c5c3f-2e46-4f02-9e14-9fe9515b958f', {} ], // |  Post Content
-				[ 'b3247f75-fd94-4fef-97f9-5bfd162cc416', {} ], // | |  Paragraph
-				[ 'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c', {} ], // | |  Paragraph
+				[
+					'6cf70164-9097-4460-bcbf-200560546988',
+					{ name: 'core/template-part' },
+				], // Header
+				[
+					'ef45d5fd-5234-4fd5-ac4f-c3736c7f9337',
+					{ name: 'core/group' },
+				], // Group
+				[
+					'b26fc763-417d-4f01-b81c-2ec61e14a972',
+					{ name: 'core/post-title' },
+				], // |  Post Title
+				[
+					'9b9c5c3f-2e46-4f02-9e14-9fe9515b958f',
+					{ name: 'core/group' },
+				], // |  Group
+				[ 'b3247f75-fd94-4fef-97f9-5bfd162cc416', { name: 'core/p' } ], // | |  Paragraph
+				[ 'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c', { name: 'core/p' } ], // | |  Paragraph
+				[
+					'9b9c5c3f-2e46-4f02-9e14-9fed515b958s',
+					{ name: 'core/group' },
+				], // | | Group
 			] ),
 			order: new Map( [
 				[
@@ -4448,10 +4430,12 @@ describe( 'getBlockEditingMode', () => {
 					[
 						'b3247f75-fd94-4fef-97f9-5bfd162cc416',
 						'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c',
+						'9b9c5c3f-2e46-4f02-9e14-9fed515b958s',
 					],
 				],
 				[ 'b3247f75-fd94-4fef-97f9-5bfd162cc416', [] ],
 				[ 'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c', [] ],
+				[ '9b9c5c3f-2e46-4f02-9e14-9fed515b958s', [] ],
 			] ),
 			parents: new Map( [
 				[ '6cf70164-9097-4460-bcbf-200560546988', '' ],
@@ -4472,6 +4456,10 @@ describe( 'getBlockEditingMode', () => {
 					'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c',
 					'9b9c5c3f-2e46-4f02-9e14-9fe9515b958f',
 				],
+				[
+					'9b9c5c3f-2e46-4f02-9e14-9fed515b958s',
+					'9b9c5c3f-2e46-4f02-9e14-9fe9515b958f',
+				],
 			] ),
 		},
 		blockListSettings: {
@@ -4481,12 +4469,28 @@ describe( 'getBlockEditingMode', () => {
 		blockEditingModes: new Map( [] ),
 	};
 
-	const __experimentalHasContentRoleAttribute = jest.fn( () => false );
-	getBlockEditingMode.registry = {
-		select: jest.fn( () => ( {
-			__experimentalHasContentRoleAttribute,
-		} ) ),
+	const navigationModeStateWithRootSection = {
+		...baseState,
+		settings: {
+			[ sectionRootClientIdKey ]: 'ef45d5fd-5234-4fd5-ac4f-c3736c7f9337', // The group is the "main" container
+		},
 	};
+
+	const hasContentRoleAttribute = jest.fn( () => false );
+
+	const fauxPrivateAPIs = {};
+
+	lock( fauxPrivateAPIs, {
+		hasContentRoleAttribute,
+	} );
+
+	getBlockEditingMode.registry = {
+		select: jest.fn( () => fauxPrivateAPIs ),
+	};
+
+	afterEach( () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', undefined );
+	} );
 
 	it( 'should return default by default', () => {
 		expect(
@@ -4589,7 +4593,7 @@ describe( 'getBlockEditingMode', () => {
 				},
 			},
 		};
-		__experimentalHasContentRoleAttribute.mockReturnValueOnce( false );
+		hasContentRoleAttribute.mockReturnValueOnce( false );
 		expect(
 			getBlockEditingMode( state, 'b3247f75-fd94-4fef-97f9-5bfd162cc416' )
 		).toBe( 'disabled' );
@@ -4605,9 +4609,74 @@ describe( 'getBlockEditingMode', () => {
 				},
 			},
 		};
-		__experimentalHasContentRoleAttribute.mockReturnValueOnce( true );
+		hasContentRoleAttribute.mockReturnValueOnce( true );
 		expect(
 			getBlockEditingMode( state, 'b3247f75-fd94-4fef-97f9-5bfd162cc416' )
 		).toBe( 'contentOnly' );
+	} );
+
+	it( 'in navigation mode, the root section container is default', () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', 'navigation' );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'ef45d5fd-5234-4fd5-ac4f-c3736c7f9337'
+			)
+		).toBe( 'default' );
+	} );
+
+	it( 'in navigation mode, anything outside the section container is disabled', () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', 'navigation' );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'6cf70164-9097-4460-bcbf-200560546988'
+			)
+		).toBe( 'disabled' );
+	} );
+
+	it( 'in navigation mode, sections are contentOnly', () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', 'navigation' );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'b26fc763-417d-4f01-b81c-2ec61e14a972'
+			)
+		).toBe( 'contentOnly' );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'9b9c5c3f-2e46-4f02-9e14-9fe9515b958f'
+			)
+		).toBe( 'contentOnly' );
+	} );
+
+	it( 'in navigation mode, blocks with content attributes within sections are contentOnly', () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', 'navigation' );
+		hasContentRoleAttribute.mockReturnValueOnce( true );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'b3247f75-fd94-4fef-97f9-5bfd162cc416'
+			)
+		).toBe( 'contentOnly' );
+
+		hasContentRoleAttribute.mockReturnValueOnce( true );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'e178812d-ce5e-48c7-a945-8ae4ffcbbb7c'
+			)
+		).toBe( 'contentOnly' );
+	} );
+
+	it( 'in navigation mode, blocks without content attributes within sections are disabled', () => {
+		dispatch( preferencesStore ).set( 'core', 'editorTool', 'navigation' );
+		expect(
+			getBlockEditingMode(
+				navigationModeStateWithRootSection,
+				'9b9c5c3f-2e46-4f02-9e14-9fed515b958s'
+			)
+		).toBe( 'disabled' );
 	} );
 } );

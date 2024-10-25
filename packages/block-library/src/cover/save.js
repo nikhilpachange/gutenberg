@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -45,6 +45,7 @@ export default function save( { attributes } ) {
 		minHeight: minHeightProp,
 		minHeightUnit,
 		tagName: Tag,
+		sizeSlug,
 	} = attributes;
 	const overlayColorClass = getColorClassName(
 		'background-color',
@@ -80,7 +81,7 @@ export default function save( { attributes } ) {
 
 	const backgroundPosition = mediaPosition( focalPoint );
 
-	const classes = classnames(
+	const classes = clsx(
 		{
 			'is-light': ! isDark,
 			'has-parallax': hasParallax,
@@ -91,10 +92,11 @@ export default function save( { attributes } ) {
 		getPositionClassName( contentPosition )
 	);
 
-	const imgClasses = classnames(
+	const imgClasses = clsx(
 		'wp-block-cover__image-background',
 		id ? `wp-image-${ id }` : null,
 		{
+			[ `size-${ sizeSlug }` ]: sizeSlug,
 			'has-parallax': hasParallax,
 			'is-repeated': isRepeated,
 		}
@@ -106,7 +108,7 @@ export default function save( { attributes } ) {
 		<Tag { ...useBlockProps.save( { className: classes, style } ) }>
 			<span
 				aria-hidden="true"
-				className={ classnames(
+				className={ clsx(
 					'wp-block-cover__background',
 					overlayColorClass,
 					dimRatioToClass( dimRatio ),
@@ -146,7 +148,7 @@ export default function save( { attributes } ) {
 				) ) }
 			{ isVideoBackground && url && (
 				<video
-					className={ classnames(
+					className={ clsx(
 						'wp-block-cover__video-background',
 						'intrinsic-ignore'
 					) }

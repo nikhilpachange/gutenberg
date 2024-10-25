@@ -18,14 +18,11 @@ export default function Pagination( {
 	return (
 		<VStack className="block-editor-patterns__grid-pagination-wrapper">
 			<Text variant="muted">
-				{
+				{ sprintf(
 					// translators: %s: Total number of patterns.
-					sprintf(
-						// translators: %s: Total number of patterns.
-						_n( '%s item', '%s items', totalItems ),
-						totalItems
-					)
-				}
+					_n( '%s item', '%s items', totalItems ),
+					totalItems
+				) }
 			</Text>
 
 			{ numPages > 1 && (
@@ -45,6 +42,9 @@ export default function Pagination( {
 							onClick={ () => changePage( 1 ) }
 							disabled={ currentPage === 1 }
 							aria-label={ __( 'First page' ) }
+							size="compact"
+							accessibleWhenDisabled
+							className="block-editor-patterns__grid-pagination-button"
 						>
 							<span>«</span>
 						</Button>
@@ -53,6 +53,9 @@ export default function Pagination( {
 							onClick={ () => changePage( currentPage - 1 ) }
 							disabled={ currentPage === 1 }
 							aria-label={ __( 'Previous page' ) }
+							size="compact"
+							accessibleWhenDisabled
+							className="block-editor-patterns__grid-pagination-button"
 						>
 							<span>‹</span>
 						</Button>
@@ -75,6 +78,9 @@ export default function Pagination( {
 							onClick={ () => changePage( currentPage + 1 ) }
 							disabled={ currentPage === numPages }
 							aria-label={ __( 'Next page' ) }
+							size="compact"
+							accessibleWhenDisabled
+							className="block-editor-patterns__grid-pagination-button"
 						>
 							<span>›</span>
 						</Button>
@@ -83,7 +89,9 @@ export default function Pagination( {
 							onClick={ () => changePage( numPages ) }
 							disabled={ currentPage === numPages }
 							aria-label={ __( 'Last page' ) }
-							size="default"
+							size="compact"
+							accessibleWhenDisabled
+							className="block-editor-patterns__grid-pagination-button"
 						>
 							<span>»</span>
 						</Button>

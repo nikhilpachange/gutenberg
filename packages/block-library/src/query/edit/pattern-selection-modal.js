@@ -62,7 +62,7 @@ export default function PatternSelectionModal( {
 			overlayClassName="block-library-query-pattern__selection-modal"
 			title={ __( 'Choose a pattern' ) }
 			onRequestClose={ () => setIsPatternSelectionModalOpen( false ) }
-			isFullScreen={ true }
+			isFullScreen
 		>
 			<div className="block-library-query-pattern__selection-content">
 				<div className="block-library-query-pattern__selection-search">
@@ -70,7 +70,7 @@ export default function PatternSelectionModal( {
 						__nextHasNoMarginBottom
 						onChange={ setSearchValue }
 						value={ searchValue }
-						label={ __( 'Search for patterns' ) }
+						label={ __( 'Search' ) }
 						placeholder={ __( 'Search' ) }
 					/>
 				</div>

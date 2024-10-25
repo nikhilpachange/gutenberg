@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import classnames from 'classnames';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -18,8 +18,9 @@ import {
 /**
  * Internal dependencies
  */
-import { __unstableUseBlockElement as useBlockElement } from '../block-list/use-block-props/use-block-refs';
+import { useBlockElement } from '../block-list/use-block-props/use-block-refs';
 import usePopoverScroll from './use-popover-scroll';
+import { rectUnion, getVisibleElementBounds } from '../../utils/dom';
 
 const MAX_POPOVER_RECOMPUTE_COUNTER = Number.MAX_SAFE_INTEGER;
 
@@ -87,42 +88,20 @@ function BlockPopover(
 
 		return {
 			getBoundingClientRect() {
-				const selectedBCR = selectedElement.getBoundingClientRect();
-				const lastSelectedBCR =
-					lastSelectedElement?.getBoundingClientRect();
-
-				// Get the biggest rectangle that encompasses completely the currently
-				// selected element and the last selected element:
-				// - for top/left coordinates, use the smaller numbers
-				// - for the bottom/right coordinates, use the largest numbers
-				const left = Math.min(
-					selectedBCR.left,
-					lastSelectedBCR?.left ?? Infinity
-				);
-				const top = Math.min(
-					selectedBCR.top,
-					lastSelectedBCR?.top ?? Infinity
-				);
-				const right = Math.max(
-					selectedBCR.right,
-					lastSelectedBCR.right ?? -Infinity
-				);
-				const bottom = Math.max(
-					selectedBCR.bottom,
-					lastSelectedBCR.bottom ?? -Infinity
-				);
-				const width = right - left;
-				const height = bottom - top;
-
-				return new window.DOMRect( left, top, width, height );
+				return lastSelectedElement
+					? rectUnion(
+							getVisibleElementBounds( selectedElement ),
+							getVisibleElementBounds( lastSelectedElement )
+					  )
+					: getVisibleElementBounds( selectedElement );
 			},
 			contextElement: selectedElement,
 		};
 	}, [
+		popoverDimensionsRecomputeCounter,
+		selectedElement,
 		bottomClientId,
 		lastSelectedElement,
-		selectedElement,
-		popoverDimensionsRecomputeCounter,
 	] );
 
 	if ( ! selectedElement || ( bottomClientId && ! lastSelectedElement ) ) {
@@ -144,10 +123,7 @@ function BlockPopover(
 			flip={ false }
 			shift={ shift }
 			{ ...props }
-			className={ classnames(
-				'block-editor-block-popover',
-				props.className
-			) }
+			className={ clsx( 'block-editor-block-popover', props.className ) }
 			variant="unstyled"
 		>
 			{ children }
@@ -155,4 +131,25 @@ function BlockPopover(
 	);
 }
 
-export default forwardRef( BlockPopover );
+export const PrivateBlockPopover = forwardRef( BlockPopover );
+
+const PublicBlockPopover = (
+	{ clientId, bottomClientId, children, ...props },
+	ref
+) => (
+	<PrivateBlockPopover
+		{ ...props }
+		bottomClientId={ bottomClientId }
+		clientId={ clientId }
+		__unstableContentRef={ undefined }
+		__unstablePopoverSlot={ undefined }
+		ref={ ref }
+	>
+		{ children }
+	</PrivateBlockPopover>
+);
+
+/**
+ * @see https://github.com/WordPress/gutenberg/blob/HEAD/packages/block-editor/src/components/block-popover/README.md
+ */
+export default forwardRef( PublicBlockPopover );

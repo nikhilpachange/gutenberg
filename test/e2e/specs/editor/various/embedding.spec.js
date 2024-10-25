@@ -106,7 +106,7 @@ test.describe( 'Embedding content', () => {
 		await expect(
 			currenEmbedBlock.locator( 'iframe' ),
 			'Valid embed. Should render valid element.'
-		).toHaveAttribute( 'title', 'Embedded content from twitter' );
+		).toHaveAttribute( 'title', 'Embedded content from twitter.com' );
 
 		await embedUtils.insertEmbed(
 			'https://twitter.com/wooyaygutenberg123454312'
@@ -134,15 +134,15 @@ test.describe( 'Embedding content', () => {
 			'https://developer.wordpress.org/block-editor/reference-guides/block-api/block-attributes/'
 		);
 		await expect(
-			currenEmbedBlock.locator( 'figure' ),
+			currenEmbedBlock,
 			'WordPress valid content. Should render valid figure element.'
-		).toHaveClass( 'wp-block-embed' );
+		).toHaveClass( /wp-block-embed/ );
 
 		await embedUtils.insertEmbed(
 			'https://www.youtube.com/watch?v=lXMskKTw3Bc'
 		);
 		await expect(
-			currenEmbedBlock.locator( 'figure' ),
+			currenEmbedBlock,
 			'Video content. Should render valid figure element, and include the aspect ratio class.'
 		).toHaveClass( /wp-embed-aspect-16-9/ );
 
@@ -150,7 +150,7 @@ test.describe( 'Embedding content', () => {
 		await expect(
 			currenEmbedBlock.locator( 'iframe' ),
 			'Photo content. Should render valid iframe element.'
-		).toHaveAttribute( 'title', 'Embedded content from cloudup' );
+		).toHaveAttribute( 'title', 'Embedded content from cloudup.com' );
 	} );
 
 	test( 'should allow the user to convert unembeddable URLs to a paragraph with a link in it', async ( {
@@ -194,7 +194,8 @@ test.describe( 'Embedding content', () => {
 		embedUtils,
 	} ) => {
 		await embedUtils.interceptRequests( {
-			'https://twitter.com/notnownikki/': MOCK_CANT_EMBED_RESPONSE,
+			'https://twitter.com/notnownikki/':
+				MOCK_BAD_EMBED_PROVIDER_RESPONSE,
 			'https://twitter.com/notnownikki': MOCK_EMBED_RICH_SUCCESS_RESPONSE,
 		} );
 		await embedUtils.insertEmbed( 'https://twitter.com/notnownikki/' );
