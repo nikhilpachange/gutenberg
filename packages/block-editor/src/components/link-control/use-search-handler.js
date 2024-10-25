@@ -51,26 +51,11 @@ const handleEntitySearch = async (
 	val,
 	suggestionsQuery,
 	fetchSearchSuggestions,
-	withCreateSuggestion,
-	pageOnFront,
-	pageForPosts
+	withCreateSuggestion
 ) => {
 	const { isInitialSuggestions } = suggestionsQuery;
 
 	const results = await fetchSearchSuggestions( val, suggestionsQuery );
-
-	// Identify front page and update type to match.
-	results.map( ( result ) => {
-		if ( Number( result.id ) === pageOnFront ) {
-			result.isFrontPage = true;
-			return result;
-		} else if ( Number( result.id ) === pageForPosts ) {
-			result.isBlogHome = true;
-			return result;
-		}
-
-		return result;
-	} );
 
 	// If displaying initial suggestions just return plain results.
 	if ( isInitialSuggestions ) {
@@ -108,19 +93,10 @@ export default function useSearchHandler(
 	allowDirectEntry,
 	withCreateSuggestion
 ) {
-	const { fetchSearchSuggestions, pageOnFront, pageForPosts } = useSelect(
-		( select ) => {
-			const { getSettings } = select( blockEditorStore );
-
-			return {
-				pageOnFront: getSettings().pageOnFront,
-				pageForPosts: getSettings().pageForPosts,
-				fetchSearchSuggestions:
-					getSettings().__experimentalFetchLinkSuggestions,
-			};
-		},
-		[]
-	);
+	const fetchSearchSuggestions = useSelect( ( select ) => {
+		const { getSettings } = select( blockEditorStore );
+		return getSettings().__experimentalFetchLinkSuggestions;
+	}, [] );
 
 	const directEntryHandler = allowDirectEntry
 		? handleDirectEntry
@@ -134,16 +110,12 @@ export default function useSearchHandler(
 						val,
 						{ ...suggestionsQuery, isInitialSuggestions },
 						fetchSearchSuggestions,
-						withCreateSuggestion,
-						pageOnFront,
-						pageForPosts
+						withCreateSuggestion
 				  );
 		},
 		[
 			directEntryHandler,
 			fetchSearchSuggestions,
-			pageOnFront,
-			pageForPosts,
 			suggestionsQuery,
 			withCreateSuggestion,
 		]

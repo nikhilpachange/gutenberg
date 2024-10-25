@@ -121,8 +121,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 		hiddenBlockTypes,
 		canUseUnfilteredHTML,
 		userCanCreatePages,
-		pageOnFront,
-		pageForPosts,
 		userPatternCategories,
 		restBlockPatternCategories,
 		sectionRootClientId,
@@ -131,7 +129,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 			const {
 				canUser,
 				getRawEntityRecord,
-				getEntityRecord,
 				getUserPatternCategories,
 				getBlockPatternCategories,
 			} = select( coreStore );
@@ -139,12 +136,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 			const { getBlockTypes } = select( blocksStore );
 			const { getBlocksByName, getBlockAttributes } =
 				select( blockEditorStore );
-			const siteSettings = canUser( 'read', {
-				kind: 'root',
-				name: 'site',
-			} )
-				? getEntityRecord( 'root', 'site' )
-				: undefined;
 
 			function getSectionRootBlock() {
 				if ( renderingMode === 'template-locked' ) {
@@ -185,8 +176,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 					kind: 'postType',
 					name: 'page',
 				} ),
-				pageOnFront: siteSettings?.page_on_front,
-				pageForPosts: siteSettings?.page_for_posts,
 				userPatternCategories: getUserPatternCategories(),
 				restBlockPatternCategories: getBlockPatternCategories(),
 				sectionRootClientId: getSectionRootBlock(),
@@ -321,8 +310,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 			// Check these two properties: they were not present in the site editor.
 			__experimentalCreatePageEntity: createPageEntity,
 			__experimentalUserCanCreatePages: userCanCreatePages,
-			pageOnFront,
-			pageForPosts,
 			__experimentalPreferPatternsOnRoot: postType === 'wp_template',
 			templateLock:
 				postType === 'wp_navigation' ? 'insert' : settings.templateLock,
@@ -352,8 +339,6 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 		undo,
 		createPageEntity,
 		userCanCreatePages,
-		pageOnFront,
-		pageForPosts,
 		postType,
 		setIsInserterOpened,
 		sectionRootClientId,

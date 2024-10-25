@@ -58,6 +58,11 @@ type MediaAPIResult = {
 	type: string;
 };
 
+type SettingsAPIResult = {
+	page_on_front: number;
+	posts_per_page: number;
+};
+
 export type SearchResult = {
 	/**
 	 * Post or term id.
@@ -79,6 +84,8 @@ export type SearchResult = {
 	 * Link kind of post-type or taxonomy
 	 */
 	kind?: string;
+	isFrontPage?: boolean;
+	isBlogHome?: boolean;
 };
 
 /**
@@ -240,13 +247,26 @@ export default async function fetchLinkSuggestions(
 		);
 	}
 
-	const responses = await Promise.all( queries );
+	const [ settings, ...responses ] = await Promise.all( [
+		apiFetch< SettingsAPIResult >( { path: '/wp/v2/settings' } ),
+		...queries,
+	] );
 
 	let results = responses.flat();
 	results = results.filter( ( result ) => !! result.id );
 	results = sortResults( results, search );
 	results = results.slice( 0, perPage );
-	return results;
+	return results.map( ( result ) => {
+		if ( Number( result.id ) === settings.page_on_front ) {
+			result.isFrontPage = true;
+			return result;
+		} else if ( Number( result.id ) === settings.posts_per_page ) {
+			result.isBlogHome = true;
+			return result;
+		}
+
+		return result;
+	} );
 }
 
 /**
