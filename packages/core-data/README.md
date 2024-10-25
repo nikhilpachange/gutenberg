@@ -383,15 +383,21 @@ import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-    const canEdit = useSelect( ( select ) =>
-        select( coreDataStore ).canUserEditEntityRecord( 'postType', 'post', 1 )
-    ,[];
+	const canEdit = useSelect(
+		( select ) =>
+			select( coreDataStore ).canUserEditEntityRecord(
+				'postType',
+				'post',
+				1
+			),
+		[]
+	);
 
-    return canEdit ? (
-        <div>{ __( 'This user can edit post ID 1' ) }</div>
-    ) : (
-        <div>{ __( 'This user cannot edit post ID 1' ) }</div>
-    );
+	return canEdit ? (
+		<div>{ __( 'This user can edit post ID 1' ) }</div>
+	) : (
+		<div>{ __( 'This user cannot edit post ID 1' ) }</div>
+	);
 };
 ```
 

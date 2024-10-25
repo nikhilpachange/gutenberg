@@ -1352,7 +1352,7 @@ export function canUser(
  * const ExampleComponent = () => {
  *     const canEdit = useSelect( ( select ) =>
  *         select( coreDataStore ).canUserEditEntityRecord( 'postType', 'post', 1 )
- *     ,[];
+ *     ,[]);
  *
  *     return canEdit ? (
  *         <div>{ __( 'This user can edit post ID 1' ) }</div>
