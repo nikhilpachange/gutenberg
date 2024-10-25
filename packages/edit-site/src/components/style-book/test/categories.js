@@ -49,6 +49,11 @@ const exampleThemeBlocks = [
 		category: 'design',
 	},
 	{
+		name: 'custom/colors',
+		title: 'Colors',
+		category: 'colors',
+	},
+	{
 		name: 'core/site-logo',
 		title: 'Site Logo',
 		category: 'theme',

@@ -55,7 +55,6 @@ export default function useMultipleOriginColorsAndGradients() {
 					'Theme',
 					'Indicates this palette comes from the theme.'
 				),
-				slug: 'theme',
 				colors: themeColors,
 			} );
 		}
@@ -69,7 +68,6 @@ export default function useMultipleOriginColorsAndGradients() {
 					'Default',
 					'Indicates this palette comes from WordPress.'
 				),
-				slug: 'default',
 				colors: defaultColors,
 			} );
 		}
@@ -77,9 +75,8 @@ export default function useMultipleOriginColorsAndGradients() {
 			result.push( {
 				name: _x(
 					'Custom',
-					'Indicates this palette is created by the user.'
+					'Indicates this palette comes from the theme.'
 				),
-				slug: 'custom',
 				colors: customColors,
 			} );
 		}
@@ -99,7 +96,6 @@ export default function useMultipleOriginColorsAndGradients() {
 					'Theme',
 					'Indicates this palette comes from the theme.'
 				),
-				slug: 'theme',
 				gradients: themeGradients,
 			} );
 		}
@@ -113,7 +109,6 @@ export default function useMultipleOriginColorsAndGradients() {
 					'Default',
 					'Indicates this palette comes from WordPress.'
 				),
-				slug: 'default',
 				gradients: defaultGradients,
 			} );
 		}
@@ -123,7 +118,6 @@ export default function useMultipleOriginColorsAndGradients() {
 					'Custom',
 					'Indicates this palette is created by the user.'
 				),
-				slug: 'custom',
 				gradients: customGradients,
 			} );
 		}
