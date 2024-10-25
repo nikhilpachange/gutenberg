@@ -475,7 +475,7 @@ _Usage_
 ```js
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
-import { sprintf, __ } from '@wordpress/i18n';
+import { sprintf } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
 	const autosaves = useSelect(
@@ -587,8 +587,9 @@ import { useSelect } from '@wordpress/data';
 import { sprintf, __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const currentTheme = useSelect( ( select ) =>
-		select( coreDataStore ).getCurrentTheme()
+	const currentTheme = useSelect(
+		( select ) => select( coreDataStore ).getCurrentTheme(),
+		[]
 	);
 
 	return currentTheme ? (
@@ -638,8 +639,9 @@ import { useSelect } from '@wordpress/data';
 import { sprintf, __ } from '@wordpress/i18n';
 
 const ExampleComponent = () => {
-	const currentUser = useSelect( ( select ) =>
-		select( coreDataStore ).getCurrentUser()
+	const currentUser = useSelect(
+		( select ) => select( coreDataStore ).getCurrentUser(),
+		[]
 	);
 
 	return currentUser ? (
@@ -697,10 +699,12 @@ import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 
 const ExampleComponent = () => {
-	const embedPreview = useSelect( ( select ) =>
-		select( coreDataStore ).getEmbedPreview(
-			'https://twitter.com/wordpress'
-		)
+	const embedPreview = useSelect(
+		( select ) =>
+			select( coreDataStore ).getEmbedPreview(
+				'https://twitter.com/wordpress'
+			),
+		[]
 	);
 
 	return embedPreview ? (
@@ -803,7 +807,7 @@ const ExampleComponent = () => {
                 1
             ),
         };
-    } );
+    }, []);
 
     return postData && termData ? (
         <div>
@@ -872,10 +876,12 @@ import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 
 const ExampleComponent = () => {
-	const posts = useSelect( ( select ) =>
-		select( coreDataStore ).getEntityRecords( 'postType', 'post', {
-			per_page: 5,
-		} )
+	const posts = useSelect(
+		( select ) =>
+			select( coreDataStore ).getEntityRecords( 'postType', 'post', {
+				per_page: 5,
+			} ),
+		[]
 	);
 
 	return posts ? (
@@ -1227,7 +1233,8 @@ const ExampleComponent = () => {
 					coreDataStore
 				).isRequestingEmbedPreview( 'https://twitter.com/wordpress' ),
 			};
-		}
+		},
+		[]
 	);
 
 	return ! isRequestingEmbedPreview && embedPreview ? (

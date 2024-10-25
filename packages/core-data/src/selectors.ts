@@ -157,7 +157,7 @@ const EMPTY_OBJECT = {};
  *                 ).isRequestingEmbedPreview( 'https://twitter.com/wordpress' ),
  *             };
  *         }
- *     );
+ *     ,[]);
  *
  *     return ! isRequestingEmbedPreview && embedPreview ? (
  *         <div dangerouslySetInnerHTML={ { __html: embedPreview.html } } />
@@ -218,7 +218,7 @@ export function getAuthors(
  * const ExampleComponent = () => {
  *     const currentUser = useSelect( ( select ) =>
  *         select( coreDataStore ).getCurrentUser()
- *     );
+ *     ,[]);
  *
  *     return currentUser ? (
  *         <div>{ sprintf( __( 'Hello, %s!' ), currentUser.name ) }</div>
@@ -405,7 +405,7 @@ export interface GetEntityRecord {
  *                 1
  *             ),
  *         };
- *     } );
+ *     }, []);
  *
  *     return postData && termData ? (
  *         <div>
@@ -642,7 +642,7 @@ export interface GetEntityRecords {
  *         select( coreDataStore ).getEntityRecords( 'postType', 'post', {
  *             per_page: 5,
  *         } )
- *     );
+ *     ,[]);
  *
  *     return posts ? (
  *         <ul>
@@ -1178,7 +1178,7 @@ export function hasRedo( state: State ): boolean {
  * const ExampleComponent = () => {
  *     const currentTheme = useSelect( ( select ) =>
  *         select( coreDataStore ).getCurrentTheme()
- *     );
+ *     ,[]);
  *
  *     return currentTheme ? (
  *         <div>
@@ -1240,7 +1240,7 @@ export function getThemeSupports( state: State ): any {
  *         select( coreDataStore ).getEmbedPreview(
  *             'https://twitter.com/wordpress'
  *         )
- *     );
+ *     ,[]);
  *
  *     return embedPreview ? (
  *         <div dangerouslySetInnerHTML={ { __html: embedPreview.html } } />
@@ -1392,7 +1392,7 @@ export function canUserEditEntityRecord(
  * ```js
  * import { store as coreDataStore } from '@wordpress/core-data';
  * import { useSelect } from '@wordpress/data';
- * import { sprintf, __ } from '@wordpress/i18n';
+ * import { sprintf } from '@wordpress/i18n';
  *
  * const ExampleComponent = () => {
  *     const autosaves = useSelect( ( select ) =>
