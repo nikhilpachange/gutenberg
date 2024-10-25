@@ -60,7 +60,7 @@ export default function CategoriesEdit( {
 		hide_empty: ! showEmpty,
 		context: 'view',
 		order,
-		orderBy,
+		orderby: orderBy,
 	};
 	if ( isHierarchicalTaxonomy && showOnlyTopLevel ) {
 		query.parent = 0;
@@ -91,13 +91,6 @@ export default function CategoriesEdit( {
 	const renderCategoryList = () => {
 		const parentId = isHierarchicalTaxonomy && showHierarchy ? 0 : null;
 		const categoriesList = getCategoriesList( parentId );
-		// TODO: Doing the sorting manually because it seems ordering by count
-		// is not working as expected in the REST API.
-		if ( orderBy === 'count' ) {
-			categoriesList.sort( ( a, b ) =>
-				order === 'desc' ? b.count - a.count : a.count - b.count
-			);
-		}
 		return categoriesList.map( ( category ) =>
 			renderCategoryListItem( category )
 		);
