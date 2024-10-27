@@ -178,7 +178,7 @@
 		@include break-small() {
 			height: $grid-unit-50;
 			position: relative;
-			top: -5px; // Should be -4px, but that causes scrolling when focus lands on the movers, in a 60px header.
+			top: #{$grid-unit-05 * -1};
 		}
 	}
 }
