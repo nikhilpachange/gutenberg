@@ -339,7 +339,7 @@ function MetaBoxesMain( { isLegacy } ) {
 						</Tooltip>
 						<VisuallyHidden id={ separatorHelpId }>
 							{ __(
-								'Use up and down arrow keys to resize the metabox pane.'
+								'Use up and down arrow keys to resize the meta box panel.'
 							) }
 						</VisuallyHidden>
 					</>
