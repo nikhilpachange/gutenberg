@@ -38,7 +38,7 @@ import useEntityId from './use-entity-id';
  *
  * return (
  * 	<TextControl
- * 		label={ __( 'Meta Value' ) }
+ * 		label={ __( 'Meta Value', 'my-plugin' ) }
  * 		value={ meta?.key }
  * 			onChange={ ( newValue ) => {
  * 				setMeta( {
