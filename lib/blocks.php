@@ -119,6 +119,7 @@ function gutenberg_reregister_core_block_types() {
 				'tag-cloud.php'                    => 'core/tag-cloud',
 				'template-part.php'                => 'core/template-part',
 				'term-description.php'             => 'core/term-description',
+				'term-title.php'                   => 'core/term-title',
 			),
 		),
 		__DIR__ . '/../build/edit-widgets/blocks/'  => array(

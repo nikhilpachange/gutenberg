@@ -933,6 +933,15 @@ Display the description of categories, tags and custom taxonomies when viewing a
 -	**Supports:** align (full, wide), color (background, link, text), interactivity (clientNavigation), spacing (margin, padding), typography (fontSize, lineHeight), ~~html~~
 -	**Attributes:** textAlign
 
+## Term Title
+
+Display the title of categories, tags and custom taxonomies ([Source](https://github.com/WordPress/gutenberg/tree/trunk/packages/block-library/src/term-title))
+
+-	**Name:** core/term-title
+-	**Category:** theme
+-	**Supports:** align (full, wide), color (background, link, text), interactivity (clientNavigation), spacing (margin, padding), typography (fontSize, lineHeight), ~~html~~
+-	**Attributes:** textAlign
+
 ## Text Columns (deprecated)
 
 This block is deprecated. Please use the Columns block instead. ([Source](https://github.com/WordPress/gutenberg/tree/trunk/packages/block-library/src/text-columns))
