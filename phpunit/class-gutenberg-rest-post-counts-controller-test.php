@@ -79,14 +79,13 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 7, $properties );
+		$this->assertCount( 6, $properties );
 		$this->assertArrayHasKey( 'publish', $properties );
 		$this->assertArrayHasKey( 'future', $properties );
 		$this->assertArrayHasKey( 'draft', $properties );
 		$this->assertArrayHasKey( 'pending', $properties );
 		$this->assertArrayHasKey( 'private', $properties );
 		$this->assertArrayHasKey( 'trash', $properties );
-		$this->assertArrayHasKey( 'auto-draft', $properties );
 	}
 
 	/**
@@ -105,7 +104,6 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$this->assertArrayHasKey( 'pending', $data );
 		$this->assertArrayHasKey( 'private', $data );
 		$this->assertArrayHasKey( 'trash', $data );
-		$this->assertArrayHasKey( 'auto-draft', $data );
 	}
 
 	/**

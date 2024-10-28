@@ -97,16 +97,8 @@ class Gutenberg_REST_Post_Counts_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$post_type = $request['post_type'];
 		$counts    = wp_count_posts( $post_type );
+		$data      = $this->prepare_item_for_response( $counts, $request );
 
-		if ( ! $counts ) {
-			return new WP_Error(
-				'rest_post_counts_error',
-				__( 'Could not retrieve post counts.' ),
-				array( 'status' => 500 )
-			);
-		}
-
-		$data = $this->prepare_item_for_response( $counts, $request );
 		return rest_ensure_response( $data );
 	}
 
@@ -122,10 +114,9 @@ class Gutenberg_REST_Post_Counts_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
-
 		foreach ( $fields as $field ) {
 			if ( property_exists( $item, $field ) ) {
-				$data[ $field ] = intval( $item->$field );
+				$data[ $field ] = (int) $item->$field;
 			}
 		}
 
@@ -160,54 +151,32 @@ class Gutenberg_REST_Post_Counts_Controller extends WP_REST_Controller {
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
+		/*
+		 * The fields comprise all non-internal post stati,
+		 * including any custom statuses that may be registered.
+		 * 'trash' is an exception, so if it exists, it is added separately.
+		 */
+		$post_statuses = get_post_stati( array( 'internal' => false ) );
+
+		if ( get_post_status_object( 'trash' ) ) {
+			$post_statuses[] = 'trash';
+		}
+		$schema_properties = array();
+		foreach ( $post_statuses as $post_status ) {
+			$schema_properties[ $post_status ] = array(
+				// translators: %s: Post status.
+				'description' => sprintf( __( 'The number of posts with the status %s.' ), $post_status ),
+				'type'        => 'integer',
+				'context'     => array( 'view', 'edit' ),
+				'readonly'    => true,
+			);
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'post-counts',
 			'type'       => 'object',
-			'properties' => array(
-				'publish'    => array(
-					'description' => __( 'The number of published posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'future'     => array(
-					'description' => __( 'The number of future scheduled posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'draft'      => array(
-					'description' => __( 'The number of draft posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'pending'    => array(
-					'description' => __( 'The number of pending posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'private'    => array(
-					'description' => __( 'The number of private posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'trash'      => array(
-					'description' => __( 'The number of trashed posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'auto-draft' => array(
-					'description' => __( 'The number of auto-draft posts.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-				),
-			),
+			'properties' => $schema_properties,
 		);
 
 		$this->schema = $schema;
