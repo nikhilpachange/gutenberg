@@ -107,6 +107,8 @@ const { state, actions } = store(
 				}
 
 				const url = new URL( window.location.href );
+
+				// Make sure we reset the pagination.
 				url.searchParams.delete( 'paged' );
 
 				if ( value ) {
@@ -119,6 +121,9 @@ const { state, actions } = store(
 							`instant-search-${ queryId }`,
 							value
 						);
+
+						// Make sure we reset the pagination.
+						url.searchParams.set( `query-${ queryId }-page`, '1' );
 					}
 				} else {
 					url.searchParams.delete( 'instant-search' );
