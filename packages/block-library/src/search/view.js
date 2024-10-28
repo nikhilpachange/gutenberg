@@ -126,10 +126,14 @@ const { state, actions } = store(
 						url.searchParams.set( `query-${ queryId }-page`, '1' );
 					}
 				} else {
+					// This means that we are clearing the search.
 					url.searchParams.delete( 'instant-search' );
 					url.searchParams.delete(
 						`instant-search-${ ctx.queryId }`
 					);
+					// Since we are clearing the search, we need to get back to the first
+					// page of results.
+					url.searchParams.delete( `query-${ ctx.queryId }-page` );
 				}
 
 				const { actions: routerActions } = yield import(
