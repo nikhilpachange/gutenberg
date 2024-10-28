@@ -49,6 +49,8 @@ type SearchAPIResult = {
 	url: string;
 	type: string;
 	subtype: string;
+	is_front_page: boolean;
+	is_blog_home: boolean;
 };
 
 type MediaAPIResult = {
@@ -56,11 +58,6 @@ type MediaAPIResult = {
 	title: { rendered: string };
 	source_url: string;
 	type: string;
-};
-
-type SettingsAPIResult = {
-	page_on_front: number;
-	posts_per_page: number;
 };
 
 export type SearchResult = {
@@ -158,6 +155,8 @@ export default async function fetchLinkSuggestions(
 								__( '(no title)' ),
 							type: result.subtype || result.type,
 							kind: 'post-type',
+							isFrontPage: result.is_front_page === true,
+							isBlogHome: result.is_blog_home === true,
 						};
 					} );
 				} )
@@ -247,26 +246,13 @@ export default async function fetchLinkSuggestions(
 		);
 	}
 
-	const [ settings, ...responses ] = await Promise.all( [
-		apiFetch< SettingsAPIResult >( { path: '/wp/v2/settings' } ),
-		...queries,
-	] );
+	const responses = await Promise.all( queries );
 
 	let results = responses.flat();
 	results = results.filter( ( result ) => !! result.id );
 	results = sortResults( results, search );
 	results = results.slice( 0, perPage );
-	return results.map( ( result ) => {
-		if ( Number( result.id ) === settings.page_on_front ) {
-			result.isFrontPage = true;
-			return result;
-		} else if ( Number( result.id ) === settings.posts_per_page ) {
-			result.isBlogHome = true;
-			return result;
-		}
-
-		return result;
-	} );
+	return results;
 }
 
 /**
