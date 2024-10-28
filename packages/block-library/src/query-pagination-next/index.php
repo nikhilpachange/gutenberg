@@ -24,6 +24,12 @@ function render_block_core_query_pagination_next( $attributes, $content, $block 
 	$page                = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
 	$max_page            = isset( $block->context['query']['pages'] ) ? (int) $block->context['query']['pages'] : 0;
 
+	// Add check for instant search experiment and search query
+	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
+	$instant_search_enabled = isset( $gutenberg_experiments['gutenberg-search-query-block'] ) && $gutenberg_experiments['gutenberg-search-query-block'];
+	$search_query_global = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
+
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$show_label         = isset( $block->context['showLabel'] ) ? (bool) $block->context['showLabel'] : true;
 	$default_label      = __( 'Next Page' );
@@ -51,10 +57,32 @@ function render_block_core_query_pagination_next( $attributes, $content, $block 
 		if ( $max_page > $wp_query->max_num_pages ) {
 			$max_page = $wp_query->max_num_pages;
 		}
+
+		// If instant search is enabled and we have a search query, run a new query
+		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_global ) ) {
+			$args = array_merge(
+				$wp_query->query_vars,
+				array( 's' => $search_query_global )
+			);
+			$search_query = new WP_Query( $args );
+			$max_page = $search_query->max_num_pages;
+		}
+
 		$content = get_next_posts_link( $label, $max_page );
 		remove_filter( 'next_posts_link_attributes', $filter_link_attributes );
 	} elseif ( ! $max_page || $max_page > $page ) {
-		$custom_query           = new WP_Query( build_query_vars_from_query_block( $block, $page ) );
+		// Add check for instant search experiment and search query
+		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_direct ) ) {
+			$args = array_merge(
+				build_query_vars_from_query_block( $block, $page ),
+				array( 's' => $search_query_direct )
+			);
+			$custom_query = new WP_Query( $args );
+		} else {
+			$custom_query = new WP_Query( build_query_vars_from_query_block( $block, $page ) );
+		}
+
+
 		$custom_query_max_pages = (int) $custom_query->max_num_pages;
 		if ( $custom_query_max_pages && $custom_query_max_pages !== $page ) {
 			$content = sprintf(
