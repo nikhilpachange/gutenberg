@@ -156,8 +156,9 @@ const EMPTY_OBJECT = {};
  *                     coreDataStore
  *                 ).isRequestingEmbedPreview( 'https://twitter.com/wordpress' ),
  *             };
- *         }
- *     ,[]);
+ *         },
+ *         []
+ *.     );
  *
  *     return ! isRequestingEmbedPreview && embedPreview ? (
  *         <div dangerouslySetInnerHTML={ { __html: embedPreview.html } } />
