@@ -2,14 +2,45 @@
  * WordPress dependencies
  */
 import { __experimentalVStack as VStack } from '@wordpress/components';
-import { useMemo } from '@wordpress/element';
+import { useContext, useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import { normalizeFields } from '../../normalize-fields';
 import { getVisibleFields } from '../get-visible-fields';
-import type { DataFormProps } from '../../types';
+import type { DataFormProps, FormField } from '../../types';
+import DataFormContext from '../../components/dataform-context';
+
+interface FormFieldProps< Item > {
+	data: Item;
+	field: FormField;
+	onChange: ( value: any ) => void;
+	hideLabelFromVision?: boolean;
+}
+
+export function FormRegularField< Item >( {
+	data,
+	field,
+	onChange,
+	hideLabelFromVision,
+}: FormFieldProps< Item > ) {
+	const { getFieldDefinition } = useContext( DataFormContext );
+	const fieldDefinition = getFieldDefinition(
+		typeof field === 'string' ? field : field.id
+	);
+	if ( ! fieldDefinition ) {
+		return null;
+	}
+	return (
+		<fieldDefinition.Edit
+			data={ data }
+			field={ fieldDefinition }
+			onChange={ onChange }
+			hideLabelFromVision={ hideLabelFromVision }
+		/>
+	);
+}
 
 export default function FormRegular< Item >( {
 	data,
@@ -33,10 +64,10 @@ export default function FormRegular< Item >( {
 		<VStack spacing={ 4 }>
 			{ visibleFields.map( ( field ) => {
 				return (
-					<field.Edit
+					<FormRegularField
 						key={ field.id }
 						data={ data }
-						field={ field }
+						field={ field.id }
 						onChange={ onChange }
 					/>
 				);

@@ -7,7 +7,7 @@ import { useState } from '@wordpress/element';
  * Internal dependencies
  */
 import DataForm from '../index';
-import type { CombinedFormField } from '../../../types';
+import type { Form } from '../../../types';
 
 const meta = {
 	title: 'DataViews/DataForm',
@@ -16,12 +16,24 @@ const meta = {
 		type: {
 			control: { type: 'select' },
 			description:
-				'Chooses the layout of the form. "regular" is the default layout.',
-			options: [ 'regular', 'panel' ],
+				'Chooses the default layout of each field. "regular" is the default layout.',
+			options: [ 'regular', 'panel', 'inline' ],
 		},
 	},
 };
 export default meta;
+
+type SamplePost = {
+	title: string;
+	order: number;
+	author: number;
+	status: string;
+	reviewer: string;
+	date: string;
+	birthdate: string;
+	sampleField?: string;
+	password?: string;
+};
 
 const fields = [
 	{
@@ -84,7 +96,11 @@ const fields = [
 	},
 ];
 
-export const Default = ( { type }: { type: 'panel' | 'regular' } ) => {
+export const Default = ( {
+	type,
+}: {
+	type: 'panel' | 'regular' | 'inline';
+} ) => {
 	const [ post, setPost ] = useState( {
 		title: 'Hello, World!',
 		order: 2,
@@ -99,13 +115,17 @@ export const Default = ( { type }: { type: 'panel' | 'regular' } ) => {
 		fields: [
 			'title',
 			'order',
+			{
+				id: 'status',
+				layout: 'panel',
+				fields: [ 'status', 'password' ],
+			},
 			'author',
 			'reviewer',
-			'status',
 			'date',
 			'birthdate',
 		],
-	};
+	} as Form< SamplePost >;
 
 	return (
 		<DataForm
@@ -127,33 +147,34 @@ export const Default = ( { type }: { type: 'panel' | 'regular' } ) => {
 
 const CombinedFieldsComponent = ( {
 	type = 'regular',
-	combinedFieldDirection = 'vertical',
 }: {
-	type: 'panel' | 'regular';
-	combinedFieldDirection: 'vertical' | 'horizontal';
+	type: 'panel' | 'regular' | 'inline';
 } ) => {
-	const [ post, setPost ] = useState( {
+	const [ post, setPost ] = useState< SamplePost >( {
 		title: 'Hello, World!',
 		order: 2,
 		author: 1,
 		status: 'draft',
+		reviewer: 'fulano',
+		date: '2021-01-01T12:00:00',
+		birthdate: '1950-02-23T12:00:00',
 	} );
 
 	const form = {
-		fields: [ 'title', 'status_and_visibility', 'order', 'author' ],
-		combinedFields: [
+		fields: [
+			'title',
 			{
-				id: 'status_and_visibility',
-				label: 'Status & Visibility',
-				children: [ 'status', 'password' ],
-				direction: combinedFieldDirection,
-				render: ( { item } ) => item.status,
+				id: 'status',
+				layout: 'panel',
+				fields: [ 'status', 'password' ],
 			},
-		] as CombinedFormField< any >[],
-	};
+			'order',
+			'author',
+		],
+	} as Form< SamplePost >;
 
 	return (
-		<DataForm
+		<DataForm< SamplePost >
 			data={ post }
 			fields={ fields }
 			form={ {
@@ -175,11 +196,5 @@ export const CombinedFields = {
 	render: CombinedFieldsComponent,
 	argTypes: {
 		...meta.argTypes,
-		combinedFieldDirection: {
-			control: { type: 'select' },
-			description:
-				'Chooses the direction of the combined field. "vertical" is the default layout.',
-			options: [ 'vertical', 'horizontal' ],
-		},
 	},
 };
