@@ -197,11 +197,20 @@ function render_block_core_search( $attributes, $content, $block ) {
 	}
 
 	if ( $enhanced_pagination ) {
+		$is_inherited = isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'];
+		$search = '';
+
+		if ( $is_inherited ) {
+			$search = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+		} else {
+			$search = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
+		}
+
 		$form_context = array_merge(
 			$form_context,
 			array(
-				'search'      => empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] ),
-				'isInherited' => isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'],
+				'search'      => $search,
+				'isInherited' => $is_inherited,
 				'queryId'     => $block->context['queryId'],
 			)
 		);
