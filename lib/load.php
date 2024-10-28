@@ -50,7 +50,7 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 	require __DIR__ . '/compat/wordpress-6.8/remove-default-css.php';
 	require __DIR__ . '/compat/wordpress-6.8/block-comments.php';
 	require __DIR__ . '/compat/wordpress-6.8/class-gutenberg-rest-comment-controller-6-8.php';
-	require __DIR__ . '/compat/wordpress-6.8/wp-rest-post-search-handler.php';
+	require __DIR__ . '/compat/wordpress-6.8/class-gutenberg-rest-post-search-handler.php';
 
 	// Plugin specific code.
 	require_once __DIR__ . '/class-wp-rest-global-styles-controller-gutenberg.php';
