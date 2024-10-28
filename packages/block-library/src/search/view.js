@@ -109,7 +109,7 @@ const { state, actions } = store(
 				const url = new URL( window.location.href );
 
 				// Make sure we reset the pagination.
-				url.searchParams.delete( 'paged' );
+				url.searchParams.set( 'paged', '1' );
 
 				if ( value ) {
 					if ( ctx.isInherited ) {
