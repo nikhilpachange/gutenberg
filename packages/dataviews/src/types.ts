@@ -544,7 +544,8 @@ export type NormalizedCombinedFormField< Item > = CombinedFormField< Item > & {
 export type FormField =
 	| string
 	| {
-			layout?: 'regular' | 'panel' | 'group';
+			id: string;
+			layout?: 'regular' | 'panel' | 'inline';
 			field?: string;
 			fields?: FormField[];
 	  };
@@ -553,7 +554,7 @@ export type FormField =
  * The form configuration.
  */
 export type Form< Item > = {
-	type?: 'regular' | 'panel';
+	type?: 'regular' | 'panel' | 'inline';
 	fields?: FormField[];
 	/**
 	 * The fields to combine.
