@@ -108,12 +108,11 @@ const { state, actions } = store(
 
 				const url = new URL( window.location.href );
 
-				// Make sure we reset the pagination.
-				url.searchParams.set( 'paged', '1' );
-
 				if ( value ) {
 					if ( ctx.isInherited ) {
 						url.searchParams.set( 'instant-search', value );
+						// Make sure we reset the pagination.
+						url.searchParams.set( 'paged', '1' );
 					} else {
 						// Set the instant-search parameter using the query ID and search value
 						const queryId = ctx.queryId;
@@ -125,14 +124,15 @@ const { state, actions } = store(
 						// Make sure we reset the pagination.
 						url.searchParams.set( `query-${ queryId }-page`, '1' );
 					}
-				} else {
-					// This means that we are clearing the search.
+				} else if ( ctx.isInherited ) {
+					// Reset global search for inherited queries
 					url.searchParams.delete( 'instant-search' );
+					url.searchParams.delete( 'paged' );
+				} else {
+					// Reset specific search for non-inherited queries
 					url.searchParams.delete(
 						`instant-search-${ ctx.queryId }`
 					);
-					// Since we are clearing the search, we need to get back to the first
-					// page of results.
 					url.searchParams.delete( `query-${ ctx.queryId }-page` );
 				}
 
