@@ -5,6 +5,18 @@
  * @package WordPress
  */
 
+
+/**
+ * Get the total number of pages from the query.
+ *
+ * @param WP_Query $query The query object.
+ * @param int      $max_page The maximum number of pages, usually set in the block context.
+ * @return int The total number of pages.
+ */
+function block_core_query_pagination_numbers_get_total_pages_from_query( $query, $max_page ) {
+	return ! $max_page || $max_page > $query->max_num_pages ? $query->max_num_pages : $max_page;
+}
+
 /**
  * Renders the `core/query-pagination-numbers` block on the server.
  *
@@ -24,14 +36,33 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 	$page                = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
 	$max_page            = isset( $block->context['query']['pages'] ) ? (int) $block->context['query']['pages'] : 0;
 
+	// Add check for instant search experiment and search query
+	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
+	$instant_search_enabled = isset( $gutenberg_experiments['gutenberg-search-query-block'] ) && $gutenberg_experiments['gutenberg-search-query-block'];
+	$search_query_inherited = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
+
+
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$content            = '';
 	global $wp_query;
 	$mid_size = isset( $block->attributes['midSize'] ) ? (int) $block->attributes['midSize'] : null;
+
 	if ( isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'] ) {
 		// Take into account if we have set a bigger `max page`
 		// than what the query has.
-		$total         = ! $max_page || $max_page > $wp_query->max_num_pages ? $wp_query->max_num_pages : $max_page;
+		$total         = block_core_query_pagination_numbers_get_total_pages_from_query( $wp_query, $max_page );
+
+		// If instant search is enabled and we have a search query, run a new query
+		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_inherited ) ) {
+			$args = array_merge(
+				$wp_query->query_vars,
+				array( 's' => $search_query_inherited )
+			);
+			$search_query = new WP_Query( $args );
+			$total = block_core_query_pagination_numbers_get_total_pages_from_query( $search_query, $max_page );
+		}
+
 		$paginate_args = array(
 			'prev_next' => false,
 			'total'     => $total,
@@ -41,12 +72,21 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 		}
 		$content = paginate_links( $paginate_args );
 	} else {
-		$block_query = new WP_Query( build_query_vars_from_query_block( $block, $page ) );
+		// Add check for instant search experiment and search query
+		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_direct ) ) {
+			$args = array_merge(
+				build_query_vars_from_query_block( $block, $page ),
+				array( 's' => $search_query_direct )
+			);
+			$block_query = new WP_Query( $args );
+		} else {
+			$block_query = new WP_Query( build_query_vars_from_query_block( $block, $page ) );
+		}
 		// `paginate_links` works with the global $wp_query, so we have to
 		// temporarily switch it with our custom query.
 		$prev_wp_query = $wp_query;
 		$wp_query      = $block_query;
-		$total         = ! $max_page || $max_page > $wp_query->max_num_pages ? $wp_query->max_num_pages : $max_page;
+		$total         = block_core_query_pagination_numbers_get_total_pages_from_query( $wp_query, $max_page );
 		$paginate_args = array(
 			'base'      => '%_%',
 			'format'    => "?$page_key=%#%",
