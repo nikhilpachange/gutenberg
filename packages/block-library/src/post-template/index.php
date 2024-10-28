@@ -50,7 +50,7 @@ function render_block_core_post_template( $attributes, $content, $block ) {
 	$page_key               = isset( $block->context['queryId'] ) ? 'query-' . $block->context['queryId'] . '-page' : 'query-page';
 	$enhanced_pagination    = isset( $block->context['enhancedPagination'] ) && $block->context['enhancedPagination'];
 	$page                   = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
-	$search_query_inherited = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+	$search_query_global    = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
 	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
 
 	// Check if the Instant Search experiment is enabled.
@@ -81,8 +81,8 @@ function render_block_core_post_template( $attributes, $content, $block ) {
 		 * 3. The search query is not empty.
 		 * 4. The query already has posts.
 		 */
-		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_inherited ) && $query->have_posts() ) {
-			$args  = array_merge( $query->query_vars, array( 's' => $search_query_inherited ) );
+		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_global ) && $query->have_posts() ) {
+			$args  = array_merge( $query->query_vars, array( 's' => $search_query_global ) );
 			$query = new WP_Query( $args );
 		}
 	} else {
