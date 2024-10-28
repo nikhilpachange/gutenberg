@@ -31,11 +31,27 @@ function gutenberg_replace_pattern_override_default_binding( $parsed_block ) {
 		// Build an binding array of all supported attributes.
 		// Note that this also omits the `__default` attribute from the
 		// resulting array.
-		foreach ( $supported_block_attrs[ $parsed_block['blockName'] ] as $attribute_name ) {
-			// Retain any non-pattern override bindings that might be present.
-			$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
-				? $bindings[ $attribute_name ]
-				: array( 'source' => 'core/pattern-overrides' );
+		if ( ! isset( $supported_block_attributes[ $parsed_block['blockName'] ] ) ) {
+			// get block type
+			$block_registry        = WP_Block_Type_Registry::get_instance();
+			$block_type            = $block_registry->get_registered( $parsed_block['blockName'] );
+			$attribute_definitions = $block_type->attributes;
+
+			foreach ( $attribute_definitions as $attribute_name => $attribute_definition ) {
+				// Include the attribute in the updated bindings if the role is set to 'content'.
+				if ( isset( $attribute_definition['role'] ) && 'content' === $attribute_definition['role'] ) {
+					$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+						? $bindings[ $attribute_name ]
+						: array( 'source' => 'core/pattern-overrides' );
+				}
+			}
+		} else {
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
 		}
 		$parsed_block['attrs']['metadata']['bindings'] = $updated_bindings;
 	}

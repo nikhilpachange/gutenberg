@@ -4,6 +4,11 @@
 import { PARTIAL_SYNCING_SUPPORTED_BLOCKS } from '../constants';
 
 /**
+ * WordPress dependencies
+ */
+import { getBlockType } from '@wordpress/blocks';
+
+/**
  * Determines whether a block is overridable.
  *
  * @param {WPBlock} block The block to test.
@@ -11,10 +16,16 @@ import { PARTIAL_SYNCING_SUPPORTED_BLOCKS } from '../constants';
  * @return {boolean} `true` if a block is overridable, `false` otherwise.
  */
 export function isOverridableBlock( block ) {
-	return (
+	const blockType = getBlockType( block.name );
+	const isSupportedBlock =
 		Object.keys( PARTIAL_SYNCING_SUPPORTED_BLOCKS ).includes(
 			block.name
-		) &&
+		) ||
+		Object.values( blockType.attributes ).some(
+			( attribute ) => attribute.role === 'content'
+		);
+	return (
+		isSupportedBlock &&
 		!! block.attributes.metadata?.name &&
 		!! block.attributes.metadata?.bindings &&
 		Object.values( block.attributes.metadata.bindings ).some(

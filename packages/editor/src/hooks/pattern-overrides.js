@@ -6,7 +6,7 @@ import { privateApis as patternsPrivateApis } from '@wordpress/patterns';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { useBlockEditingMode } from '@wordpress/block-editor';
 import { useSelect } from '@wordpress/data';
-import { getBlockBindingsSource } from '@wordpress/blocks';
+import { getBlockBindingsSource, getBlockType } from '@wordpress/blocks';
 
 /**
  * Internal dependencies
@@ -36,8 +36,12 @@ const {
  */
 const withPatternOverrideControls = createHigherOrderComponent(
 	( BlockEdit ) => ( props ) => {
+		const blockType = getBlockType( props.name );
 		const isSupportedBlock =
-			!! PARTIAL_SYNCING_SUPPORTED_BLOCKS[ props.name ];
+			!! PARTIAL_SYNCING_SUPPORTED_BLOCKS[ props.name ] ||
+			Object.values( blockType.attributes ).some(
+				( attribute ) => attribute.role === 'content'
+			);
 
 		return (
 			<>
