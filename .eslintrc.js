@@ -464,6 +464,8 @@ module.exports = {
 			excludedFiles: [
 				'packages/components/src/utils/colors-values.js',
 				'packages/components/src/theme/**',
+				'**/@(test|stories)/**',
+				'**/*.@(native|ios|android).js',
 			],
 			rules: {
 				'no-restricted-syntax': [
