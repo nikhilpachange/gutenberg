@@ -31,7 +31,7 @@ function gutenberg_replace_pattern_override_default_binding( $parsed_block ) {
 		// Build an binding array of all supported attributes.
 		// Note that this also omits the `__default` attribute from the
 		// resulting array.
-		if ( ! isset( $supported_block_attributes[ $parsed_block['blockName'] ] ) ) {
+		if ( ! isset( $supported_block_attrs[ $parsed_block['blockName'] ] ) ) {
 			// get block type
 			$block_registry        = WP_Block_Type_Registry::get_instance();
 			$block_type            = $block_registry->get_registered( $parsed_block['blockName'] );
@@ -46,7 +46,7 @@ function gutenberg_replace_pattern_override_default_binding( $parsed_block ) {
 				}
 			}
 		} else {
-			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+			foreach ( $supported_block_attrs[ $parsed_block['blockName'] ] as $attribute_name ) {
 				// Retain any non-pattern override bindings that might be present.
 				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
 					? $bindings[ $attribute_name ]
