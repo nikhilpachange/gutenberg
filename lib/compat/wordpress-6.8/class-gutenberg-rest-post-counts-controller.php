@@ -167,7 +167,7 @@ class Gutenberg_REST_Post_Counts_Controller extends WP_REST_Controller {
 				// translators: %s: Post status.
 				'description' => sprintf( __( 'The number of posts with the status %s.' ), $post_status ),
 				'type'        => 'integer',
-				'context'     => array( 'view', 'edit' ),
+				'context'     => array( 'view', 'edit', 'embed' ),
 				'readonly'    => true,
 			);
 		}

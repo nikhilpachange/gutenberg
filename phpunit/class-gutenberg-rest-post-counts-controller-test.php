@@ -62,12 +62,11 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 	}
 
 	public function test_context_param() {
-		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/counts/post' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertSame( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
