@@ -43,11 +43,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function {{namespaceSnakeCase}}_{{slugSnakeCase}}_block_init() {
 
-	// Register the block metadata.
-	wp_register_block_metadata_collection(
-		__DIR__ . '/build'
-		__DIR__ . '/build/blocks-manifest.php'
-	);
+
+	// wp_register_block_metadata_collection was introduced in WP 6.7.
+	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
+		// Register the block metadata.
+		wp_register_block_metadata_collection(
+			__DIR__ . '/build'
+			__DIR__ . '/build/blocks-manifest.php'
+		);
+	}
 
 	// Register the block
 	register_block_type( __DIR__ . '/build' );
