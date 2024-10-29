@@ -26,6 +26,14 @@ import InserterDraggableBlocks from '../inserter-draggable-blocks';
 import BlockPatternsPaging from '../block-patterns-paging';
 import { INSERTER_PATTERN_TYPES } from '../inserter/block-patterns-tab/utils';
 
+function chunk( array, size ) {
+	const chunks = [];
+	for ( let i = 0, j = array.length; i < j; i += size ) {
+		chunks.push( array.slice( i, i + size ) );
+	}
+	return chunks;
+}
+
 const WithToolTip = ( { showTooltip, title, children } ) => {
 	if ( showTooltip ) {
 		return <Tooltip text={ title }>{ children }</Tooltip>;
@@ -196,6 +204,7 @@ function BlockPatternsList(
 		showTitle = true,
 		showTitlesAsTooltip,
 		pagingProps,
+		variant,
 	},
 	ref
 ) {
@@ -211,34 +220,74 @@ function BlockPatternsList(
 		setActiveCompositeId( firstCompositeItemId );
 	}, [ shownPatterns, blockPatterns ] );
 
+	const isGridVariant = variant === 'grid';
 	return (
 		<Composite
 			orientation={ orientation }
 			activeId={ activeCompositeId }
 			setActiveId={ setActiveCompositeId }
-			role="listbox"
-			className="block-editor-block-patterns-list"
+			role={ isGridVariant ? 'grid' : 'listbox' }
+			className={ clsx( 'block-editor-block-patterns-list', {
+				[ `is-variant-${ variant }` ]: !! variant,
+			} ) }
 			aria-label={ label }
 			ref={ ref }
 		>
-			{ blockPatterns.map( ( pattern ) => {
-				const isShown = shownPatterns.includes( pattern );
-				return isShown ? (
-					<BlockPattern
-						key={ pattern.name }
-						id={ pattern.name }
-						pattern={ pattern }
-						onClick={ onClickPattern }
-						onHover={ onHover }
-						isDraggable={ isDraggable }
-						showTitle={ showTitle }
-						showTooltip={ showTitlesAsTooltip }
-						category={ category }
-					/>
-				) : (
-					<BlockPatternPlaceholder key={ pattern.name } />
-				);
-			} ) }
+			{ isGridVariant
+				? // The number of columns might need to be dynamic..
+				  chunk( blockPatterns, 2 ).map( ( row, i ) => (
+						<Composite.Row
+							key={ i }
+							role="row"
+							className="block-editor-block-patterns-list__grid-row"
+							style={ {
+								gridTemplateColumns: '1fr 1fr',
+							} }
+						>
+							{ row.map( ( pattern ) => (
+								<Composite.Item
+									role="gridcell"
+									key={ pattern.name }
+									render={
+										shownPatterns.includes( pattern ) ? (
+											<BlockPattern
+												id={ pattern.name }
+												pattern={ pattern }
+												onClick={ onClickPattern }
+												onHover={ onHover }
+												isDraggable={ isDraggable }
+												showTitle={ showTitle }
+												showTooltip={
+													showTitlesAsTooltip
+												}
+												category={ category }
+											/>
+										) : (
+											<BlockPatternPlaceholder />
+										)
+									}
+								/>
+							) ) }
+						</Composite.Row>
+				  ) )
+				: blockPatterns.map( ( pattern ) => {
+						const isShown = shownPatterns.includes( pattern );
+						return isShown ? (
+							<BlockPattern
+								key={ pattern.name }
+								id={ pattern.name }
+								pattern={ pattern }
+								onClick={ onClickPattern }
+								onHover={ onHover }
+								isDraggable={ isDraggable }
+								showTitle={ showTitle }
+								showTooltip={ showTitlesAsTooltip }
+								category={ category }
+							/>
+						) : (
+							<BlockPatternPlaceholder key={ pattern.name } />
+						);
+				  } ) }
 			{ pagingProps && <BlockPatternsPaging { ...pagingProps } /> }
 		</Composite>
 	);

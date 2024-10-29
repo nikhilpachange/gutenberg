@@ -10,34 +10,7 @@
 	padding: 0 $grid-unit-20 $grid-unit-20 52px;
 }
 
-.block-library-query__pattern-selection-content .block-editor-block-patterns-list {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	grid-gap: $grid-unit-10;
-
-	.block-editor-block-patterns-list__list-item {
-		margin-bottom: 0;
-		.block-editor-block-preview__container {
-			max-height: 250px;
-		}
-	}
-}
-
 .block-library-query-pattern__selection-modal {
-
-	.block-editor-block-patterns-list {
-		column-count: 2;
-		column-gap: $grid-unit-30;
-
-		@include break-wide() {
-			column-count: 3;
-		}
-
-		.block-editor-block-patterns-list__list-item {
-			break-inside: avoid-column;
-		}
-	}
-
 	.block-library-query-pattern__selection-search {
 		background: $white;
 		position: sticky;

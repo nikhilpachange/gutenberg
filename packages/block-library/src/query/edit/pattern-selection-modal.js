@@ -3,7 +3,11 @@
  */
 import { useState, useMemo } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
-import { Modal, SearchControl } from '@wordpress/components';
+import {
+	Modal,
+	SearchControl,
+	__experimentalVStack as VStack,
+} from '@wordpress/components';
 import { useAsyncList } from '@wordpress/compose';
 import {
 	BlockContextProvider,
@@ -64,7 +68,7 @@ export default function PatternSelectionModal( {
 			onRequestClose={ () => setIsPatternSelectionModalOpen( false ) }
 			isFullScreen
 		>
-			<div className="block-library-query-pattern__selection-content">
+			<VStack spacing={ 0 }>
 				<div className="block-library-query-pattern__selection-search">
 					<SearchControl
 						__nextHasNoMarginBottom
@@ -79,9 +83,10 @@ export default function PatternSelectionModal( {
 						blockPatterns={ filteredBlockPatterns }
 						shownPatterns={ shownBlockPatterns }
 						onClickPattern={ onBlockPatternSelect }
+						variant="grid"
 					/>
 				</BlockContextProvider>
-			</div>
+			</VStack>
 		</Modal>
 	);
 }

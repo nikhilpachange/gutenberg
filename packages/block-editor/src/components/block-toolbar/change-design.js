@@ -125,6 +125,7 @@ export default function ChangeDesign( { clientId } ) {
 						blockPatterns={ sameCategoryPatternsWithSingleWrapper }
 						onClickPattern={ onClickPattern }
 						showTitle={ false }
+						variant="grid"
 					/>
 				</DropdownContentWrapper>
 			) }

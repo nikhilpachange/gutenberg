@@ -73,3 +73,24 @@
 		}
 	}
 }
+
+.block-editor-block-patterns-list {
+	&.is-variant-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-gap: $grid-unit-15;
+		.block-editor-block-patterns-list__list-item {
+			margin-bottom: 0;
+		}
+		.block-editor-inserter__media-list__list-item {
+			min-height: 100px;
+		}
+
+		.block-editor-block-patterns-list__grid-row {
+			grid-column: 1 / -1;
+			box-sizing: border-box;
+			display: grid;
+			grid-gap: $grid-unit-15;
+		}
+	}
+}
