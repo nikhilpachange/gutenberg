@@ -70,7 +70,7 @@ Undocumented declaration.
 
 Undocumented declaration.
 
-### setAsHomepage
+### slugField
 
 Undocumented declaration.
 
