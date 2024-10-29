@@ -9,6 +9,8 @@
 /**
  * Get the total number of pages from the query.
  *
+ * @since 6.8.0
+ *
  * @param WP_Query $query The query object.
  * @param int      $max_page The maximum number of pages, usually set in the block context.
  * @return int The total number of pages.
