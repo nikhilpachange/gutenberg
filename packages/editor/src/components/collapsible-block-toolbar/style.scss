@@ -62,7 +62,8 @@
 			overflow: visible;
 		}
 
-		// Move up a little to prevent the toolbar shift when focus is on the vertical movers.
+		// Reduce height and move up a little to prevent the toolbar
+		// shift when focus is on the vertical movers.
 		@include break-small() {
 			&:not(.is-horizontal) .block-editor-block-mover__move-button-container {
 				height: $grid-unit-50;

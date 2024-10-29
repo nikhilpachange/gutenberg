@@ -174,7 +174,8 @@
 
 .editor-collapsible-block-toolbar {
 	.block-editor-grid-item-mover__move-vertical-button-container {
-		// Move up a little to prevent the toolbar shift when focus is on the vertical movers.
+		// Reduce height and move up a little to prevent the toolbar
+		// shift when focus is on the vertical movers.
 		@include break-small() {
 			height: $grid-unit-50;
 			position: relative;
