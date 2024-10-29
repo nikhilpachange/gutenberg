@@ -126,7 +126,7 @@
 	flex-direction: row;
 	justify-content: space-between;
 	align-items: center;
-	height: $header-height + $grid-unit-10;
+	height: $header-height + $grid-unit-10; // 72px
 	width: 100%;
 	z-index: z-index(".components-modal__header");
 	position: absolute;
