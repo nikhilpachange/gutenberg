@@ -179,7 +179,6 @@ function render_block_core_search( $attributes, $content, $block ) {
 		$form_directives = 'data-wp-interactive="core/search"';
 	}
 
-
 	if ( $is_expandable_searchfield ) {
 		$aria_label_expanded  = __( 'Submit Search' );
 		$aria_label_collapsed = __( 'Expand search field' );
@@ -189,7 +188,7 @@ function render_block_core_search( $attributes, $content, $block ) {
 			'ariaLabelExpanded'             => $aria_label_expanded,
 			'ariaLabelCollapsed'            => $aria_label_collapsed,
 		);
-		$form_directives    .=
+		$form_directives     .=
 			'data-wp-class--wp-block-search__searchfield-hidden="!context.isSearchInputVisible"
 			data-wp-on-async--keydown="actions.handleSearchKeydown"
 			data-wp-on-async--focusout="actions.handleSearchFocusout"
@@ -198,7 +197,7 @@ function render_block_core_search( $attributes, $content, $block ) {
 
 	if ( $enhanced_pagination ) {
 		$is_inherited = isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'];
-		$search = '';
+		$search       = '';
 
 		if ( $is_inherited ) {
 			$search = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );

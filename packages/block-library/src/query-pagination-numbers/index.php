@@ -39,9 +39,8 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 	// Add check for instant search experiment and search query
 	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
 	$instant_search_enabled = isset( $gutenberg_experiments['gutenberg-search-query-block'] ) && $gutenberg_experiments['gutenberg-search-query-block'];
-	$search_query_global = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+	$search_query_global    = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
 	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
-
 
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$content            = '';
@@ -51,16 +50,16 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 	if ( isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'] ) {
 		// Take into account if we have set a bigger `max page`
 		// than what the query has.
-		$total         = block_core_query_pagination_numbers_get_total_pages_from_query( $wp_query, $max_page );
+		$total = block_core_query_pagination_numbers_get_total_pages_from_query( $wp_query, $max_page );
 
 		// If instant search is enabled and we have a search query, run a new query
 		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_global ) ) {
-			$args = array_merge(
+			$args         = array_merge(
 				$wp_query->query_vars,
 				array( 's' => $search_query_global )
 			);
 			$search_query = new WP_Query( $args );
-			$total = block_core_query_pagination_numbers_get_total_pages_from_query( $search_query, $max_page );
+			$total        = block_core_query_pagination_numbers_get_total_pages_from_query( $search_query, $max_page );
 		}
 
 		$paginate_args = array(
@@ -74,7 +73,7 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 	} else {
 		// Add check for instant search experiment and search query
 		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_direct ) ) {
-			$args = array_merge(
+			$args        = array_merge(
 				build_query_vars_from_query_block( $block, $page ),
 				array( 's' => $search_query_direct )
 			);

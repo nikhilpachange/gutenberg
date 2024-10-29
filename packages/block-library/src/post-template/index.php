@@ -47,10 +47,10 @@ function block_core_post_template_uses_featured_image( $inner_blocks ) {
  * @return string Returns the output of the query, structured using the layout defined by the block's inner blocks.
  */
 function render_block_core_post_template( $attributes, $content, $block ) {
-	$page_key               = isset( $block->context['queryId'] ) ? 'query-' . $block->context['queryId'] . '-page' : 'query-page';
-	$enhanced_pagination    = isset( $block->context['enhancedPagination'] ) && $block->context['enhancedPagination'];
-	$page                   = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
-	$search_query_global    = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
+	$page_key            = isset( $block->context['queryId'] ) ? 'query-' . $block->context['queryId'] . '-page' : 'query-page';
+	$enhanced_pagination = isset( $block->context['enhancedPagination'] ) && $block->context['enhancedPagination'];
+	$page                = empty( $_GET[ $page_key ] ) ? 1 : (int) $_GET[ $page_key ];
+	$search_query_global = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
 	$search_query_direct = '';
 
 	// Get the search query parameter for the specific query if it exists.
