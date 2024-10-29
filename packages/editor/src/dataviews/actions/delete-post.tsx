@@ -3,7 +3,7 @@
  */
 import { trash } from '@wordpress/icons';
 import { useDispatch } from '@wordpress/data';
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __, _x, _n, sprintf } from '@wordpress/i18n';
 import { useState } from '@wordpress/element';
 import {
 	Button,
@@ -67,8 +67,8 @@ const deletePostAction: Action< Post > = {
 								items.length
 						  )
 						: sprintf(
-								// translators: %s: The template or template part's titles
-								__( 'Delete "%s"?' ),
+								// translators: %s: The template or template part's title
+								_x( 'Delete "%s"?', 'template part' ),
 								getItemTitle( items[ 0 ] )
 						  ) }
 				</Text>
