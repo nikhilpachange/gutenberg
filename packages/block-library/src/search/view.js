@@ -111,6 +111,7 @@ const { state, actions } = store(
 				if ( value ) {
 					if ( ctx.isInherited ) {
 						url.searchParams.set( 'instant-search', value );
+
 						// Make sure we reset the pagination.
 						url.searchParams.set( 'paged', '1' );
 					} else {

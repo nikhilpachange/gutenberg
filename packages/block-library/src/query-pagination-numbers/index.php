@@ -12,8 +12,8 @@
  * @since 6.8.0
  *
  * @param WP_Query $query The query object.
- * @param int      $max_page The maximum number of pages, usually set in the block context.
- * @return int The total number of pages.
+ * @param int|null $max_page Optional. The maximum number of pages, usually set in the block context.
+ * @return int     The total number of pages.
  */
 function block_core_query_pagination_numbers_get_total_pages_from_query( $query, $max_page ) {
 	return ! $max_page || $max_page > $query->max_num_pages ? $query->max_num_pages : $max_page;
@@ -42,13 +42,20 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
 	$instant_search_enabled = isset( $gutenberg_experiments['gutenberg-search-query-block'] ) && $gutenberg_experiments['gutenberg-search-query-block'];
 	$search_query_global    = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
-	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
+	$search_query_direct    = '';
+
+	// Get the search query parameter for the specific query if it exists.
+	if ( isset( $block->context['queryId'] ) ) {
+		$search_param = 'instant-search-' . $block->context['queryId'];
+		if ( ! empty( $_GET[ $search_param ] ) ) {
+			$search_query_direct = sanitize_text_field( $_GET[ $search_param ] );
+		}
+	}
 
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$content            = '';
 	global $wp_query;
 	$mid_size = isset( $block->attributes['midSize'] ) ? (int) $block->attributes['midSize'] : null;
-
 	if ( isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'] ) {
 		// Take into account if we have set a bigger `max page`
 		// than what the query has.
@@ -60,8 +67,8 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 				$wp_query->query_vars,
 				array( 's' => $search_query_global )
 			);
-			$search_query = new WP_Query( $args );
-			$total        = block_core_query_pagination_numbers_get_total_pages_from_query( $search_query, $max_page );
+			$query = new WP_Query( $args );
+			$total        = block_core_query_pagination_numbers_get_total_pages_from_query( $query, $max_page );
 		}
 
 		$paginate_args = array(
@@ -74,6 +81,7 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 		$content = paginate_links( $paginate_args );
 	} else {
 		// Add check for instant search experiment and search query
+		// If instant search is enabled and we have a search query, run a new query
 		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_direct ) ) {
 			$args        = array_merge(
 				build_query_vars_from_query_block( $block, $page ),
