@@ -83,10 +83,11 @@ export default function EditorInterface( {
 			isInserterOpened: select( editorStore ).isInserterOpened(),
 			isListViewOpened: select( editorStore ).isListViewOpened(),
 			isDistractionFree: get( 'core', 'distractionFree' ),
-			isPreviewMode: editorSettings.__unstableIsPreviewMode,
+			isPreviewMode: editorSettings.isPreviewMode,
 			showBlockBreadcrumbs: get( 'core', 'showBlockBreadcrumbs' ),
-			// translators: Default label for the Document in the Block Breadcrumb.
-			documentLabel: postTypeLabel || _x( 'Document', 'noun' ),
+			documentLabel:
+				// translators: Default label for the Document in the Block Breadcrumb.
+				postTypeLabel || _x( 'Document', 'noun, breadcrumb' ),
 			isZoomOut: _isZoomOut(),
 		};
 	}, [] );

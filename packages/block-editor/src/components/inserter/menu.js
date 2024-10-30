@@ -16,7 +16,7 @@ import {
 } from '@wordpress/element';
 import { VisuallyHidden, SearchControl, Popover } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { useDebouncedInput } from '@wordpress/compose';
+import { useDebouncedInput, useViewportMatch } from '@wordpress/compose';
 import { useSelect } from '@wordpress/data';
 
 /**
@@ -33,6 +33,7 @@ import useInsertionPoint from './hooks/use-insertion-point';
 import { store as blockEditorStore } from '../../store';
 import TabbedSidebar from '../tabbed-sidebar';
 import { useZoomOut } from '../../hooks/use-zoom-out';
+import { unlock } from '../../lock-unlock';
 
 const NOOP = () => {};
 function InserterMenu(
@@ -54,8 +55,7 @@ function InserterMenu(
 	ref
 ) {
 	const isZoomOutMode = useSelect(
-		( select ) =>
-			select( blockEditorStore ).__unstableGetEditorMode() === 'zoom-out',
+		( select ) => unlock( select( blockEditorStore ) ).isZoomOut(),
 		[]
 	);
 	const [ filterValue, setFilterValue, delayedFilterValue ] =
@@ -67,6 +67,8 @@ function InserterMenu(
 	const [ patternFilter, setPatternFilter ] = useState( 'all' );
 	const [ selectedMediaCategory, setSelectedMediaCategory ] =
 		useState( null );
+	const isLargeViewport = useViewportMatch( 'large' );
+
 	function getInitialTab() {
 		if ( __experimentalInitialTab ) {
 			return __experimentalInitialTab;
@@ -80,7 +82,7 @@ function InserterMenu(
 
 	const shouldUseZoomOut =
 		selectedTab === 'patterns' || selectedTab === 'media';
-	useZoomOut( shouldUseZoomOut );
+	useZoomOut( shouldUseZoomOut && isLargeViewport );
 
 	const [ destinationRootClientId, onInsertBlocks, onToggleInsertionPoint ] =
 		useInsertionPoint( {

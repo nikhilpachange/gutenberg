@@ -5,6 +5,7 @@ import { useEffect, useMemo } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
+import { store as blockEditorStore } from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
@@ -248,10 +249,19 @@ export default function useInitEditedEntityFromURL() {
 		useResolveEditedEntityAndContext( params );
 
 	const { setEditedEntity } = useDispatch( editSiteStore );
+	const { resetZoomLevel } = unlock( useDispatch( blockEditorStore ) );
 
 	useEffect( () => {
 		if ( isReady ) {
+			resetZoomLevel();
 			setEditedEntity( postType, postId, context );
 		}
-	}, [ isReady, postType, postId, context, setEditedEntity ] );
+	}, [
+		isReady,
+		postType,
+		postId,
+		context,
+		setEditedEntity,
+		resetZoomLevel,
+	] );
 }

@@ -26,8 +26,9 @@ import { decodeEntities } from '@wordpress/html-entities';
 /**
  * Internal dependencies
  */
-import { TEMPLATE_POST_TYPES, GLOBAL_POST_TYPES } from '../../store/constants';
+import { TEMPLATE_POST_TYPES } from '../../store/constants';
 import { store as editorStore } from '../../store';
+import usePageTypeBadge from '../../utils/pageTypeBadge';
 
 /** @typedef {import("@wordpress/components").IconType} IconType */
 
@@ -56,7 +57,6 @@ export default function DocumentBar( props ) {
 		postTypeLabel,
 		documentTitle,
 		isNotFound,
-		isUnsyncedPattern,
 		templateTitle,
 		onNavigateToPreviousEntityRecord,
 	} = useSelect( ( select ) => {
@@ -93,7 +93,6 @@ export default function DocumentBar( props ) {
 					_postType,
 					_postId
 				),
-			isUnsyncedPattern: _document?.wp_pattern_sync_status === 'unsynced',
 			templateTitle: _templateInfo.title,
 			onNavigateToPreviousEntityRecord:
 				getEditorSettings().onNavigateToPreviousEntityRecord,
@@ -104,11 +103,12 @@ export default function DocumentBar( props ) {
 	const isReducedMotion = useReducedMotion();
 
 	const isTemplate = TEMPLATE_POST_TYPES.includes( postType );
-	const isGlobalEntity = GLOBAL_POST_TYPES.includes( postType );
 	const hasBackButton = !! onNavigateToPreviousEntityRecord;
 	const entityTitle = isTemplate ? templateTitle : documentTitle;
 	const title = props.title || entityTitle;
 	const icon = props.icon;
+
+	const pageTypeBadge = usePageTypeBadge();
 
 	const mountedRef = useRef( false );
 	useEffect( () => {
@@ -119,7 +119,6 @@ export default function DocumentBar( props ) {
 		<div
 			className={ clsx( 'editor-document-bar', {
 				'has-back-button': hasBackButton,
-				'is-global': isGlobalEntity && ! isUnsyncedPattern,
 			} ) }
 		>
 			<AnimatePresence>
@@ -184,11 +183,20 @@ export default function DocumentBar( props ) {
 									? decodeEntities( title )
 									: __( 'No title' ) }
 							</span>
-							{ postTypeLabel && ! props.title && (
+							{ pageTypeBadge && (
 								<span className="editor-document-bar__post-type-label">
-									{ '· ' + decodeEntities( postTypeLabel ) }
+									{ `· ${ pageTypeBadge }` }
 								</span>
 							) }
+							{ postTypeLabel &&
+								! props.title &&
+								! pageTypeBadge && (
+									<span className="editor-document-bar__post-type-label">
+										{ `· ${ decodeEntities(
+											postTypeLabel
+										) }` }
+									</span>
+								) }
 						</Text>
 					</motion.div>
 					<span className="editor-document-bar__shortcut">

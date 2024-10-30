@@ -38,9 +38,17 @@ Undocumented declaration.
 
 Undocumented declaration.
 
+### featuredImageField
+
+Undocumented declaration.
+
 ### orderField
 
 Undocumented declaration.
+
+### parentField
+
+This field is used to display the post parent.
 
 ### permanentlyDeletePost
 
@@ -63,6 +71,10 @@ Undocumented declaration.
 Undocumented declaration.
 
 ### restorePost
+
+Undocumented declaration.
+
+### slugField
 
 Undocumented declaration.
 

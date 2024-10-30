@@ -5,6 +5,7 @@ import { __ } from '@wordpress/i18n';
 import {
 	getBlockBindingsSource,
 	getBlockBindingsSources,
+	getBlockType,
 } from '@wordpress/blocks';
 import {
 	__experimentalItemGroup as ItemGroup,
@@ -29,10 +30,11 @@ import {
 import { unlock } from '../lock-unlock';
 import InspectorControls from '../components/inspector-controls';
 import BlockContext from '../components/block-context';
+import { useBlockEditContext } from '../components/block-edit';
 import { useBlockBindingsUtils } from '../utils/block-bindings';
 import { store as blockEditorStore } from '../store';
 
-const { DropdownMenuV2 } = unlock( componentsPrivateApis );
+const { Menu } = unlock( componentsPrivateApis );
 
 const EMPTY_OBJECT = {};
 
@@ -50,45 +52,60 @@ const useToolsPanelDropdownMenuProps = () => {
 };
 
 function BlockBindingsPanelDropdown( { fieldsList, attribute, binding } ) {
+	const { clientId } = useBlockEditContext();
 	const registeredSources = getBlockBindingsSources();
 	const { updateBlockBindings } = useBlockBindingsUtils();
 	const currentKey = binding?.args?.key;
+	const attributeType = useSelect(
+		( select ) => {
+			const { name: blockName } =
+				select( blockEditorStore ).getBlock( clientId );
+			const _attributeType =
+				getBlockType( blockName ).attributes?.[ attribute ]?.type;
+			return _attributeType === 'rich-text' ? 'string' : _attributeType;
+		},
+		[ clientId, attribute ]
+	);
 	return (
 		<>
 			{ Object.entries( fieldsList ).map( ( [ name, fields ], i ) => (
 				<Fragment key={ name }>
-					<DropdownMenuV2.Group>
+					<Menu.Group>
 						{ Object.keys( fieldsList ).length > 1 && (
-							<DropdownMenuV2.GroupLabel>
+							<Menu.GroupLabel>
 								{ registeredSources[ name ].label }
-							</DropdownMenuV2.GroupLabel>
+							</Menu.GroupLabel>
 						) }
-						{ Object.entries( fields ).map( ( [ key, args ] ) => (
-							<DropdownMenuV2.RadioItem
-								key={ key }
-								onChange={ () =>
-									updateBlockBindings( {
-										[ attribute ]: {
-											source: name,
-											args: { key },
-										},
-									} )
-								}
-								name={ attribute + '-binding' }
-								value={ key }
-								checked={ key === currentKey }
-							>
-								<DropdownMenuV2.ItemLabel>
-									{ args?.label }
-								</DropdownMenuV2.ItemLabel>
-								<DropdownMenuV2.ItemHelpText>
-									{ args?.value }
-								</DropdownMenuV2.ItemHelpText>
-							</DropdownMenuV2.RadioItem>
-						) ) }
-					</DropdownMenuV2.Group>
+						{ Object.entries( fields )
+							.filter(
+								( [ , args ] ) => args?.type === attributeType
+							)
+							.map( ( [ key, args ] ) => (
+								<Menu.RadioItem
+									key={ key }
+									onChange={ () =>
+										updateBlockBindings( {
+											[ attribute ]: {
+												source: name,
+												args: { key },
+											},
+										} )
+									}
+									name={ attribute + '-binding' }
+									value={ key }
+									checked={ key === currentKey }
+								>
+									<Menu.ItemLabel>
+										{ args?.label }
+									</Menu.ItemLabel>
+									<Menu.ItemHelpText>
+										{ args?.value }
+									</Menu.ItemHelpText>
+								</Menu.RadioItem>
+							) ) }
+					</Menu.Group>
 					{ i !== Object.keys( fieldsList ).length - 1 && (
-						<DropdownMenuV2.Separator />
+						<Menu.Separator />
 					) }
 				</Fragment>
 			) ) }
@@ -158,7 +175,7 @@ function EditableBlockBindingsPanelItems( {
 							} );
 						} }
 					>
-						<DropdownMenuV2
+						<Menu
 							placement={
 								isMobile ? 'bottom-start' : 'left-start'
 							}
@@ -178,7 +195,7 @@ function EditableBlockBindingsPanelItems( {
 								attribute={ attribute }
 								binding={ binding }
 							/>
-						</DropdownMenuV2>
+						</Menu>
 					</ToolsPanelItem>
 				);
 			} ) }
