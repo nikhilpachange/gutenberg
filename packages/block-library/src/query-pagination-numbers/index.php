@@ -63,12 +63,12 @@ function render_block_core_query_pagination_numbers( $attributes, $content, $blo
 
 		// If instant search is enabled and we have a search query, run a new query
 		if ( $enhanced_pagination && $instant_search_enabled && ! empty( $search_query_global ) ) {
-			$args         = array_merge(
+			$args  = array_merge(
 				$wp_query->query_vars,
 				array( 's' => $search_query_global )
 			);
 			$query = new WP_Query( $args );
-			$total        = block_core_query_pagination_numbers_get_total_pages_from_query( $query, $max_page );
+			$total = block_core_query_pagination_numbers_get_total_pages_from_query( $query, $max_page );
 		}
 
 		$paginate_args = array(
