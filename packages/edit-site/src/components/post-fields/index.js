@@ -8,7 +8,11 @@ import clsx from 'clsx';
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
-import { featuredImageField, slugField } from '@wordpress/fields';
+import {
+	featuredImageField,
+	slugField,
+	templateField,
+} from '@wordpress/fields';
 import {
 	createInterpolateElement,
 	useMemo,
@@ -321,6 +325,7 @@ function usePostFields( viewType ) {
 				},
 			},
 			slugField,
+			templateField,
 			{
 				id: 'comment_status',
 				label: __( 'Discussion' ),

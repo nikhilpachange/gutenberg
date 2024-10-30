@@ -67,6 +67,11 @@ function PostEditForm( { postType, postId } ) {
 			'date',
 			'slug',
 			'comment_status',
+			{
+				id: 'template',
+				layout: 'inline',
+				fields: [ 'template' ],
+			},
 		],
 	};
 
