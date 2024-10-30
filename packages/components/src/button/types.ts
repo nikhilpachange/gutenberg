@@ -111,11 +111,11 @@ type BaseButtonProps = {
 	tooltipPosition?: PopoverProps[ 'position' ];
 	/**
 	 * Specifies the button's style.
-	 * The accepted values are:
-	 * 'primary' (the primary button styles)
-	 * 'secondary' (the default button styles)
-	 * 'tertiary' (the text-based button styles)
-	 * 'link' (the link button styles)
+	 *
+	 * - `'primary'` (the primary button styles)
+	 * - `'secondary'` (the default button styles)
+	 * - `'tertiary'` (the text-based button styles)
+	 * - `'link'` (the link button styles)
 	 */
 	variant?: 'primary' | 'secondary' | 'tertiary' | 'link';
 };
