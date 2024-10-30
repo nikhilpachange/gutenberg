@@ -15,11 +15,9 @@ type Fixtures = {
 
 export const test = base.extend< Fixtures >( {
 	interactivityUtils: [
-		async ( { requestUtils }, use ) => {
-			await use( new InteractivityUtils( { requestUtils } ) );
+		async ( { requestUtils, page }, use ) => {
+			await use( new InteractivityUtils( { requestUtils, page } ) );
 		},
-		// @ts-ignore: The required type is 'test', but can be 'worker' too. See
-		// https://playwright.dev/docs/test-fixtures#worker-scoped-fixtures
-		{ scope: 'worker' },
+		{ scope: 'test' },
 	],
 } );

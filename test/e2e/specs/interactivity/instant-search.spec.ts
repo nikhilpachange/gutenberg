@@ -84,10 +84,10 @@ test.describe( 'Instant Search', () => {
 				title: 'Home',
 				content: `
 <!-- wp:query {"enhancedPagination":true,"queryId":1,"query":{"inherit":true,"offset":0,"perPage":2,"order":"desc","orderBy":"date"}} -->
-	<div class="wp-block-query">
+	<div class="wp-block-query" data-testid="default-query">
 		<!-- wp:search {"label":"","buttonText":"Search"} /-->
 			<!-- wp:post-template -->
-				<!-- wp:post-title /-->
+				<!-- wp:post-title {"level":3} /-->
 				<!-- wp:post-excerpt /-->
 			<!-- /wp:post-template -->
 			<!-- wp:query-pagination -->
@@ -119,10 +119,18 @@ test.describe( 'Instant Search', () => {
 				response.url().includes( 'instant-search=Unique' )
 			);
 
-			// Verify only the unique post is shown
+			// Verify the unique post is shown
 			await expect(
 				page.getByText( 'Unique Post', { exact: true } )
 			).toBeVisible();
+
+			// Check that there is only one post
+			const posts = page
+				.getByTestId( 'default-query' )
+				.getByRole( 'heading', { level: 3 } );
+			await expect( posts ).toHaveCount( 1 );
+
+			// Verify that the other posts are hidden
 			await expect(
 				page.getByText( 'First Test Post', { exact: true } )
 			).toBeHidden();
@@ -254,10 +262,10 @@ test.describe( 'Instant Search', () => {
 				title: 'Custom Query',
 				content: `
 <!-- wp:query {"enhancedPagination":true,"queryId":${ queryId },"query":{"inherit":false,"perPage":2,"order":"desc","orderBy":"date","offset":0}} -->
-  <div class="wp-block-query">
+  <div class="wp-block-query" data-testid="custom-query">
 		<!-- wp:search {"label":"","buttonText":"Search"} /-->
 		<!-- wp:post-template -->
-			<!-- wp:post-title /-->
+			<!-- wp:post-title {"level":3} /-->
 			<!-- wp:post-excerpt /-->
 		<!-- /wp:post-template -->
 		<!-- wp:query-pagination -->
@@ -299,6 +307,14 @@ test.describe( 'Instant Search', () => {
 			await expect(
 				page.getByText( 'Unique Post', { exact: true } )
 			).toBeVisible();
+
+			// Check that there is only one post
+			const posts = page
+				.getByTestId( 'custom-query' )
+				.getByRole( 'heading', { level: 3 } );
+			await expect( posts ).toHaveCount( 1 );
+
+			// Verify that the other posts are hidden
 			await expect(
 				page.getByText( 'First Test Post', { exact: true } )
 			).toBeHidden();
@@ -431,6 +447,172 @@ test.describe( 'Instant Search', () => {
 			await expect(
 				page.locator( '.wp-block-query-pagination-numbers' )
 			).toBeHidden();
+		} );
+	} );
+
+	test.describe( 'Multiple Queries', () => {
+		const customQueryId = 1234;
+
+		test.beforeAll( async ( { requestUtils } ) => {
+			// Edit the Home template to include both query types
+			await requestUtils.deleteAllTemplates( 'wp_template' );
+			await requestUtils.createTemplate( 'wp_template', {
+				slug: 'home',
+				title: 'Home',
+				content: `
+<!-- wp:query {"enhancedPagination":true,"queryId":1,"query":{"inherit":true,"offset":0,"perPage":2,"order":"desc","orderBy":"date"}} -->
+	<div class="wp-block-query" data-testid="default-query">
+		<!-- wp:heading -->
+		<h2>Default Query</h2>
+		<!-- /wp:heading -->
+		<!-- wp:search {"label":"default-instant-search","buttonText":"Search"} /-->
+		<!-- wp:post-template -->
+			<!-- wp:post-title {"level":3} /-->
+			<!-- wp:post-excerpt /-->
+		<!-- /wp:post-template -->
+		<!-- wp:query-pagination -->
+			<!-- wp:query-pagination-previous /-->
+			<!-- wp:query-pagination-numbers /-->
+			<!-- wp:query-pagination-next /-->
+		<!-- /wp:query-pagination -->
+		<!-- wp:query-no-results -->
+			<!-- wp:paragraph -->
+			<p>No results found.</p>
+			<!-- /wp:paragraph -->
+		<!-- /wp:query-no-results -->
+	</div>
+<!-- /wp:query -->
+
+<!-- wp:query {"enhancedPagination":true,"queryId":${ customQueryId },"query":{"inherit":false,"perPage":2,"order":"desc","orderBy":"date","offset":0}} -->
+	<div class="wp-block-query" data-testid="custom-query">
+		<!-- wp:heading -->
+		<h2>Custom Query</h2>
+		<!-- /wp:heading -->
+		<!-- wp:search {"label":"custom-instant-search","buttonText":"Search"} /-->
+		<!-- wp:post-template -->
+			<!-- wp:post-title {"level":3} /-->
+			<!-- wp:post-excerpt /-->
+		<!-- /wp:post-template -->
+		<!-- wp:query-pagination -->
+			<!-- wp:query-pagination-previous /-->
+			<!-- wp:query-pagination-numbers /-->
+			<!-- wp:query-pagination-next /-->
+		<!-- /wp:query-pagination -->
+		<!-- wp:query-no-results -->
+			<!-- wp:paragraph -->
+			<p>No results found.</p>
+			<!-- /wp:paragraph -->
+		<!-- /wp:query-no-results -->
+	</div>
+<!-- /wp:query -->`,
+			} );
+		} );
+
+		test.beforeEach( async ( { page } ) => {
+			await page.goto( '/' );
+		} );
+
+		test( 'should handle searches independently', async ( { page } ) => {
+			// Get search inputs
+			const defaultQuerySearch = page.getByLabel(
+				'default-instant-search'
+			);
+
+			const customQuerySearch = page.getByLabel(
+				'custom-instant-search'
+			);
+
+			// Search in default query
+			await defaultQuerySearch.fill( 'Unique' );
+			await page.waitForResponse( ( response ) =>
+				response.url().includes( 'instant-search=Unique' )
+			);
+
+			// Verify only default query ONLY shows the unique post
+			await expect(
+				page
+					.getByTestId( 'default-query' )
+					.getByText( 'Unique Post', { exact: true } )
+			).toBeVisible();
+
+			// Verify that the custom query shows exactly 2 posts: First Test Post and Second Test Post
+			const customQuery = page.getByTestId( 'custom-query' );
+			const posts = customQuery.getByRole( 'heading', { level: 3 } );
+			await expect( posts ).toHaveCount( 2 );
+			await expect( posts ).toContainText( [
+				'First Test Post',
+				'Second Test Post',
+			] );
+
+			// Search in custom query
+			await customQuerySearch.fill( 'Third' );
+			await page.waitForResponse( ( response ) =>
+				response
+					.url()
+					.includes( `instant-search-${ customQueryId }=Third` )
+			);
+
+			// Verify URL contains both search parameters
+			await expect( page ).toHaveURL( /instant-search=Unique/ );
+			await expect( page ).toHaveURL(
+				new RegExp( `instant-search-${ customQueryId }=Third` )
+			);
+
+			// Clear default query search
+			await defaultQuerySearch.fill( '' );
+			await expect( page ).not.toHaveURL( /instant-search=/ );
+			await expect( page ).toHaveURL(
+				new RegExp( `instant-search-${ customQueryId }=Third` )
+			);
+
+			// Clear custom query search
+			await customQuerySearch.fill( '' );
+			await expect( page ).not.toHaveURL(
+				new RegExp( `instant-search-${ customQueryId }=` )
+			);
+		} );
+
+		test( 'should handle pagination independently', async ( {
+			page,
+			interactivityUtils: utils,
+		} ) => {
+			const defaultQuerySearch = page.getByLabel(
+				'default-instant-search'
+			);
+			const customQuerySearch = page.getByLabel(
+				'custom-instant-search'
+			);
+
+			// Navigate to second page in default query
+			await utils.goToNextPage( 2, 'default' );
+
+			// Navigate to second page in custom query
+			await utils.goToNextPage( 2, 'custom', customQueryId );
+
+			// Navigate to third page in custom query
+			await utils.goToNextPage( 3, 'custom', customQueryId );
+
+			// Verify URL contains both pagination parameters
+			await expect( page ).toHaveURL( /(?:paged=2|\/page\/2\/)/ );
+			await expect( page ).toHaveURL(
+				new RegExp( `query-${ customQueryId }-page=3` )
+			);
+
+			// Search in default query and verify only its pagination resets
+			await defaultQuerySearch.fill( 'Test' );
+			await expect( page ).toHaveURL( /paged=1/ );
+			await expect( page ).toHaveURL(
+				new RegExp( `query-${ customQueryId }-page=3` )
+			);
+
+			// Verify that the
+
+			// Search in custom query and verify only its pagination resets
+			await customQuerySearch.fill( 'Test' );
+			await expect( page ).toHaveURL( /paged=1/ );
+			await expect( page ).toHaveURL(
+				new RegExp( `query-${ customQueryId }-page=1` )
+			);
 		} );
 	} );
 } );
