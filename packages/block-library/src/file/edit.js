@@ -103,12 +103,21 @@ function FileEdit( { attributes, isSelected, setAttributes, clientId } ) {
 				downloadButtonText: _x( 'Download', 'button label' ),
 			} );
 		}
-		// Reason: This effect should only run on mount.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// This effect should only run on mount.
 	}, [] );
 
 	function onSelectFile( newMedia ) {
 		if ( ! newMedia || ! newMedia.url ) {
+			// Reset attributes.
+			setAttributes( {
+				href: undefined,
+				fileName: undefined,
+				textLinkHref: undefined,
+				id: undefined,
+				fileId: undefined,
+				displayPreview: undefined,
+				previewHeight: undefined,
+			} );
 			setTemporaryURL();
 			return;
 		}
@@ -230,6 +239,7 @@ function FileEdit( { attributes, isSelected, setAttributes, clientId } ) {
 					accept="*"
 					onSelect={ onSelectFile }
 					onError={ onUploadError }
+					onReset={ () => onSelectFile( undefined ) }
 				/>
 				<ClipboardToolbarButton
 					text={ href }

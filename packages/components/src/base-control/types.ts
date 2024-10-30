@@ -11,6 +11,13 @@ export type BaseControlProps = {
 	 */
 	__nextHasNoMarginBottom?: boolean;
 	/**
+	 * Temporary private prop for showing better deprecation messages,
+	 * e.g. `Some feature from wp.components.${ __associatedWPControl } is deprecated`.
+	 *
+	 * @ignore
+	 */
+	__associatedWPComponentName?: string;
+	/**
 	 * The HTML `id` of the control element (passed in as a child to `BaseControl`) to which labels and help text are being generated.
 	 * This is necessary to accessibly associate the label with that element.
 	 *
@@ -42,5 +49,8 @@ export type BaseControlProps = {
 };
 
 export type BaseControlVisualLabelProps = {
+	/**
+	 * The content to be displayed within the `BaseControl.VisualLabel`.
+	 */
 	children: ReactNode;
 };

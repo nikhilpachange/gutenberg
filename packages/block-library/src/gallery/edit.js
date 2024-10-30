@@ -6,7 +6,6 @@ import clsx from 'clsx';
 /**
  * WordPress dependencies
  */
-import { compose } from '@wordpress/compose';
 import {
 	BaseControl,
 	PanelBody,
@@ -17,7 +16,6 @@ import {
 	MenuGroup,
 	MenuItem,
 	ToolbarDropdownMenu,
-	withNotices,
 } from '@wordpress/components';
 import {
 	store as blockEditorStore,
@@ -27,11 +25,11 @@ import {
 	useInnerBlocksProps,
 	BlockControls,
 	MediaReplaceFlow,
+	useSettings,
 } from '@wordpress/block-editor';
 import { Platform, useEffect, useMemo } from '@wordpress/element';
 import { __, _x, sprintf } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { withViewportMatch } from '@wordpress/viewport';
 import { View } from '@wordpress/primitives';
 import { createBlock } from '@wordpress/blocks';
 import { createBlobURL } from '@wordpress/blob';
@@ -41,6 +39,7 @@ import {
 	customLink,
 	image as imageIcon,
 	linkOff,
+	fullscreen,
 } from '@wordpress/icons';
 
 /**
@@ -58,6 +57,7 @@ import {
 	LINK_DESTINATION_ATTACHMENT,
 	LINK_DESTINATION_MEDIA,
 	LINK_DESTINATION_NONE,
+	LINK_DESTINATION_LIGHTBOX,
 } from './constants';
 import useImageSizes from './use-image-sizes';
 import useGetNewImages from './use-get-new-images';
@@ -65,7 +65,7 @@ import useGetMedia from './use-get-media';
 import GapStyles from './gap-styles';
 
 const MAX_COLUMNS = 8;
-const linkOptions = [
+const LINK_OPTIONS = [
 	{
 		icon: customLink,
 		label: __( 'Link images to attachment pages' ),
@@ -77,6 +77,13 @@ const linkOptions = [
 		label: __( 'Link images to media files' ),
 		value: LINK_DESTINATION_MEDIA,
 		noticeText: __( 'Media Files' ),
+	},
+	{
+		icon: fullscreen,
+		label: __( 'Expand on click' ),
+		value: LINK_DESTINATION_LIGHTBOX,
+		noticeText: __( 'Lightbox effect' ),
+		infoText: __( 'Scale images with a lightbox effect' ),
 	},
 	{
 		icon: linkOff,
@@ -98,7 +105,7 @@ const MOBILE_CONTROL_PROPS_RANGE_CONTROL = Platform.isNative
 const DEFAULT_BLOCK = { name: 'core/image' };
 const EMPTY_ARRAY = [];
 
-function GalleryEdit( props ) {
+export default function GalleryEdit( props ) {
 	const {
 		setAttributes,
 		attributes,
@@ -109,6 +116,14 @@ function GalleryEdit( props ) {
 		isContentLocked,
 		onFocus,
 	} = props;
+
+	const [ lightboxSetting ] = useSettings( 'blocks.core/image.lightbox' );
+
+	const linkOptions = ! lightboxSetting?.allowEditing
+		? LINK_OPTIONS.filter(
+				( option ) => option.value !== LINK_DESTINATION_LIGHTBOX
+		  )
+		: LINK_OPTIONS;
 
 	const { columns, imageCrop, randomOrder, linkTarget, linkTo, sizeSlug } =
 		attributes;
@@ -366,9 +381,13 @@ function GalleryEdit( props ) {
 			const image = block.attributes.id
 				? imageData.find( ( { id } ) => id === block.attributes.id )
 				: null;
+
 			changedAttributes[ block.clientId ] = getHrefAndDestination(
 				image,
-				value
+				value,
+				false,
+				block.attributes,
+				lightboxSetting
 			);
 		} );
 		updateBlockAttributes( blocks, changedAttributes, true );
@@ -605,7 +624,10 @@ function GalleryEdit( props ) {
 						/>
 					) }
 					{ Platform.isWeb && ! imageSizeOptions && hasImageIds && (
-						<BaseControl className="gallery-image-sizes">
+						<BaseControl
+							className="gallery-image-sizes"
+							__nextHasNoMarginBottom
+						>
 							<BaseControl.VisualLabel>
 								{ __( 'Resolution' ) }
 							</BaseControl.VisualLabel>
@@ -646,6 +668,7 @@ function GalleryEdit( props ) {
 												onClose();
 											} }
 											role="menuitemradio"
+											info={ linkItem.infoText }
 										>
 											{ linkItem.label }
 										</MenuItem>
@@ -696,7 +719,3 @@ function GalleryEdit( props ) {
 		</>
 	);
 }
-export default compose( [
-	withNotices,
-	withViewportMatch( { isNarrow: '< small' } ),
-] )( GalleryEdit );

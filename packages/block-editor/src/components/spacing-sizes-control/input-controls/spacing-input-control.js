@@ -14,7 +14,7 @@ import {
 import { useSelect } from '@wordpress/data';
 import { useState, useMemo } from '@wordpress/element';
 import { usePrevious } from '@wordpress/compose';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, _x, sprintf } from '@wordpress/i18n';
 import { settings } from '@wordpress/icons';
 
 /**
@@ -124,7 +124,7 @@ export default function SpacingInputControl( {
 			...spacingSizes,
 			{
 				name: ! isMixed
-					? // translators: A custom measurement, eg. a number followed by a unit like 12px.
+					? // translators: %s: A custom measurement, e.g. a number followed by a unit like 12px.
 					  sprintf( __( 'Custom (%s)' ), value )
 					: __( 'Mixed' ),
 				slug: 'custom',
@@ -188,18 +188,20 @@ export default function SpacingInputControl( {
 		name: size.name,
 	} ) );
 
-	const marks = spacingSizes.map( ( _newValue, index ) => ( {
-		value: index,
-		label: undefined,
-	} ) );
+	const marks = spacingSizes
+		.slice( 1, spacingSizes.length - 1 )
+		.map( ( _newValue, index ) => ( {
+			value: index + 1,
+			label: undefined,
+		} ) );
 
 	const sideLabel =
 		ALL_SIDES.includes( side ) && showSideInLabel ? LABELS[ side ] : '';
 	const typeLabel = showSideInLabel ? type?.toLowerCase() : type;
 
 	const ariaLabel = sprintf(
-		// translators: 1: The side of the block being modified (top, bottom, left, All sides etc.). 2. Type of spacing being modified (Padding, margin, etc)
-		__( '%1$s %2$s' ),
+		// translators: 1: The side of the block being modified (top, bottom, left etc.). 2. Type of spacing being modified (padding, margin, etc).
+		_x( '%1$s %2$s', 'spacing' ),
 		sideLabel,
 		typeLabel
 	).trim();
@@ -247,6 +249,7 @@ export default function SpacingInputControl( {
 						} }
 					/>
 					<RangeControl
+						__next40pxDefaultSize
 						onMouseOver={ onMouseOver }
 						onMouseOut={ onMouseOut }
 						onFocus={ onMouseOver }
@@ -268,6 +271,7 @@ export default function SpacingInputControl( {
 			) }
 			{ showRangeControl && ! showCustomValueControl && (
 				<RangeControl
+					__next40pxDefaultSize
 					onMouseOver={ onMouseOver }
 					onMouseOut={ onMouseOut }
 					className="spacing-sizes-control__range-control"

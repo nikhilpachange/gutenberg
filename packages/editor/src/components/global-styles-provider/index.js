@@ -23,34 +23,75 @@ const { GlobalStylesContext, cleanEmptyObject } = unlock(
 
 export function mergeBaseAndUserConfigs( base, user ) {
 	return deepmerge( base, user, {
-		// We only pass as arrays the presets,
-		// in which case we want the new array of values
-		// to override the old array (no merging).
+		/*
+		 * We only pass as arrays the presets,
+		 * in which case we want the new array of values
+		 * to override the old array (no merging).
+		 */
 		isMergeableObject: isPlainObject,
+		/*
+		 * Exceptions to the above rule.
+		 * Background images should be replaced, not merged,
+		 * as they themselves are specific object definitions for the style.
+		 */
+		customMerge: ( key ) => {
+			if ( key === 'backgroundImage' ) {
+				return ( baseConfig, userConfig ) => userConfig;
+			}
+			return undefined;
+		},
 	} );
 }
 
 function useGlobalStylesUserConfig() {
 	const { globalStylesId, isReady, settings, styles, _links } = useSelect(
 		( select ) => {
-			const { getEditedEntityRecord, hasFinishedResolution, canUser } =
-				select( coreStore );
+			const {
+				getEntityRecord,
+				getEditedEntityRecord,
+				hasFinishedResolution,
+				canUser,
+			} = select( coreStore );
 			const _globalStylesId =
 				select( coreStore ).__experimentalGetCurrentGlobalStylesId();
 
-			const record =
+			let record;
+
+			// We want the global styles ID request to finish before triggering
+			// the OPTIONS request for user capabilities, otherwise it will
+			// fetch `/wp/v2/global-styles` instead of
+			// `/wp/v2/global-styles/{id}`!
+			// Please adjust the preloaded requests if this changes!
+			const userCanEditGlobalStyles = _globalStylesId
+				? canUser( 'update', {
+						kind: 'root',
+						name: 'globalStyles',
+						id: _globalStylesId,
+				  } )
+				: null;
+
+			if (
 				_globalStylesId &&
-				canUser( 'read', {
-					kind: 'root',
-					name: 'globalStyles',
-					id: _globalStylesId,
-				} )
-					? getEditedEntityRecord(
-							'root',
-							'globalStyles',
-							_globalStylesId
-					  )
-					: undefined;
+				// We want the OPTIONS request for user capabilities to finish
+				// before getting the records, otherwise we'll fetch both!
+				typeof userCanEditGlobalStyles === 'boolean'
+			) {
+				// Please adjust the preloaded requests if this changes!
+				if ( userCanEditGlobalStyles ) {
+					record = getEditedEntityRecord(
+						'root',
+						'globalStyles',
+						_globalStylesId
+					);
+				} else {
+					record = getEntityRecord(
+						'root',
+						'globalStyles',
+						_globalStylesId,
+						{ context: 'view' }
+					);
+				}
+			}
 
 			let hasResolved = false;
 			if (
@@ -58,13 +99,22 @@ function useGlobalStylesUserConfig() {
 					'__experimentalGetCurrentGlobalStylesId'
 				)
 			) {
-				hasResolved = _globalStylesId
-					? hasFinishedResolution( 'getEditedEntityRecord', [
-							'root',
-							'globalStyles',
-							_globalStylesId,
-					  ] )
-					: true;
+				if ( _globalStylesId ) {
+					hasResolved = userCanEditGlobalStyles
+						? hasFinishedResolution( 'getEditedEntityRecord', [
+								'root',
+								'globalStyles',
+								_globalStylesId,
+						  ] )
+						: hasFinishedResolution( 'getEntityRecord', [
+								'root',
+								'globalStyles',
+								_globalStylesId,
+								{ context: 'view' },
+						  ] );
+				} else {
+					hasResolved = true;
+				}
 			}
 
 			return {
@@ -132,16 +182,11 @@ function useGlobalStylesUserConfig() {
 }
 
 function useGlobalStylesBaseConfig() {
-	const baseConfig = useSelect( ( select ) => {
-		const { __experimentalGetCurrentThemeBaseGlobalStyles, canUser } =
-			select( coreStore );
-
-		return (
-			canUser( 'read', { kind: 'root', name: 'theme' } ) &&
-			__experimentalGetCurrentThemeBaseGlobalStyles()
-		);
-	}, [] );
-
+	const baseConfig = useSelect(
+		( select ) =>
+			select( coreStore ).__experimentalGetCurrentThemeBaseGlobalStyles(),
+		[]
+	);
 	return [ !! baseConfig, baseConfig ];
 }
 
