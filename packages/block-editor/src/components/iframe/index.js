@@ -420,7 +420,7 @@ function Iframe( {
 
 	// Calculate the scaling and CSS variables for the zoom out canvas
 	useEffect( () => {
-		if ( ! iframeDocument || ! isZoomedOut ) {
+		if ( ! iframeDocument ) {
 			return;
 		}
 
@@ -458,27 +458,6 @@ function Iframe( {
 			'--wp-block-editor-iframe-zoom-out-scale-container-width',
 			`${ scaleContainerWidth }px`
 		);
-
-		return () => {
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-scale'
-			);
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-frame-size'
-			);
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-content-height'
-			);
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-inner-height'
-			);
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-container-width'
-			);
-			iframeDocument.documentElement.style.removeProperty(
-				'--wp-block-editor-iframe-zoom-out-scale-container-width'
-			);
-		};
 	}, [
 		scaleValue,
 		frameSize,
