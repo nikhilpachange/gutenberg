@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 28.11.0 (2024-10-30)
+
 ### Deprecations
 
 -   `BorderBoxControl`: Deprecate 36px default size ([#65752](https://github.com/WordPress/gutenberg/pull/65752)).
