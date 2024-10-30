@@ -192,11 +192,29 @@ export const TemplateEdit = ( {
 							: '' }
 					</Button>
 				) }
-				renderContent={ () => (
+				renderContent={ ( { onToggle } ) => (
 					<MenuGroup>
-						<MenuItem onClick={ () => setShowModal( true ) }>
+						<MenuItem
+							onClick={ () => {
+								setShowModal( true );
+								onToggle();
+							} }
+						>
 							{ __( 'Swap template' ) }
 						</MenuItem>
+						{
+							// The default template in a post is indicated by an empty string
+							value !== '' && (
+								<MenuItem
+									onClick={ () => {
+										onChangeControl( '' );
+										onToggle();
+									} }
+								>
+									{ __( 'Use default template' ) }
+								</MenuItem>
+							)
+						}
 					</MenuGroup>
 				) }
 			/>
@@ -212,8 +230,11 @@ export const TemplateEdit = ( {
 							label={ __( 'Templates' ) }
 							blockPatterns={ templatesAsPatterns }
 							shownPatterns={ shownTemplates }
-							onClickPattern={ ( template: WpTemplate ) => {
-								onChangeControl( template.id );
+							onClickPattern={ (
+								template: ( typeof templatesAsPatterns )[ 0 ]
+							) => {
+								onChangeControl( template.name );
+								setShowModal( false );
 							} }
 						/>
 					</div>
