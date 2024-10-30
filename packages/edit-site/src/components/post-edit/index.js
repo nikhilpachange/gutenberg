@@ -20,6 +20,8 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
 import Page from '../page';
 import usePostFields from '../post-fields';
 import { unlock } from '../../lock-unlock';
+import usePatternSettings from '../page-patterns/use-pattern-settings';
+import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 
 const { PostCardPanel } = unlock( editorPrivateApis );
 
@@ -139,17 +141,26 @@ function PostEditForm( { postType, postId } ) {
 }
 
 export function PostEdit( { postType, postId } ) {
+	const { ExperimentalBlockEditorProvider } = unlock(
+		blockEditorPrivateApis
+	);
+	const settings = usePatternSettings();
+	// Wrap everything in a block editor provider.
+	// This ensures 'styles' that are needed for the previews are synced
+	// from the site editor store to the block editor store.
 	return (
-		<Page
-			className={ clsx( 'edit-site-post-edit', {
-				'is-empty': ! postId,
-			} ) }
-			label={ __( 'Post Edit' ) }
-		>
-			{ postId && (
-				<PostEditForm postType={ postType } postId={ postId } />
-			) }
-			{ ! postId && <p>{ __( 'Select a page to edit' ) }</p> }
-		</Page>
+		<ExperimentalBlockEditorProvider settings={ settings }>
+			<Page
+				className={ clsx( 'edit-site-post-edit', {
+					'is-empty': ! postId,
+				} ) }
+				label={ __( 'Post Edit' ) }
+			>
+				{ postId && (
+					<PostEditForm postType={ postType } postId={ postId } />
+				) }
+				{ ! postId && <p>{ __( 'Select a page to edit' ) }</p> }
+			</Page>
+		</ExperimentalBlockEditorProvider>
 	);
 }
