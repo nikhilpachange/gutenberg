@@ -50,16 +50,7 @@ export default function QueryContent( {
 	const innerBlocksProps = useInnerBlocksProps( blockProps, {
 		template: TEMPLATE,
 	} );
-	const isTemplate = useSelect(
-		( select ) => {
-			const currentTemplate =
-				select( coreStore ).__experimentalGetTemplateForLink()?.type;
-			const isInTemplate = 'wp_template' === currentTemplate;
-			const isInSingularContent = postType !== undefined;
-			return isInTemplate && ! isInSingularContent;
-		},
-		[ postType ]
-	);
+	const isTemplate = postType === undefined;
 	const { postsPerPage } = useSelect( ( select ) => {
 		const { getSettings } = select( blockEditorStore );
 		const { getEntityRecord, getEntityRecordEdits, canUser } =
