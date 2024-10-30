@@ -12,6 +12,7 @@ import {
 	featuredImageField,
 	slugField,
 	templateField,
+	parentField,
 } from '@wordpress/fields';
 import {
 	createInterpolateElement,
@@ -326,6 +327,7 @@ function usePostFields( viewType ) {
 			},
 			slugField,
 			templateField,
+			parentField,
 			{
 				id: 'comment_status',
 				label: __( 'Discussion' ),
