@@ -9,7 +9,9 @@
 			"showPostCounts": false,
 			"showOnlyTopLevel": false,
 			"showEmpty": false,
-			"showLabel": true
+			"showLabel": true,
+			"order": "asc",
+			"orderBy": "name"
 		},
 		"innerBlocks": []
 	}
