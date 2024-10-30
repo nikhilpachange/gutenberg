@@ -204,10 +204,10 @@ export const TemplateEdit = ( {
 				<Modal
 					title={ __( 'Choose a template' ) }
 					onRequestClose={ () => setShowModal( false ) }
-					overlayClassName="editor-post-template__swap-template-modal"
+					overlayClassName="fields-controls__template-modal"
 					isFullScreen
 				>
-					<div className="editor-post-template__swap-template-modal-content">
+					<div className="fields-controls__template-content">
 						<BlockPatternsList
 							label={ __( 'Templates' ) }
 							blockPatterns={ templatesAsPatterns }
