@@ -54,7 +54,7 @@ function Header( {
 	const isLargeViewport = useViewportMatch( 'medium' );
 	const isTooNarrowForDocumentBar = useMediaQuery( '(max-width: 403px)' );
 	const {
-		postType,
+		postTypeContentSupport,
 		isTextEditor,
 		isPublishSidebarOpened,
 		showIconLabels,
@@ -66,12 +66,13 @@ function Header( {
 		const {
 			getEditorMode,
 			getEditorSettings,
-			getCurrentPostType,
 			isPublishSidebarOpened: _isPublishSidebarOpened,
+			getPostTypeSupports,
 		} = select( editorStore );
 
 		return {
-			postType: getCurrentPostType(),
+			postTypeContentSupport:
+				getPostTypeSupports().hasOwnProperty( 'content' ),
 			isTextEditor: getEditorMode() === 'text',
 			isPublishSidebarOpened: _isPublishSidebarOpened(),
 			showIconLabels: getPreference( 'core', 'showIconLabels' ),
@@ -82,10 +83,6 @@ function Header( {
 				!! getEditorSettings().onNavigateToPreviousEntityRecord,
 		};
 	}, [] );
-
-	const canBeZoomedOut = [ 'post', 'page', 'wp_template' ].includes(
-		postType
-	);
 
 	const [ isBlockToolsCollapsed, setIsBlockToolsCollapsed ] =
 		useState( true );
@@ -149,9 +146,11 @@ function Header( {
 					<PostSavedState forceIsDirty={ forceIsDirty } />
 				) }
 
-				{ canBeZoomedOut && isEditorIframed && isWideViewport && (
-					<ZoomOutToggle disabled={ forceDisableBlockTools } />
-				) }
+				{ postTypeContentSupport &&
+					isEditorIframed &&
+					isWideViewport && (
+						<ZoomOutToggle disabled={ forceDisableBlockTools } />
+					) }
 
 				<PreviewDropdown
 					forceIsAutosaveable={ forceIsDirty }

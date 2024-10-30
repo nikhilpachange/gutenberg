@@ -57,3 +57,27 @@ function gutenberg_menu() {
 	);
 }
 add_action( 'admin_menu', 'gutenberg_menu', 9 );
+
+
+/**
+ * This should be implemented in core as a default
+ * post type feature.
+ *
+ */
+if ( ! function_exists( 'add_content_support' ) ) {
+	/**
+	 * Add the 'content' support to core content post types.
+	 *
+	 * @since 6.8.0
+	 */
+	function add_content_support() {
+		global $wp_post_types;
+
+		foreach ( array_keys( $wp_post_types ) as $post_type ) {
+			if ( in_array( $post_type, array( 'post', 'page', 'wp_template' ), true ) ) {
+				add_post_type_support( $post_type, 'content' );
+			}
+		}
+	}
+	add_action( 'init', 'add_content_support' );
+}

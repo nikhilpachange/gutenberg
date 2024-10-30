@@ -555,6 +555,18 @@ _Returns_
 
 -   `string|undefined`: The post type label if available, otherwise undefined.
 
+### getPostTypeSupports
+
+Returns a post type support object on the current post
+
+_Parameters_
+
+-   _state_ `Object`: Global application state.
+
+_Returns_
+
+-   `Object`: The post type supports object.
+
 ### getPreviousBlockClientId
 
 _Related_

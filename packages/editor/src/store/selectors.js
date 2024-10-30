@@ -1815,6 +1815,21 @@ export const getPostTypeLabel = createRegistrySelector(
 );
 
 /**
+ * Returns a post type support object on the current post
+ *
+ * @param {Object} state Global application state.
+ *
+ * @return {Object} The post type supports object.
+ */
+export const getPostTypeSupports = createRegistrySelector(
+	( select ) => ( state ) => {
+		const currentPostType = getCurrentPostType( state );
+		const postType = select( coreStore ).getPostType( currentPostType );
+		return postType?.supports ?? {};
+	}
+);
+
+/**
  * Returns true if the publish sidebar is opened.
  *
  * @param {Object} state Global application state
