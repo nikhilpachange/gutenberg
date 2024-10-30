@@ -18,8 +18,8 @@ jobs:
         if: ${{ github.repository == 'WordPress/gutenberg' || github.event_name == 'pull_request' }}
         strategy:
             matrix:
-                xcode: ['14.2']
-                device: ['iPhone 14']
+                xcode: ['15.0']
+                device: ['iPhone 16']
                 native-test-name: [gutenberg-editor-rendering]
 
         steps:
