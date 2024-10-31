@@ -33,6 +33,17 @@ import BlockContext from '../block-context';
  */
 const DEFAULT_BLOCK_CONTEXT = {};
 
+const AttributeWrapper = ( { control, ...props } ) => {
+	const Wrapper =
+		control.type === 'toolbar' ? BlockControls : InspectorControls;
+
+	return (
+		<Wrapper group={ control.group } key={ control.key }>
+			<control.Control { ...props } />
+		</Wrapper>
+	);
+};
+
 const Edit = ( props ) => {
 	const { name } = props;
 	const blockType = getBlockType( name );
@@ -45,13 +56,8 @@ const Edit = ( props ) => {
 
 	if ( blockType.attributeControls?.length > 0 ) {
 		for ( const control of blockType.attributeControls ) {
-			const Wrapper =
-				control.type === 'toolbar' ? BlockControls : InspectorControls;
-
 			controls.push(
-				<Wrapper group={ control.group } key={ control.key }>
-					<control.Control { ...props } />
-				</Wrapper>
+				<AttributeWrapper control={ control } { ...props } />
 			);
 		}
 	}
