@@ -153,9 +153,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 		],
 		[ settings.styles, canvas, currentPostIsTrashed ]
 	);
-	const { __unstableSetEditorMode, resetZoomLevel } = unlock(
-		useDispatch( blockEditorStore )
-	);
+	const { resetZoomLevel } = unlock( useDispatch( blockEditorStore ) );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const history = useHistory();
 	const onActionPerformed = useCallback(
@@ -178,7 +176,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 								: newItem.title?.rendered;
 						createSuccessNotice(
 							sprintf(
-								// translators: %s: Title of the created post e.g: "Post 1".
+								// translators: %s: Title of the created post or template, e.g: "Hello world".
 								__( '"%s" successfully created.' ),
 								decodeEntities( _title )
 							),
@@ -263,9 +261,6 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 											showTooltip
 											tooltipPosition="middle right"
 											onClick={ () => {
-												__unstableSetEditorMode(
-													'edit'
-												);
 												resetZoomLevel();
 
 												// TODO: this is a temporary solution to navigate to the posts list if we are

@@ -3,11 +3,16 @@
  */
 import { Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-
+import { useEffect } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { square as zoomOutIcon } from '@wordpress/icons';
 import { store as preferencesStore } from '@wordpress/preferences';
+import {
+	useShortcut,
+	store as keyboardShortcutsStore,
+} from '@wordpress/keyboard-shortcuts';
+import { isAppleOS } from '@wordpress/keycodes';
 
 /**
  * Internal dependencies
@@ -26,6 +31,34 @@ const ZoomOutToggle = ( { disabled } ) => {
 	const { resetZoomLevel, setZoomLevel } = unlock(
 		useDispatch( blockEditorStore )
 	);
+	const { registerShortcut, unregisterShortcut } = useDispatch(
+		keyboardShortcutsStore
+	);
+
+	useEffect( () => {
+		registerShortcut( {
+			name: 'core/editor/zoom',
+			category: 'global',
+			description: __( 'Enter or exit zoom out.' ),
+			keyCombination: {
+				// `primaryShift+0` (`ctrl+shift+0`) is the shortcut for switching
+				// to input mode in Windows, so apply a different key combination.
+				modifier: isAppleOS() ? 'primaryShift' : 'secondary',
+				character: '0',
+			},
+		} );
+		return () => {
+			unregisterShortcut( 'core/editor/zoom' );
+		};
+	}, [ registerShortcut, unregisterShortcut ] );
+
+	useShortcut( 'core/editor/zoom', () => {
+		if ( isZoomOut ) {
+			resetZoomLevel();
+		} else {
+			setZoomLevel( 'auto-scaled' );
+		}
+	} );
 
 	const handleZoomOut = () => {
 		if ( isZoomOut ) {
