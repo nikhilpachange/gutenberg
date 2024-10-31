@@ -25,6 +25,14 @@ import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 
 const { PostCardPanel } = unlock( editorPrivateApis );
 
+const fieldsWithBulkEditSupport = [
+	'title',
+	'status',
+	'date',
+	'author',
+	'comment_status',
+];
+
 function PostEditForm( { postType, postId } ) {
 	const ids = useMemo( () => postId.split( ',' ), [ postId ] );
 	const { record } = useSelect(
@@ -60,32 +68,38 @@ function PostEditForm( { postType, postId } ) {
 			} ),
 		[ _fields ]
 	);
-	const form = {
-		type: 'panel',
-		fields: [
-			'featured_media',
-			'title',
-			'author',
-			'date',
-			'slug',
-			'parent',
-			'comment_status',
-			{
-				id: 'template',
-				layout: 'inline',
-				fields: [ 'template' ],
-			},
-		],
-	};
 
-	const fieldsWithBulkEditSupport = [
-		'title',
-		'status',
-		'date',
-		'author',
-		'comment_status',
-	];
-
+	const form = useMemo(
+		() => ( {
+			type: 'panel',
+			fields: [
+				'featured_media',
+				'title',
+				{
+					id: 'status',
+					label: __( 'Status & Visibility' ),
+					layout: 'panel',
+					fields: [ 'status', 'password' ],
+				},
+				'status_and_visibility',
+				'author',
+				'date',
+				'slug',
+				'parent',
+				'comment_status',
+				{
+					id: 'template',
+					layout: 'inline',
+					fields: [ 'template' ],
+				},
+			].filter(
+				( field ) =>
+					ids.length === 1 ||
+					fieldsWithBulkEditSupport.includes( field )
+			),
+		} ),
+		[ ids ]
+	);
 	const onChange = ( edits ) => {
 		for ( const id of ids ) {
 			if (
@@ -124,16 +138,7 @@ function PostEditForm( { postType, postId } ) {
 			<DataForm
 				data={ ids.length === 1 ? record : multiEdits }
 				fields={ fields }
-				form={
-					ids.length === 1
-						? form
-						: {
-								...form,
-								fields: form.fields.filter( ( field ) =>
-									fieldsWithBulkEditSupport.includes( field )
-								),
-						  }
-				}
+				form={ form }
 				onChange={ onChange }
 			/>
 		</VStack>

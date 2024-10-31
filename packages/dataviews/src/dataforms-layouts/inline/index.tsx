@@ -16,15 +16,13 @@ interface FormFieldProps< Item > {
 	onChange: ( value: any ) => void;
 }
 
-export function FormInlineField< Item >( {
+export default function FormInlineField< Item >( {
 	data,
 	field,
 	onChange,
 }: FormFieldProps< Item > ) {
 	const { getFieldDefinition } = useContext( DataFormContext );
-	const fieldDefinition = getFieldDefinition(
-		typeof field === 'string' ? field : field.id
-	);
+	const fieldDefinition = getFieldDefinition( field );
 	if ( ! fieldDefinition ) {
 		return null;
 	}

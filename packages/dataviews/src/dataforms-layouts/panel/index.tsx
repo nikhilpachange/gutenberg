@@ -16,9 +16,7 @@ import { closeSmall } from '@wordpress/icons';
 /**
  * Internal dependencies
  */
-import { normalizeFields } from '../../normalize-fields';
-import { getVisibleFields } from '../get-visible-fields';
-import type { DataFormProps, FormField } from '../../types';
+import type { FormField } from '../../types';
 import DataFormContext from '../../components/dataform-context';
 import { DataFormLayout } from '../data-form-layout';
 
@@ -58,17 +56,19 @@ function DropdownHeader( {
 	);
 }
 
-export function FormPanelField< Item >( {
+export default function FormPanelField< Item >( {
 	data,
 	field,
 	onChange,
 }: FormFieldProps< Item > ) {
 	const { getFieldDefinition } = useContext( DataFormContext );
-	const fieldDefinition = getFieldDefinition(
-		typeof field === 'string' ? field : field.id
-	);
+	const fieldDefinition = getFieldDefinition( field );
 	const childrenFields = useMemo( () => {
-		if ( typeof field !== 'string' && field.fields ) {
+		if (
+			typeof field !== 'string' &&
+			field.layout === 'panel' &&
+			field.fields
+		) {
 			return field.fields;
 		}
 		return [ field ];
@@ -161,39 +161,5 @@ export function FormPanelField< Item >( {
 				/>
 			</div>
 		</HStack>
-	);
-}
-
-export default function FormPanel< Item >( {
-	data,
-	fields,
-	form,
-	onChange,
-}: DataFormProps< Item > ) {
-	const visibleFields = useMemo(
-		() =>
-			normalizeFields(
-				getVisibleFields< Item >(
-					fields,
-					form.fields,
-					form.combinedFields
-				)
-			),
-		[ fields, form.fields, form.combinedFields ]
-	);
-
-	return (
-		<VStack spacing={ 2 }>
-			{ visibleFields.map( ( field ) => {
-				return (
-					<FormPanelField
-						key={ field.id }
-						data={ data }
-						field={ field.id }
-						onChange={ onChange }
-					/>
-				);
-			} ) }
-		</VStack>
 	);
 }

@@ -2,12 +2,24 @@
  * WordPress dependencies
  */
 import { useState } from '@wordpress/element';
+import { ToggleControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
 import DataForm from '../index';
-import type { Form } from '../../../types';
+import type { Field, Form } from '../../../types';
+
+type SamplePost = {
+	title: string;
+	order: number;
+	author: number;
+	status: string;
+	reviewer: string;
+	date: string;
+	birthdate: string;
+	password?: string;
+};
 
 const meta = {
 	title: 'DataViews/DataForm',
@@ -22,18 +34,6 @@ const meta = {
 	},
 };
 export default meta;
-
-type SamplePost = {
-	title: string;
-	order: number;
-	author: number;
-	status: string;
-	reviewer: string;
-	date: string;
-	birthdate: string;
-	sampleField?: string;
-	password?: string;
-};
 
 const fields = [
 	{
@@ -87,14 +87,36 @@ const fields = [
 		elements: [
 			{ value: 'draft', label: 'Draft' },
 			{ value: 'published', label: 'Published' },
+			{ value: 'private', label: 'Private' },
 		],
 	},
 	{
 		id: 'password',
 		label: 'Password',
 		type: 'text' as const,
+		isVisible: ( item: SamplePost ) => {
+			return item.status !== 'private';
+		},
 	},
-];
+	{
+		id: 'sticky',
+		label: 'Sticky',
+		type: 'integer',
+		Edit: ( { field, onChange, data, hideLabelFromVision } ) => {
+			const { id, getValue } = field;
+			return (
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ hideLabelFromVision ? '' : field.label }
+					checked={ getValue( { item: data } ) }
+					onChange={ () =>
+						onChange( { [ id ]: ! getValue( { item: data } ) } )
+					}
+				/>
+			);
+		},
+	},
+] as Field< SamplePost >[];
 
 export const Default = ( {
 	type,
@@ -109,6 +131,7 @@ export const Default = ( {
 		reviewer: 'fulano',
 		date: '2021-01-01T12:00:00',
 		birthdate: '1950-02-23T12:00:00',
+		sticky: false,
 	} );
 
 	const form = {
@@ -116,19 +139,19 @@ export const Default = ( {
 			'title',
 			'order',
 			{
-				id: 'status',
-				layout: 'panel',
-				fields: [ 'status', 'password' ],
+				id: 'sticky',
+				layout: type === 'regular' ? 'regular' : 'inline',
 			},
 			'author',
 			'reviewer',
+			'password',
 			'date',
 			'birthdate',
 		],
-	} as Form< SamplePost >;
+	} as Form;
 
 	return (
-		<DataForm
+		<DataForm< SamplePost >
 			data={ post }
 			fields={ fields }
 			form={ {
@@ -163,15 +186,19 @@ const CombinedFieldsComponent = ( {
 	const form = {
 		fields: [
 			'title',
-			{
-				id: 'status',
-				layout: 'panel',
-				fields: [ 'status', 'password' ],
-			},
+			...( type === 'regular'
+				? [ 'status', 'password' ]
+				: [
+						{
+							id: 'status',
+							layout: 'panel',
+							fields: [ 'status', 'password' ],
+						},
+				  ] ),
 			'order',
 			'author',
 		],
-	} as Form< SamplePost >;
+	} as Form;
 
 	return (
 		<DataForm< SamplePost >
@@ -196,5 +223,8 @@ export const CombinedFields = {
 	render: CombinedFieldsComponent,
 	argTypes: {
 		...meta.argTypes,
+	},
+	args: {
+		type: 'panel',
 	},
 };

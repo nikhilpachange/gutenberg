@@ -124,6 +124,11 @@ export type Field< Item > = {
 	isValid?: ( item: Item, context?: ValidationContext ) => boolean;
 
 	/**
+	 * Callback used to decide if a field should be displayed.
+	 */
+	isVisible?: ( item: Item ) => boolean;
+
+	/**
 	 * Whether the field is sortable.
 	 */
 	enableSorting?: boolean;
@@ -520,46 +525,41 @@ export interface SupportedLayouts {
 	table?: Omit< ViewTable, 'type' >;
 }
 
-export interface CombinedFormField< Item > extends CombinedField {
-	render?: ComponentType< { item: Item } >;
+interface BaseFieldLayout {
+	id: string;
+	label?: string;
 }
 
-export interface DataFormCombinedEditProps< Item > {
-	field: NormalizedCombinedFormField< Item >;
-	data: Item;
-	onChange: ( value: Record< string, any > ) => void;
-	hideLabelFromVision?: boolean;
+export interface RegularFieldLayout extends BaseFieldLayout {
+	layout: 'regular';
 }
 
-export type NormalizedCombinedFormField< Item > = CombinedFormField< Item > & {
-	fields: NormalizedField< Item >[];
-	Edit?: ComponentType< DataFormCombinedEditProps< Item > >;
-};
+export interface PanelFieldLayout extends BaseFieldLayout {
+	layout: 'panel';
+	fields?: FormField[];
+}
+
+export interface InlineFieldLayout extends BaseFieldLayout {
+	layout: 'inline';
+}
 
 export type FormField =
 	| string
-	| {
-			id: string;
-			layout?: 'regular' | 'panel' | 'inline';
-			field?: FormField;
-			fields?: FormField[];
-	  };
+	| RegularFieldLayout
+	| PanelFieldLayout
+	| InlineFieldLayout;
 
 /**
  * The form configuration.
  */
-export type Form< Item > = {
+export type Form = {
 	type?: 'regular' | 'panel' | 'inline';
 	fields?: FormField[];
-	/**
-	 * The fields to combine.
-	 */
-	combinedFields?: CombinedFormField< Item >[];
 };
 
 export interface DataFormProps< Item > {
 	data: Item;
 	fields: Field< Item >[];
-	form: Form< Item >;
+	form: Form;
 	onChange: ( value: Record< string, any > ) => void;
 }

@@ -1,15 +1,12 @@
 /**
  * WordPress dependencies
  */
-import { __experimentalVStack as VStack } from '@wordpress/components';
-import { useContext, useMemo } from '@wordpress/element';
+import { useContext } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
-import { normalizeFields } from '../../normalize-fields';
-import { getVisibleFields } from '../get-visible-fields';
-import type { DataFormProps, FormField } from '../../types';
+import type { FormField } from '../../types';
 import DataFormContext from '../../components/dataform-context';
 
 interface FormFieldProps< Item > {
@@ -19,19 +16,18 @@ interface FormFieldProps< Item > {
 	hideLabelFromVision?: boolean;
 }
 
-export function FormRegularField< Item >( {
+export default function FormRegularField< Item >( {
 	data,
 	field,
 	onChange,
 	hideLabelFromVision,
 }: FormFieldProps< Item > ) {
 	const { getFieldDefinition } = useContext( DataFormContext );
-	const fieldDefinition = getFieldDefinition(
-		typeof field === 'string' ? field : field.id
-	);
+	const fieldDefinition = getFieldDefinition( field );
 	if ( ! fieldDefinition ) {
 		return null;
 	}
+
 	return (
 		<fieldDefinition.Edit
 			data={ data }
@@ -39,39 +35,5 @@ export function FormRegularField< Item >( {
 			onChange={ onChange }
 			hideLabelFromVision={ hideLabelFromVision }
 		/>
-	);
-}
-
-export default function FormRegular< Item >( {
-	data,
-	fields,
-	form,
-	onChange,
-}: DataFormProps< Item > ) {
-	const visibleFields = useMemo(
-		() =>
-			normalizeFields(
-				getVisibleFields< Item >(
-					fields,
-					form.fields,
-					form.combinedFields
-				)
-			),
-		[ fields, form.fields, form.combinedFields ]
-	);
-
-	return (
-		<VStack spacing={ 4 }>
-			{ visibleFields.map( ( field ) => {
-				return (
-					<FormRegularField
-						key={ field.id }
-						data={ data }
-						field={ field.id }
-						onChange={ onChange }
-					/>
-				);
-			} ) }
-		</VStack>
 	);
 }
