@@ -112,10 +112,12 @@ type BaseButtonProps = {
 	/**
 	 * Specifies the button's style.
 	 *
-	 * - `'primary'` (the primary button styles)
-	 * - `'secondary'` (the default button styles)
-	 * - `'tertiary'` (the text-based button styles)
-	 * - `'link'` (the link button styles)
+	 * The accepted values are:
+	 *
+	 * 1. `'primary'` (the primary button styles)
+	 * 2. `'secondary'` (the default button styles)
+	 * 3. `'tertiary'` (the text-based button styles)
+	 * 4. `'link'` (the link button styles)
 	 */
 	variant?: 'primary' | 'secondary' | 'tertiary' | 'link';
 };
