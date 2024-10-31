@@ -10,10 +10,18 @@
  */
 function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 	if ( 'core/edit-site' === $context->name ) {
-		if ( ! empty( $_GET['postId'] ) ) {
+		if ( ! empty( $_GET['postId'] ) && ! empty( $_GET['postType'] ) ) {
 			$route_for_post = rest_get_route_for_post( $_GET['postId'] );
 			if ( $route_for_post ) {
 				$paths[] = add_query_arg( 'context', 'edit', $route_for_post );
+				$post    = get_post( $_GET['postId'] );
+				if ( 'page' === $_GET['postType'] && $post ) {
+					$paths[] = add_query_arg(
+						'slug',
+						'page-' . $post->post_name,
+						'/wp/v2/templates/lookup'
+					);
+				}
 			}
 		}
 
