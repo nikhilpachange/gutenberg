@@ -2,6 +2,38 @@
  * Internal dependencies
  */
 import { test, expect } from './fixtures';
+/**
+ * External dependencies
+ */
+import type { Page } from '@playwright/test';
+
+/**
+ * Go to the next page of the query.
+ * @param page       - The page object.
+ * @param pageNumber - The page number to navigate to.
+ * @param args       - Query arguments: ['default'] or ['custom', number]
+ */
+async function goToNextPage(
+	page: Page,
+	pageNumber: number,
+	...args: [ 'default' ] | [ 'custom', number ]
+) {
+	const [ queryType, queryId ] = args;
+	await page
+		.getByTestId( `${ queryType }-query` )
+		.getByRole( 'link', { name: 'Next Page' } )
+		.click();
+
+	// Wait for the response
+	return page.waitForResponse( ( response ) =>
+		queryType === 'default'
+			? response.url().includes( `paged=${ pageNumber }` ) ||
+			  response.url().includes( `/page/${ pageNumber }/` )
+			: response
+					.url()
+					.includes( `query-${ queryId }-page=${ pageNumber }` )
+	);
+}
 
 test.describe( 'Instant Search', () => {
 	test.beforeAll( async ( { requestUtils } ) => {
@@ -572,10 +604,7 @@ test.describe( 'Instant Search', () => {
 			);
 		} );
 
-		test( 'should handle pagination independently', async ( {
-			page,
-			interactivityUtils: utils,
-		} ) => {
+		test( 'should handle pagination independently', async ( { page } ) => {
 			const defaultQuerySearch = page.getByLabel(
 				'default-instant-search'
 			);
@@ -584,13 +613,13 @@ test.describe( 'Instant Search', () => {
 			);
 
 			// Navigate to second page in default query
-			await utils.goToNextPage( 2, 'default' );
+			await goToNextPage( page, 2, 'default' );
 
 			// Navigate to second page in custom query
-			await utils.goToNextPage( 2, 'custom', customQueryId );
+			await goToNextPage( page, 2, 'custom', customQueryId );
 
 			// Navigate to third page in custom query
-			await utils.goToNextPage( 3, 'custom', customQueryId );
+			await goToNextPage( page, 3, 'custom', customQueryId );
 
 			// Verify URL contains both pagination parameters
 			await expect( page ).toHaveURL( /(?:paged=2|\/page\/2\/)/ );
