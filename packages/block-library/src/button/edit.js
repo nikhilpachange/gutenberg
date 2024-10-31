@@ -6,56 +6,31 @@ import clsx from 'clsx';
 /**
  * Internal dependencies
  */
-import { NEW_TAB_TARGET, NOFOLLOW_REL } from './constants';
-import { getUpdatedLinkAttributes } from './get-updated-link-attributes';
 import removeAnchorTag from '../utils/remove-anchor-tag';
 
 /**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { useEffect, useState, useRef, useMemo } from '@wordpress/element';
+import { useEffect, useState, useRef } from '@wordpress/element';
 import {
-	Button,
-	ButtonGroup,
-	PanelBody,
-	TextControl,
-	ToolbarButton,
-	Popover,
-} from '@wordpress/components';
-import {
-	AlignmentControl,
-	BlockControls,
-	InspectorControls,
 	RichText,
 	useBlockProps,
 	__experimentalUseBorderProps as useBorderProps,
 	__experimentalUseColorProps as useColorProps,
 	__experimentalGetSpacingClassesAndStyles as useSpacingProps,
 	__experimentalGetShadowClassesAndStyles as useShadowProps,
-	__experimentalLinkControl as LinkControl,
 	__experimentalGetElementClassName,
 	store as blockEditorStore,
-	useBlockEditingMode,
 } from '@wordpress/block-editor';
-import { displayShortcut, isKeyboardEvent, ENTER } from '@wordpress/keycodes';
-import { link, linkOff } from '@wordpress/icons';
+import { isKeyboardEvent, ENTER } from '@wordpress/keycodes';
 import {
 	createBlock,
 	cloneBlock,
 	getDefaultBlockName,
-	getBlockBindingsSource,
 } from '@wordpress/blocks';
 import { useMergeRefs, useRefEffect } from '@wordpress/compose';
 import { useSelect, useDispatch } from '@wordpress/data';
-
-const LINK_SETTINGS = [
-	...LinkControl.DEFAULT_LINK_SETTINGS,
-	{
-		id: 'nofollow',
-		title: __( 'Mark as nofollow' ),
-	},
-];
 
 function useEnter( props ) {
 	const { replaceBlocks, selectionChange } = useDispatch( blockEditorStore );
@@ -113,39 +88,6 @@ function useEnter( props ) {
 	}, [] );
 }
 
-function WidthPanel( { selectedWidth, setAttributes } ) {
-	function handleChange( newWidth ) {
-		// Check if we are toggling the width off
-		const width = selectedWidth === newWidth ? undefined : newWidth;
-
-		// Update attributes.
-		setAttributes( { width } );
-	}
-
-	return (
-		<PanelBody title={ __( 'Settings' ) }>
-			<ButtonGroup aria-label={ __( 'Button width' ) }>
-				{ [ 25, 50, 75, 100 ].map( ( widthValue ) => {
-					return (
-						<Button
-							key={ widthValue }
-							size="small"
-							variant={
-								widthValue === selectedWidth
-									? 'primary'
-									: undefined
-							}
-							onClick={ () => handleChange( widthValue ) }
-						>
-							{ widthValue }%
-						</Button>
-					);
-				} ) }
-			</ButtonGroup>
-		</PanelBody>
-	);
-}
-
 function ButtonEdit( props ) {
 	const {
 		attributes,
@@ -155,22 +97,8 @@ function ButtonEdit( props ) {
 		onReplace,
 		mergeBlocks,
 		clientId,
-		context,
 	} = props;
-	const {
-		tagName,
-		textAlign,
-		linkTarget,
-		placeholder,
-		rel,
-		style,
-		text,
-		url,
-		width,
-		metadata,
-	} = attributes;
-
-	const TagName = tagName || 'a';
+	const { textAlign, placeholder, style, text, width } = attributes;
 
 	function onKeyDown( event ) {
 		if ( isKeyboardEvent.primary( event, 'k' ) ) {
@@ -195,13 +123,7 @@ function ButtonEdit( props ) {
 		ref: useMergeRefs( [ setPopoverAnchor, ref ] ),
 		onKeyDown,
 	} );
-	const blockEditingMode = useBlockEditingMode();
-
 	const [ isEditingURL, setIsEditingURL ] = useState( false );
-	const isURLSet = !! url;
-	const opensInNewTab = linkTarget === NEW_TAB_TARGET;
-	const nofollow = !! rel?.includes( NOFOLLOW_REL );
-	const isLinkTag = 'a' === TagName;
 
 	function startEditing( event ) {
 		event.preventDefault();
@@ -223,38 +145,8 @@ function ButtonEdit( props ) {
 		}
 	}, [ isSelected ] );
 
-	// Memoize link value to avoid overriding the LinkControl's internal state.
-	// This is a temporary fix. See https://github.com/WordPress/gutenberg/issues/51256.
-	const linkValue = useMemo(
-		() => ( { url, opensInNewTab, nofollow } ),
-		[ url, opensInNewTab, nofollow ]
-	);
-
 	const useEnterRef = useEnter( { content: text, clientId } );
 	const mergedRef = useMergeRefs( [ useEnterRef, richTextRef ] );
-
-	const { lockUrlControls = false } = useSelect(
-		( select ) => {
-			if ( ! isSelected ) {
-				return {};
-			}
-
-			const blockBindingsSource = getBlockBindingsSource(
-				metadata?.bindings?.url?.source
-			);
-
-			return {
-				lockUrlControls:
-					!! metadata?.bindings?.url &&
-					! blockBindingsSource?.canUserEditValue?.( {
-						select,
-						context,
-						args: metadata?.bindings?.url?.args,
-					} ),
-			};
-		},
-		[ context, isSelected, metadata?.bindings?.url ]
-	);
 
 	return (
 		<>
@@ -301,94 +193,6 @@ function ButtonEdit( props ) {
 					identifier="text"
 				/>
 			</div>
-			<BlockControls group="block">
-				{ blockEditingMode === 'default' && (
-					<AlignmentControl
-						value={ textAlign }
-						onChange={ ( nextAlign ) => {
-							setAttributes( { textAlign: nextAlign } );
-						} }
-					/>
-				) }
-				{ ! isURLSet && isLinkTag && ! lockUrlControls && (
-					<ToolbarButton
-						name="link"
-						icon={ link }
-						title={ __( 'Link' ) }
-						shortcut={ displayShortcut.primary( 'k' ) }
-						onClick={ startEditing }
-					/>
-				) }
-				{ isURLSet && isLinkTag && ! lockUrlControls && (
-					<ToolbarButton
-						name="link"
-						icon={ linkOff }
-						title={ __( 'Unlink' ) }
-						shortcut={ displayShortcut.primaryShift( 'k' ) }
-						onClick={ unlink }
-						isActive
-					/>
-				) }
-			</BlockControls>
-			{ isLinkTag &&
-				isSelected &&
-				( isEditingURL || isURLSet ) &&
-				! lockUrlControls && (
-					<Popover
-						placement="bottom"
-						onClose={ () => {
-							setIsEditingURL( false );
-							richTextRef.current?.focus();
-						} }
-						anchor={ popoverAnchor }
-						focusOnMount={ isEditingURL ? 'firstElement' : false }
-						__unstableSlotName="__unstable-block-tools-after"
-						shift
-					>
-						<LinkControl
-							value={ linkValue }
-							onChange={ ( {
-								url: newURL,
-								opensInNewTab: newOpensInNewTab,
-								nofollow: newNofollow,
-							} ) =>
-								setAttributes(
-									getUpdatedLinkAttributes( {
-										rel,
-										url: newURL,
-										opensInNewTab: newOpensInNewTab,
-										nofollow: newNofollow,
-									} )
-								)
-							}
-							onRemove={ () => {
-								unlink();
-								richTextRef.current?.focus();
-							} }
-							forceIsEditingLink={ isEditingURL }
-							settings={ LINK_SETTINGS }
-						/>
-					</Popover>
-				) }
-			<InspectorControls>
-				<WidthPanel
-					selectedWidth={ width }
-					setAttributes={ setAttributes }
-				/>
-			</InspectorControls>
-			<InspectorControls group="advanced">
-				{ isLinkTag && (
-					<TextControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={ __( 'Link rel' ) }
-						value={ rel || '' }
-						onChange={ ( newRel ) =>
-							setAttributes( { rel: newRel } )
-						}
-					/>
-				) }
-			</InspectorControls>
 		</>
 	);
 }
