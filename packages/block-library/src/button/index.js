@@ -62,10 +62,9 @@ export const settings = {
 			key: 'url',
 			type: 'toolbar',
 			group: 'block',
-			Control( { isSelected, attributes, setAttributes } ) {
+			Control( { isSelected, isDisabled, attributes, setAttributes } ) {
 				const blockEditingMode = useBlockEditingMode();
 				const { linkTarget, rel, tagName, textAlign, url } = attributes;
-				const lockUrlControls = false;
 				const [ isEditingURL, setIsEditingURL ] = useState( false );
 				const isURLSet = !! url;
 				const opensInNewTab = linkTarget === NEW_TAB_TARGET;
@@ -114,7 +113,7 @@ export const settings = {
 								} }
 							/>
 						) }
-						{ ! isURLSet && isLinkTag && ! lockUrlControls && (
+						{ ! isURLSet && isLinkTag && ! isDisabled && (
 							<ToolbarButton
 								name="link"
 								icon={ link }
@@ -123,7 +122,7 @@ export const settings = {
 								onClick={ startEditing }
 							/>
 						) }
-						{ isURLSet && isLinkTag && ! lockUrlControls && (
+						{ isURLSet && isLinkTag && ! isDisabled && (
 							<ToolbarButton
 								name="link"
 								icon={ linkOff }
@@ -136,7 +135,7 @@ export const settings = {
 						{ isLinkTag &&
 							isSelected &&
 							( isEditingURL || isURLSet ) &&
-							! lockUrlControls && (
+							! isDisabled && (
 								<Popover
 									placement="bottom"
 									onClose={ () => {

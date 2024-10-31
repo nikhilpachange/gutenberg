@@ -11,7 +11,9 @@ import {
 	getBlockDefaultClassName,
 	hasBlockSupport,
 	getBlockType,
+	getBlockBindingsSource,
 } from '@wordpress/blocks';
+import { useSelect } from '@wordpress/data';
 import { useContext, useMemo } from '@wordpress/element';
 /**
  * Internal dependencies
@@ -34,12 +36,36 @@ import BlockContext from '../block-context';
 const DEFAULT_BLOCK_CONTEXT = {};
 
 const AttributeWrapper = ( { control, ...props } ) => {
+	const { context, isSelected, attributes } = props;
+	const { metadata } = attributes;
+	const { key } = control;
+	const isDisabled = useSelect(
+		( select ) => {
+			if ( ! isSelected ) {
+				return {};
+			}
+
+			const blockBindingsSource = getBlockBindingsSource(
+				metadata?.bindings?.[ key ]?.source
+			);
+
+			return (
+				!! metadata?.bindings?.[ key ] &&
+				! blockBindingsSource?.canUserEditValue?.( {
+					select,
+					context,
+					args: metadata?.bindings?.[ key ]?.args,
+				} )
+			);
+		},
+		[ context, isSelected, key, metadata?.bindings ]
+	);
 	const Wrapper =
 		control.type === 'toolbar' ? BlockControls : InspectorControls;
 
 	return (
 		<Wrapper group={ control.group } key={ control.key }>
-			<control.Control { ...props } />
+			<control.Control isDisabled={ isDisabled } { ...props } />
 		</Wrapper>
 	);
 };
