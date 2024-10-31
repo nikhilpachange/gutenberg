@@ -18,11 +18,15 @@ function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 				if ( 'page' === $_GET['postType'] && $post ) {
 					$paths[] = add_query_arg(
 						'slug',
+						// @see https://github.com/WordPress/gutenberg/blob/489f6067c623926bce7151a76755bb68d8e22ea7/packages/edit-site/src/components/sync-state-with-url/use-init-edited-entity-from-url.js#L139-L140
 						'page-' . $post->post_name,
 						'/wp/v2/templates/lookup'
 					);
 				}
 			}
+		} else {
+			$paths[] = '/wp/v2/templates/lookup?slug=front-page';
+			$paths[] = '/wp/v2/templates/lookup?slug=home';
 		}
 
 		$paths[] = '/wp/v2/settings';
@@ -42,8 +46,6 @@ function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 				'url',
 			)
 		);
-		$paths[] = '/wp/v2/templates/lookup?slug=front-page';
-		$paths[] = '/wp/v2/templates/lookup?slug=home';
 	}
 
 	// Preload theme and global styles paths.
