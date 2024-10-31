@@ -61,11 +61,7 @@ const Edit = ( props ) => {
 	// them preferentially as the render value for the block.
 	const Component = blockType.edit || blockType.save;
 
-	return [
-		<Component { ...props } key="content">
-			{ controls }
-		</Component>,
-	];
+	return [ <Component { ...props } key="content" />, controls ];
 };
 
 const EditWithFilters = withFilters( 'editor.BlockEdit' )( Edit );
