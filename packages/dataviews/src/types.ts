@@ -529,6 +529,7 @@ export type FormField =
 	| string
 	| {
 			id: string;
+			label?: string;
 			layout?: 'regular' | 'panel' | 'inline';
 			fields?: FormField[];
 	  };
