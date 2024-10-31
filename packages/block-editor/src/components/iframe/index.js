@@ -396,7 +396,7 @@ function Iframe( {
 
 	// Calculate the scaling and CSS variables for the zoom out canvas
 	useEffect( () => {
-		if ( ! iframeDocument || prevIsZoomedOut === isZoomedOut ) {
+		if ( ! iframeDocument ) {
 			return;
 		}
 
