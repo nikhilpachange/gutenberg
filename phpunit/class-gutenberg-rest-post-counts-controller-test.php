@@ -70,7 +70,7 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 * @covers Gutenberg_REST_Post_Counts_Controller::et_item_schema
+	 * @covers Gutenberg_REST_Post_Counts_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/counts/post' );
