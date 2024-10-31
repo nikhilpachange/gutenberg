@@ -51,6 +51,10 @@ function render_block_core_search( $attributes, $content, $block ) {
 	// Check if the block is using the enhanced pagination.
 	$enhanced_pagination = isset( $block->context['enhancedPagination'] ) && $block->context['enhancedPagination'];
 
+	// Check if the block is using the instant search experiment.
+	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
+	$instant_search_enabled = $gutenberg_experiments && array_key_exists( 'gutenberg-search-query-block', $gutenberg_experiments );
+
 	$label_inner_html = empty( $attributes['label'] ) ? __( 'Search' ) : wp_kses_post( $attributes['label'] );
 	$label            = new WP_HTML_Tag_Processor( sprintf( '<label %1$s>%2$s</label>', $inline_styles['label'], $label_inner_html ) );
 	if ( $label->next_tag() ) {
@@ -96,8 +100,11 @@ function render_block_core_search( $attributes, $content, $block ) {
 		// Instant search is only available when using the enhanced pagination.
 		if ( $enhanced_pagination ) {
 			wp_enqueue_script_module( '@wordpress/block-library/search/view' );
-			$input->set_attribute( 'data-wp-bind--value', 'context.search' );
-			$input->set_attribute( 'data-wp-on-async--input', 'actions.updateSearch' );
+
+			if ( $instant_search_enabled ) {
+				$input->set_attribute( 'data-wp-bind--value', 'context.search' );
+				$input->set_attribute( 'data-wp-on-async--input', 'actions.updateSearch' );
+			}
 		}
 	}
 
@@ -175,7 +182,7 @@ function render_block_core_search( $attributes, $content, $block ) {
 	$form_context         = array();
 
 	// If it's interactive, add the directives.
-	if ( $is_expandable_searchfield || $enhanced_pagination ) {
+	if ( $is_expandable_searchfield || ( $enhanced_pagination && $instant_search_enabled ) ) {
 		$form_directives = 'data-wp-interactive="core/search"';
 	}
 
@@ -195,7 +202,7 @@ function render_block_core_search( $attributes, $content, $block ) {
 		';
 	}
 
-	if ( $enhanced_pagination ) {
+	if ( $enhanced_pagination && $instant_search_enabled ) {
 		$is_inherited = isset( $block->context['query']['inherit'] ) && $block->context['query']['inherit'];
 		$search       = '';
 
