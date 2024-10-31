@@ -29,10 +29,6 @@ export function isTemplateOrTemplatePart(
 }
 
 export function getItemTitle( item: Post ) {
-	if ( ! item ) {
-		return '';
-	}
-
 	if ( typeof item.title === 'string' ) {
 		return decodeEntities( item.title );
 	}
