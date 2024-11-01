@@ -10,12 +10,15 @@
  */
 function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 	if ( 'core/edit-site' === $context->name ) {
-		if ( ! empty( $_GET['postId'] ) && ! empty( $_GET['postType'] ) ) {
-			$route_for_post = rest_get_route_for_post( $_GET['postId'] );
+		if ( ! empty( $_GET['postId'] ) ) {
+			$post = get_post( $_GET['postId'] );
+		}
+
+		if ( $post ) {
+			$route_for_post = rest_get_route_for_post( $post );
 			if ( $route_for_post ) {
 				$paths[] = add_query_arg( 'context', 'edit', $route_for_post );
-				$post    = get_post( $_GET['postId'] );
-				if ( 'page' === $_GET['postType'] && $post ) {
+				if ( 'page' === $post->post_type ) {
 					$paths[] = add_query_arg(
 						'slug',
 						// @see https://github.com/WordPress/gutenberg/blob/489f6067c623926bce7151a76755bb68d8e22ea7/packages/edit-site/src/components/sync-state-with-url/use-init-edited-entity-from-url.js#L139-L140
