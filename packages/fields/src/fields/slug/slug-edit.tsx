@@ -11,17 +11,21 @@ import {
 import { copySmall } from '@wordpress/icons';
 import { useCopyToClipboard, useInstanceId } from '@wordpress/compose';
 import { useDispatch } from '@wordpress/data';
-import { useCallback, useEffect, useRef } from '@wordpress/element';
+import { useCallback, useEffect, useRef, useState } from '@wordpress/element';
 import { store as noticesStore } from '@wordpress/notices';
 import { safeDecodeURIComponent } from '@wordpress/url';
 import type { DataFormControlProps } from '@wordpress/dataviews';
 import { __ } from '@wordpress/i18n';
 
 /**
+ * External dependencies
+ */
+import clsx from 'clsx';
+
+/**
  * Internal dependencies
  */
 import type { BasePost } from '../../types';
-import { getSlug } from './utils';
 
 const SlugEdit = ( {
 	field,
@@ -30,7 +34,10 @@ const SlugEdit = ( {
 }: DataFormControlProps< BasePost > ) => {
 	const { id } = field;
 
-	const slug = field.getValue( { item: data } ) || getSlug( data );
+	const slug = field.getValue( { item: data } );
+
+	const [ isValid, setIsValid ] = useState( true );
+
 	const permalinkTemplate = data.permalink_template || '';
 	const PERMALINK_POSTNAME_REGEX = /%(?:postname|pagename)%/;
 	const [ prefix, suffix ] = permalinkTemplate.split(
@@ -40,7 +47,7 @@ const SlugEdit = ( {
 	const permalinkSuffix = suffix;
 	const isEditable = PERMALINK_POSTNAME_REGEX.test( permalinkTemplate );
 	const originalSlugRef = useRef( slug );
-	const slugToDisplay = slug || originalSlugRef.current;
+	const slugToDisplay = slug;
 	const permalink = isEditable
 		? `${ permalinkPrefix }${ slugToDisplay }${ permalinkSuffix }`
 		: safeDecodeURIComponent( data.link || '' );
@@ -52,11 +59,13 @@ const SlugEdit = ( {
 	}, [ slug ] );
 
 	const onChangeControl = useCallback(
-		( newValue?: string ) =>
+		( newValue?: string ) => {
+			setIsValid( field.isValid( newValue ?? '' ) );
 			onChange( {
 				[ id ]: newValue,
-			} ),
-		[ id, onChange ]
+			} );
+		},
+		[ field, id, onChange ]
 	);
 
 	const { createNotice } = useDispatch( noticesStore );
@@ -106,7 +115,9 @@ const SlugEdit = ( {
 						autoComplete="off"
 						spellCheck="false"
 						type="text"
-						className="fields-controls__slug-input"
+						className={ clsx( 'fields-controls__slug-input', {
+							'fields-controls__slug-input--invalid': ! isValid,
+						} ) }
 						onChange={ ( newValue?: string ) => {
 							onChangeControl( newValue );
 						} }
@@ -117,6 +128,11 @@ const SlugEdit = ( {
 						} }
 						aria-describedby={ postUrlSlugDescriptionId }
 					/>
+					{ ! isValid && (
+						<div className="fields-controls__slug-error">
+							<span>{ __( 'The slug is invalid.' ) }</span>
+						</div>
+					) }
 					<div className="fields-controls__slug-help">
 						<span className="fields-controls__slug-help-visual-label">
 							{ __( 'Permalink:' ) }

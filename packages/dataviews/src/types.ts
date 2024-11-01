@@ -121,7 +121,11 @@ export type Field< Item > = {
 	/**
 	 * Callback used to validate the field.
 	 */
-	isValid?: ( item: Item, context?: ValidationContext ) => boolean;
+	isValid?: (
+		value: any,
+		item?: Item,
+		context?: ValidationContext
+	) => boolean;
 
 	/**
 	 * Callback used to decide if a field should be displayed.
@@ -167,7 +171,7 @@ export type NormalizedField< Item > = Field< Item > & {
 	render: ComponentType< DataViewRenderFieldProps< Item > >;
 	Edit: ComponentType< DataFormControlProps< Item > >;
 	sort: ( a: Item, b: Item, direction: SortDirection ) => number;
-	isValid: ( item: Item, context?: ValidationContext ) => boolean;
+	isValid: ( value: any, item: Item, context?: ValidationContext ) => boolean;
 	enableHiding: boolean;
 	enableSorting: boolean;
 };

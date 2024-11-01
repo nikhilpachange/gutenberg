@@ -38,11 +38,8 @@ export function normalizeFields< Item >(
 
 		const isValid =
 			field.isValid ??
-			function isValid( item, context ) {
-				return fieldTypeDefinition.isValid(
-					getValue( { item } ),
-					context
-				);
+			function isValid( value, item, context ) {
+				return fieldTypeDefinition.isValid( value, context );
 			};
 
 		const Edit = getControl( field, fieldTypeDefinition );
