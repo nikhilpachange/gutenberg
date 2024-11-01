@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { Button, Tooltip } from '@wordpress/components';
-import { link, linkOff } from '@wordpress/icons';
+import { linkOffVertical, linkVertical } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
 export default function LinkedButton( { isLinked, ...props } ) {
@@ -13,7 +13,7 @@ export default function LinkedButton( { isLinked, ...props } ) {
 			<Button
 				{ ...props }
 				size="small"
-				icon={ isLinked ? link : linkOff }
+				icon={ isLinked ? linkVertical : linkOffVertical }
 				iconSize={ 24 }
 				aria-label={ label }
 			/>

@@ -153,6 +153,8 @@ export { default as lineDotted } from './library/line-dotted';
 export { default as lineSolid } from './library/line-solid';
 export { default as link } from './library/link';
 export { default as linkOff } from './library/link-off';
+export { default as linkVertical } from './library/link-vertical';
+export { default as linkOffVertical } from './library/link-off-vertical';
 export { default as list } from './library/list';
 export { default as listItem } from './library/list-item';
 export { default as listView } from './library/list-view';
