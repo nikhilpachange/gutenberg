@@ -11,7 +11,10 @@
 function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 	if ( 'core/edit-site' === $context->name ) {
 		if ( ! empty( $_GET['postId'] ) ) {
-			$post = get_post( $_GET['postId'] );
+			$post_id = (int) $_GET['postId'];
+			if ( $post_id ) {
+				$post = get_post( $post_id );
+			}
 		}
 
 		if ( $post ) {
