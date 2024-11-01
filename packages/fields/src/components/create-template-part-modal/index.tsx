@@ -233,6 +233,7 @@ export function CreateTemplatePartModalContents( {
 						{ defaultTemplatePartAreas.map(
 							( { icon, label, area: value, description } ) => (
 								<Radio
+									__next40pxDefaultSize
 									key={ label }
 									value={ value }
 									className="fields-create-template-part-modal__area-radio"
