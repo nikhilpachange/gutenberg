@@ -16,6 +16,31 @@ import { TEMPLATE_POST_TYPE } from '../../utils/constants';
 
 const EMPTY_OBJECT = {};
 
+// All WP post formats, sorted alphabetically by translated name.
+export const POST_FORMATS = [
+	{ id: 'aside', caption: __( 'Aside' ) },
+	{ id: 'audio', caption: __( 'Audio' ) },
+	{ id: 'chat', caption: __( 'Chat' ) },
+	{ id: 'gallery', caption: __( 'Gallery' ) },
+	{ id: 'image', caption: __( 'Image' ) },
+	{ id: 'link', caption: __( 'Link' ) },
+	{ id: 'quote', caption: __( 'Quote' ) },
+	{ id: 'standard', caption: __( 'Standard' ) },
+	{ id: 'status', caption: __( 'Status' ) },
+	{ id: 'video', caption: __( 'Video' ) },
+].sort( ( a, b ) => {
+	const normalizedA = a.caption.toUpperCase();
+	const normalizedB = b.caption.toUpperCase();
+
+	if ( normalizedA < normalizedB ) {
+		return -1;
+	}
+	if ( normalizedA > normalizedB ) {
+		return 1;
+	}
+	return 0;
+} );
+
 /**
  * @typedef IHasNameAndId
  * @property {string|number} id   The entity's id.
@@ -501,6 +526,62 @@ export const useTaxonomiesMenuItems = ( onClickMenuItem ) => {
 		[ menuItems ]
 	);
 	return taxonomiesMenuItems;
+};
+
+export const useFormatMenuItems = () => {
+	const existingTemplates = useExistingTemplates();
+	const templatePrefixes = useMemo(
+		() =>
+			POST_FORMATS?.reduce( ( accumulator, { id } ) => {
+				let suffix = id;
+				if ( id !== 'standard' ) {
+					suffix = `taxonomy-post_format-post-format-${ suffix }`;
+				}
+				accumulator[ id ] = suffix;
+				return accumulator;
+			}, {} ),
+		[]
+	);
+
+	const existingTemplateSlugs = ( existingTemplates || [] ).map(
+		( { slug } ) => slug
+	);
+
+	const menuItems = ( POST_FORMATS || [] ).reduce(
+		( accumulator, taxonomy ) => {
+			const { id, caption } = taxonomy;
+
+			const templateSlug = templatePrefixes[ id ];
+			const hasTemplate = existingTemplateSlugs?.includes( templateSlug );
+
+			const menuItem = {
+				slug: templatePrefixes[ id ],
+				title: sprintf(
+					// translators: %s: Name of the post format e.g: "Aside".
+					__( 'Post Format: %s' ),
+					caption
+				),
+				description: sprintf(
+					// translators: %s: Name of the post format e.g: "Aside".
+					__( 'Displays the %s Post Format archive.' ),
+					caption
+				),
+				icon: blockMeta,
+				templatePrefix: templatePrefixes[ id ],
+			};
+
+			if ( ! hasTemplate ) {
+				accumulator.push( menuItem );
+			}
+			return accumulator;
+		},
+		[]
+	);
+	const formatMenuItems = useMemo(
+		() => ( { formatMenuItems: menuItems } ),
+		[ menuItems ]
+	);
+	return formatMenuItems;
 };
 
 const USE_AUTHOR_MENU_ITEM_TEMPLATE_PREFIX = { user: 'author' };

@@ -55,6 +55,7 @@ import {
 	useExistingTemplates,
 	useDefaultTemplateTypes,
 	useTaxonomiesMenuItems,
+	useFormatMenuItems,
 	usePostTypeMenuItems,
 	useAuthorMenuItem,
 	usePostTypeArchiveMenuItems,
@@ -390,7 +391,7 @@ function useMissingTemplates( setEntityForSuggestions, onClick ) {
 		useTaxonomiesMenuItems( onClickMenuItem );
 	const { defaultPostTypesMenuItems, postTypesMenuItems } =
 		usePostTypeMenuItems( onClickMenuItem );
-
+	const { formatMenuItems } = useFormatMenuItems( onClickMenuItem );
 	const authorMenuItem = useAuthorMenuItem( onClickMenuItem );
 	[
 		...defaultTaxonomiesMenuItems,
@@ -426,6 +427,7 @@ function useMissingTemplates( setEntityForSuggestions, onClick ) {
 		...usePostTypeArchiveMenuItems(),
 		...postTypesMenuItems,
 		...taxonomiesMenuItems,
+		...formatMenuItems,
 	];
 	return missingTemplates;
 }
