@@ -13,7 +13,6 @@
  */
 class Gutenberg_HTTP_Signaling_Server {
 
-
 	/**
 	 * Adds a wp_ajax action to handle the signaling server requests.
 	 */
@@ -86,11 +85,9 @@ class Gutenberg_HTTP_Signaling_Server {
 	 */
 	private static function get_contents_from_file_descriptor( $fd ) {
 		$contents_raw = stream_get_contents( $fd );
-		$result       = array();
-		if ( $contents_raw ) {
-			$result = unserialize( $contents_raw );
-		}
-		return $result;
+		return $contents_raw
+			? unserialize( $contents_raw )
+			: array();
 	}
 
 	/**
