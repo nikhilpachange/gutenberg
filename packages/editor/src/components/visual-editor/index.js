@@ -406,6 +406,7 @@ function VisualEditor( {
 							...deviceStyles,
 						},
 					} }
+					enableScroll={ deviceType !== 'Desktop' || disableIframe }
 				>
 					{ themeSupportsLayout &&
 						! themeHasDisabledLayoutStyles &&

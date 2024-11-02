@@ -112,17 +112,6 @@
 
 	&:not(.is-iframed) {
 		overflow: hidden;
-
-		.editor-resizable-editor {
-			height: auto !important; // TODO: double-check this isn’t problematic or whether it can be obviated with code change to visual-editor.
-			display: flex;
-			flex-direction: column;
-		}
-
-		.editor-resizable-editor > * {
-			flex: 1 1 100%;
-			overflow: auto;
-		}
 	}
 }
 

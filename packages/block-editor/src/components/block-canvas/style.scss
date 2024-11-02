@@ -1,3 +1,25 @@
+.block-editor-block-canvas.is-scrollable {
+	overflow: auto;
+
+	// Applicable only when legacy (non-iframed).
+	> .block-editor-writing-flow {
+		display: flow-root;
+		min-height: 100%;
+		box-sizing: border-box;
+	}
+
+	// Applicable only when iframed.
+	> .block-editor-iframe__container {
+		display: flex;
+		flex-direction: column;
+
+		> .block-editor-iframe__scale-container {
+			flex: 1 0 fit-content;
+			display: flow-root;
+		}
+	}
+}
+
 iframe[name="editor-canvas"] {
 	box-sizing: border-box;
 	width: 100%;
