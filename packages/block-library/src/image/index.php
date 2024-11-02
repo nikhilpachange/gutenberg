@@ -136,16 +136,25 @@ function block_core_image_get_lightbox_settings( $block ) {
  * @return string Filtered block content.
  */
 function block_core_image_render_lightbox( $block_content, $block ) {
+	$p = new WP_HTML_Tag_Processor( $block_content );
+	while ( $p->next_tag() ) {
+		$tag = $p->get_tag();
+
+		if ( 'DIV' === $tag ) {
+			$p->set_bookmark( 'div' );
+		} else if ( 'FIGURE' === $tag ) {
+			$p->set_bookmark( 'figure' );
+		} else if ( 'IMG' === $tag ) {
+			$p->set_bookmark( 'img' );
+		}
+	}
+
 	/*
 	 * If there's no IMG tag in the block then return the given block content
 	 * as-is. There's nothing that this code can knowingly modify to add the
 	 * lightbox behavior.
 	 */
-	$p = new WP_HTML_Tag_Processor( $block_content );
-	if ( $p->next_tag( 'figure' ) ) {
-		$p->set_bookmark( 'figure' );
-	}
-	if ( ! $p->next_tag( 'img' ) ) {
+	if ( ! $p->has_bookmark( 'img' ) ) {
 		return $block_content;
 	}
 
@@ -169,8 +178,12 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 		$img_height       = $img_metadata['height'] ?? 'none';
 	}
 
-	// Figure.
-	$p->seek( 'figure' );
+	// Div or Figure.
+	if ( $p->has_bookmark( 'div' ) ) {
+		$p->seek( 'div' );
+	} else {
+		$p->seek( 'figure' );
+	}
 	$figure_class_names = $p->get_attribute( 'class' );
 	$figure_styles      = $p->get_attribute( 'style' );
 
@@ -197,6 +210,7 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 		)
 	);
 
+	$p->seek( 'figure' );
 	$p->add_class( 'wp-lightbox-container' );
 	$p->set_attribute( 'data-wp-interactive', 'core/image' );
 	$p->set_attribute(
@@ -298,6 +312,11 @@ function block_core_image_print_lightbox_overlay() {
 				<div class="lightbox-image-container">
 					<figure data-wp-bind--class="state.currentImage.figureClassNames" data-wp-bind--style="state.figureStyles">
 						<img data-wp-bind--alt="state.currentImage.alt" data-wp-bind--class="state.currentImage.imgClassNames" data-wp-bind--style="state.imgStyles" data-wp-bind--src="state.currentImage.currentSrc">
+					</figure>
+				</div>
+				<div class="lightbox-image-container">
+					<figure data-wp-bind--class="state.currentImage.figureClassNames" data-wp-bind--style="state.figureStyles">
+						<img data-wp-bind--alt="state.currentImage.alt" data-wp-bind--class="state.currentImage.imgClassNames" data-wp-bind--style="state.imgStyles" data-wp-bind--src="state.enlargedSrc">
 					</figure>
 				</div>
 				<div class="scrim" style="background-color: $background_color" aria-hidden="true"></div>
