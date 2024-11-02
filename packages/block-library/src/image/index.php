@@ -300,11 +300,6 @@ function block_core_image_print_lightbox_overlay() {
 						<img data-wp-bind--alt="state.currentImage.alt" data-wp-bind--class="state.currentImage.imgClassNames" data-wp-bind--style="state.imgStyles" data-wp-bind--src="state.currentImage.currentSrc">
 					</figure>
 				</div>
-				<div class="lightbox-image-container">
-					<figure data-wp-bind--class="state.currentImage.figureClassNames" data-wp-bind--style="state.figureStyles">
-						<img data-wp-bind--alt="state.currentImage.alt" data-wp-bind--class="state.currentImage.imgClassNames" data-wp-bind--style="state.imgStyles" data-wp-bind--src="state.enlargedSrc">
-					</figure>
-				</div>
 				<div class="scrim" style="background-color: $background_color" aria-hidden="true"></div>
 				<style data-wp-text="state.overlayStyles"></style>
 		</div>
