@@ -238,7 +238,6 @@ export default function LatestPostsEdit( { attributes, setAttributes } ) {
 				/>
 				{ displayPostContent && (
 					<RadioControl
-						className="wp-block-latest-posts__post-content-radio"
 						label={ __( 'Show' ) }
 						selected={ displayPostContentRadio }
 						options={ [
@@ -589,7 +588,7 @@ export default function LatestPostsEdit( { attributes, setAttributes } ) {
 							{ displayAuthor && currentAuthor && (
 								<div className="wp-block-latest-posts__post-author">
 									{ sprintf(
-										/* translators: byline. %s: current author. */
+										/* translators: byline. %s: author. */
 										__( 'by %s' ),
 										currentAuthor.name
 									) }

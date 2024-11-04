@@ -318,7 +318,7 @@ function MetaBoxesMain( { isLegacy } ) {
 						</Tooltip>
 						<VisuallyHidden id={ separatorHelpId }>
 							{ __(
-								'Use up and down arrow keys to resize the metabox pane.'
+								'Use up and down arrow keys to resize the meta box panel.'
 							) }
 						</VisuallyHidden>
 					</>
@@ -424,9 +424,7 @@ function Layout( {
 					!! select( blockEditorStore ).getBlockSelectionStart(),
 				showIconLabels: get( 'core', 'showIconLabels' ),
 				isDistractionFree: get( 'core', 'distractionFree' ),
-				showMetaBoxes:
-					! DESIGN_POST_TYPES.includes( currentPostType ) &&
-					isRenderingPostOnly,
+				showMetaBoxes: ! DESIGN_POST_TYPES.includes( currentPostType ),
 				isWelcomeGuideVisible: isFeatureActive( 'welcomeGuide' ),
 				templateId:
 					supportsTemplateMode &&
@@ -511,7 +509,7 @@ function Layout( {
 								: newItem.title?.rendered;
 						createSuccessNotice(
 							sprintf(
-								// translators: %s: Title of the created post e.g: "Post 1".
+								// translators: %s: Title of the created post or template, e.g: "Hello world".
 								__( '"%s" successfully created.' ),
 								decodeEntities( title )
 							),
