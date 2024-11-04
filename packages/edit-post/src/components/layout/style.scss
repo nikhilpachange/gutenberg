@@ -107,12 +107,9 @@
 }
 
 .has-metaboxes .editor-visual-editor {
-	flex: 1;
+	// Contains z-indexes of children so that the block toolbar will appear behind
+	// the drop shadow of the meta box pane.
 	isolation: isolate;
-
-	&:not(.is-iframed) {
-		overflow: hidden;
-	}
 }
 
 // Adjust the position of the notices

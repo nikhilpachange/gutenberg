@@ -406,7 +406,9 @@ function VisualEditor( {
 							...deviceStyles,
 						},
 					} }
-					enableScroll={ deviceType !== 'Desktop' || disableIframe }
+					// When there’s no iframe the canvas is the scrolling context and with the
+					// iframe, device previews may overflow vertically.
+					enableScroll={ disableIframe || deviceType !== 'Desktop' }
 				>
 					{ themeSupportsLayout &&
 						! themeHasDisabledLayoutStyles &&

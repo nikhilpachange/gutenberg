@@ -2,6 +2,9 @@
 	position: relative;
 	display: flex;
 	background-color: $gray-300;
+	// Allows the height to fit the parent container and avoids parent scrolling contexts from
+	// having overflow due to popovers of block tools.
+	overflow: hidden;
 
 	// Centralize the editor horizontally (flex-direction is column).
 	align-items: center;
@@ -12,12 +15,6 @@
 
 	&.has-padding {
 		padding: $grid-unit-30 $grid-unit-30 0;
-	}
-
-	// In the iframed canvas this keeps extra scrollbars from appearing (when block toolbars overflow). In the
-	// legacy (non-iframed) canvas, overflow must not be hidden in order to maintain support for sticky positioning.
-	&.is-iframed {
-		overflow: hidden;
 	}
 
 	// The button element easily inherits styles that are meant for the editor style.
