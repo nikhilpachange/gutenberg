@@ -2,8 +2,9 @@
  * WordPress dependencies
  */
 import { useCallback, useReducer } from '@wordpress/element';
-import { useSelect, useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch, useRegistry } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
+import { store as coreStore } from '@wordpress/core-data';
 
 /**
  * A hook that records the 'entity' history in the post editor as a user
@@ -25,6 +26,8 @@ export default function useNavigateToEntityRecord(
 	initialPostType,
 	defaultRenderingMode
 ) {
+	const registry = useRegistry();
+
 	const [ postHistory, dispatch ] = useReducer(
 		( historyState, { type, post, previousRenderingMode } ) => {
 			if ( type === 'push' ) {
@@ -52,7 +55,10 @@ export default function useNavigateToEntityRecord(
 	const { setRenderingMode } = useDispatch( editorStore );
 
 	const onNavigateToEntityRecord = useCallback(
-		( params ) => {
+		async ( params ) => {
+			await registry
+				.resolveSelect( coreStore )
+				.getPostType( params.postType );
 			dispatch( {
 				type: 'push',
 				post: { postId: params.postId, postType: params.postType },
@@ -61,7 +67,7 @@ export default function useNavigateToEntityRecord(
 			} );
 			setRenderingMode( defaultRenderingMode );
 		},
-		[ getRenderingMode, setRenderingMode, defaultRenderingMode ]
+		[ registry, getRenderingMode, setRenderingMode, defaultRenderingMode ]
 	);
 
 	const onNavigateToPreviousEntityRecord = useCallback( () => {
