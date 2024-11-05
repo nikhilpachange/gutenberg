@@ -219,34 +219,38 @@ function MetaBoxesMain( { isLegacy } ) {
 		}
 	};
 	const [ isDragging, setIsDragging ] = useState( false );
-	const bindDragGesture = useDrag(
-		( { movement, first, last, memo, swipe } ) => {
-			if ( first ) {
-				setIsDragging( true );
-				if ( heightRef.current === undefined ) {
-					const fromHeight = metaBoxesMainRef.current.offsetHeight;
-					return { fromHeight };
-				}
-				if ( heightRef.current > max ) {
-					// Starts from max in case shortening the window has imposed it.
-					return { fromHeight: max };
-				}
-				return { fromHeight: heightRef.current };
+	// useDrag includes basic keyboard support with arrow keys emulating a drag.
+	// TODO: Support more/all keyboard interactions from the window splitter pattern:
+	// https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/
+	const bindDragGesture = useDrag( ( state ) => {
+		const { movement, first, last, memo, swipe } = state;
+		const [ , yMovement ] = movement;
+		if ( first ) {
+			setIsDragging( true );
+			let fromHeight = heightRef.current;
+			if ( fromHeight === undefined ) {
+				fromHeight = metaBoxesMainRef.current.offsetHeight;
+			} else if ( heightRef.current > max ) {
+				// Starts from max in case shortening the window has imposed it.
+				fromHeight = max;
 			}
-			const [ , yMovement ] = movement;
-			if ( ! first && ! last ) {
-				applyHeight( memo.fromHeight - yMovement );
-				return memo;
+			if ( yMovement !== 0 ) {
+				applyHeight( fromHeight - yMovement );
 			}
-			setIsDragging( false );
-			const [ , swipeY ] = swipe;
-			if ( swipeY ) {
-				applyHeight( swipeY === -1 ? max : min, true );
-			} else if ( yMovement !== 0 ) {
-				applyHeight( heightRef.current, true );
-			}
+			return { fromHeight: fromHeight ?? heightRef.current };
 		}
-	);
+		if ( ! first && ! last ) {
+			applyHeight( memo.fromHeight - yMovement );
+			return memo;
+		}
+		setIsDragging( false );
+		const [ , swipeY ] = swipe;
+		if ( swipeY ) {
+			applyHeight( swipeY === -1 ? max : min, true );
+		} else if ( yMovement !== 0 ) {
+			applyHeight( heightRef.current, true );
+		}
+	} );
 
 	if ( ! hasAnyVisible ) {
 		return;
@@ -285,17 +289,6 @@ function MetaBoxesMain( { isLegacy } ) {
 	const toggle = () =>
 		setPreference( 'core/edit-post', 'metaBoxesMainIsOpen', ! isOpen );
 
-	// TODO: Support more/all keyboard interactions from the window splitter pattern:
-	// https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/
-	const onSeparatorKeyDown = ( event ) => {
-		const delta = { ArrowUp: 20, ArrowDown: -20 }[ event.key ];
-		if ( delta ) {
-			const pane = metaBoxesMainRef.current;
-			const fromHeight = isAutoHeight ? pane.offsetHeight : openHeight;
-			applyHeight( delta + fromHeight, true );
-			event.preventDefault();
-		}
-	};
 	const className = 'edit-post-meta-boxes-main';
 	const paneLabel = __( 'Meta Boxes' );
 	let paneProps, paneButtonProps;
@@ -326,9 +319,6 @@ function MetaBoxesMain( { isLegacy } ) {
 			'aria-label': __( 'Drag to resize' ),
 			'aria-describedby': separatorHelpId,
 			...bindDragGesture(),
-			// The drag gesture handlers include one for key down but it doesn’t seem necessary
-			// to call that handler (for now) so it’s simply overriden.
-			onKeyDown: onSeparatorKeyDown,
 			children: (
 				<Tooltip text={ __( 'Drag to resize' ) }>
 					<div tabIndex={ -1 }>
