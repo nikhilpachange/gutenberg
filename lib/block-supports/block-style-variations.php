@@ -102,6 +102,7 @@ function gutenberg_render_block_style_variation_support_styles( $parsed_block ) 
 	}
 
 	$tree       = WP_Theme_JSON_Resolver_Gutenberg::get_merged_data();
+	$tree       = WP_Theme_JSON_Resolver_Gutenberg::resolve_theme_file_uris( $tree );
 	$theme_json = $tree->get_raw_data();
 
 	// Only the first block style variation with data is supported.

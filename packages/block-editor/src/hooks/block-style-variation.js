@@ -16,7 +16,10 @@ import {
 import { usePrivateStyleOverride } from './utils';
 import { getValueFromObjectPath } from '../utils/object';
 import { store as blockEditorStore } from '../store';
-import { globalStylesDataKey } from '../store/private-keys';
+import {
+	globalStylesDataKey,
+	globalStylesLinksDataKey,
+} from '../store/private-keys';
 import { unlock } from '../lock-unlock';
 
 const VARIATION_PREFIX = 'is-style-';
@@ -86,7 +89,6 @@ export function __unstableBlockStyleVariationOverridesWithConfig( { config } ) {
 		[]
 	);
 	const { getBlockName } = useSelect( blockEditorStore );
-
 	const overridesWithConfig = useMemo( () => {
 		if ( ! overrides?.length ) {
 			return;
@@ -257,13 +259,17 @@ function useBlockStyleVariation( name, variation, clientId ) {
 	// if in the site editor. Otherwise fall back to whatever is in the
 	// editor settings and available in the post editor.
 	const { merged: mergedConfig } = useContext( GlobalStylesContext );
-	const { globalSettings, globalStyles } = useSelect( ( select ) => {
-		const settings = select( blockEditorStore ).getSettings();
-		return {
-			globalSettings: settings.__experimentalFeatures,
-			globalStyles: settings[ globalStylesDataKey ],
-		};
-	}, [] );
+	const { globalSettings, globalStyles, globalLinks } = useSelect(
+		( select ) => {
+			const settings = select( blockEditorStore ).getSettings();
+			return {
+				globalSettings: settings.__experimentalFeatures,
+				globalStyles: settings[ globalStylesDataKey ],
+				globalLinks: settings[ globalStylesLinksDataKey ],
+			};
+		},
+		[]
+	);
 
 	return useMemo( () => {
 		const variationStyles = getVariationStylesWithRefValues(
@@ -289,11 +295,13 @@ function useBlockStyleVariation( name, variation, clientId ) {
 					},
 				},
 			},
+			_links: mergedConfig?._links ?? globalLinks,
 		};
 	}, [
 		mergedConfig,
 		globalSettings,
 		globalStyles,
+		globalLinks,
 		variation,
 		clientId,
 		name,
@@ -310,7 +318,7 @@ function useBlockProps( { name, className, clientId } ) {
 	const variation = getVariationNameFromClass( className, registeredStyles );
 	const variationClass = `${ VARIATION_PREFIX }${ variation }-${ clientId }`;
 
-	const { settings, styles } = useBlockStyleVariation(
+	const { settings, styles, _links } = useBlockStyleVariation(
 		name,
 		variation,
 		clientId
@@ -321,7 +329,7 @@ function useBlockProps( { name, className, clientId } ) {
 			return;
 		}
 
-		const variationConfig = { settings, styles };
+		const variationConfig = { settings, styles, _links };
 		const blockSelectors = getBlockSelectors(
 			getBlockTypes(),
 			getBlockStyles,
@@ -349,7 +357,7 @@ function useBlockProps( { name, className, clientId } ) {
 				variationStyles: true,
 			}
 		);
-	}, [ variation, settings, styles, getBlockStyles, clientId ] );
+	}, [ variation, settings, styles, _links, getBlockStyles, clientId ] );
 
 	usePrivateStyleOverride( {
 		id: `variation-${ clientId }`,

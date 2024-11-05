@@ -1293,6 +1293,15 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 							'url' => 'file:./example/img/image.png',
 						),
 					),
+					'elements'   => array(
+						'button' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./example/img/button.png',
+								),
+							),
+						),
+					),
 					'blocks'     => array(
 						'core/quote' => array(
 							'background' => array(
@@ -1318,7 +1327,7 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 								'button' => array(
 									'background' => array(
 										'backgroundImage' => array(
-											'url' => 'file:./example/img/button.png',
+											'url' => 'file:./example/img/group-button.png',
 										),
 									),
 								),
@@ -1334,6 +1343,12 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 				'name'   => 'file:./example/img/image.png',
 				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/image.png',
 				'target' => 'styles.background.backgroundImage.url',
+				'type'   => 'image/png',
+			),
+			array(
+				'name'   => 'file:./example/img/button.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/button.png',
+				'target' => 'styles.elements.button.background.backgroundImage.url',
 				'type'   => 'image/png',
 			),
 			array(
@@ -1355,8 +1370,8 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 				'type'   => 'image/gif',
 			),
 			array(
-				'name'   => 'file:./example/img/button.png',
-				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/button.png',
+				'name'   => 'file:./example/img/group-button.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/group-button.png',
 				'target' => 'styles.blocks.core/group.elements.button.background.backgroundImage.url',
 				'type'   => 'image/png',
 			),
