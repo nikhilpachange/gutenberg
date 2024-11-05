@@ -3,7 +3,6 @@
  */
 import { __, _x } from '@wordpress/i18n';
 import { useMemo, useEffect, forwardRef } from '@wordpress/element';
-import { useAsyncList } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -18,14 +17,6 @@ import InserterNoResults from './no-results';
 const getBlockNamespace = ( item ) => item.name.split( '/' )[ 0 ];
 
 const MAX_SUGGESTED_ITEMS = 6;
-
-/**
- * Shared reference to an empty array for cases where it is important to avoid
- * returning a new array reference on every invocation and rerendering the component.
- *
- * @type {Array}
- */
-const EMPTY_ARRAY = [];
 
 export function BlockTypesTabPanel( {
 	items,
@@ -65,24 +56,6 @@ export function BlockTypesTabPanel( {
 	// Hide block preview on unmount.
 	useEffect( () => () => onHover( null ), [] );
 
-	/**
-	 * The inserter contains a big number of blocks and opening it is a costful operation.
-	 * The rendering is the most costful part of it, in order to improve the responsiveness
-	 * of the "opening" action, these lazy lists allow us to render the inserter category per category,
-	 * once all the categories are rendered, we start rendering the collections and the uncategorized block types.
-	 */
-	const currentlyRenderedCategories = useAsyncList( categories );
-	const didRenderAllCategories =
-		categories.length === currentlyRenderedCategories.length;
-
-	// Async List requires an array.
-	const collectionEntries = useMemo( () => {
-		return Object.entries( collections );
-	}, [ collections ] );
-	const currentlyRenderedCollections = useAsyncList(
-		didRenderAllCategories ? collectionEntries : EMPTY_ARRAY
-	);
-
 	return (
 		<div className={ className }>
 			{ showMostUsedBlocks &&
@@ -100,7 +73,7 @@ export function BlockTypesTabPanel( {
 					</InserterPanel>
 				) }
 
-			{ currentlyRenderedCategories.map( ( category ) => {
+			{ categories.map( ( category ) => {
 				const categoryItems = items.filter(
 					( item ) => item.category === category.slug
 				);
@@ -123,7 +96,7 @@ export function BlockTypesTabPanel( {
 				);
 			} ) }
 
-			{ didRenderAllCategories && uncategorizedItems.length > 0 && (
+			{ uncategorizedItems.length > 0 && (
 				<InserterPanel
 					className="block-editor-inserter__uncategorized-blocks-panel"
 					title={ __( 'Uncategorized' ) }
@@ -137,7 +110,7 @@ export function BlockTypesTabPanel( {
 				</InserterPanel>
 			) }
 
-			{ currentlyRenderedCollections.map(
+			{ Object.entries( collections ).map(
 				( [ namespace, collection ] ) => {
 					const collectionItems = itemsPerCollection[ namespace ];
 					if ( ! collectionItems || ! collectionItems.length ) {

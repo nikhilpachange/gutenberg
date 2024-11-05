@@ -4,7 +4,7 @@
 import { useMemo, useEffect } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
 import { VisuallyHidden } from '@wordpress/components';
-import { useDebounce, useAsyncList } from '@wordpress/compose';
+import { useDebounce } from '@wordpress/compose';
 import { speak } from '@wordpress/a11y';
 import { useSelect } from '@wordpress/data';
 
@@ -25,7 +25,6 @@ import { orderBy } from '../../utils/sorting';
 import { orderInserterBlockItems } from '../../utils/order-inserter-block-items';
 import { store as blockEditorStore } from '../../store';
 
-const INITIAL_INSERTER_RESULTS = 9;
 /**
  * Shared reference to an empty array for cases where it is important to avoid
  * returning a new array reference on every invocation and rerendering the component.
@@ -156,10 +155,6 @@ function InserterSearchResults( {
 		filteredBlockPatterns,
 	] );
 
-	const currentShownBlockTypes = useAsyncList( filteredBlockTypes, {
-		step: INITIAL_INSERTER_RESULTS,
-	} );
-
 	const hasItems =
 		filteredBlockTypes.length > 0 || filteredBlockPatterns.length > 0;
 
@@ -168,7 +163,7 @@ function InserterSearchResults( {
 			title={ <VisuallyHidden>{ __( 'Blocks' ) }</VisuallyHidden> }
 		>
 			<BlockTypesList
-				items={ currentShownBlockTypes }
+				items={ filteredBlockTypes }
 				onSelect={ onSelectBlockType }
 				onHover={ onHover }
 				label={ __( 'Blocks' ) }
