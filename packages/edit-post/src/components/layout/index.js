@@ -424,6 +424,9 @@ function Layout( {
 				select( editPostStore )
 			);
 			const { canUser, getPostType } = select( coreStore );
+			const { __unstableGetEditorMode } = unlock(
+				select( blockEditorStore )
+			);
 
 			const supportsTemplateMode = settings.supportsTemplateMode;
 			const isViewable =
@@ -432,6 +435,8 @@ function Layout( {
 				kind: 'postType',
 				name: 'wp_template',
 			} );
+
+			const isZoomOut = __unstableGetEditorMode() === 'zoom-out';
 
 			return {
 				mode: select( editorStore ).getEditorMode(),
@@ -444,7 +449,8 @@ function Layout( {
 				isDistractionFree: get( 'core', 'distractionFree' ),
 				showMetaBoxes:
 					! DESIGN_POST_TYPES.includes( currentPostType ) &&
-					select( editorStore ).getRenderingMode() === 'post-only',
+					select( editorStore ).getRenderingMode() === 'post-only' &&
+					! isZoomOut,
 				isWelcomeGuideVisible: isFeatureActive( 'welcomeGuide' ),
 				templateId:
 					supportsTemplateMode &&
