@@ -172,8 +172,8 @@ function gutenberg_render_block_style_variation_support_styles( $parsed_block ) 
 	$styles_registry = WP_Block_Styles_Registry::get_instance();
 	$styles_registry->register( $parsed_block['blockName'], array( 'name' => $variation_instance ) );
 
-	$variation_theme_json  = new WP_Theme_JSON_Gutenberg( $config, 'blocks' );
-    $variation_theme_json  = WP_Theme_JSON_Resolver_Gutenberg::resolve_theme_file_uris( $variation_theme_json );
+	$variation_theme_json = new WP_Theme_JSON_Gutenberg( $config, 'blocks' );
+	$variation_theme_json = WP_Theme_JSON_Resolver_Gutenberg::resolve_theme_file_uris( $variation_theme_json );
 	$variation_styles     = $variation_theme_json->get_stylesheet(
 		array( 'styles' ),
 		array( 'custom' ),
