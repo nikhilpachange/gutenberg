@@ -18,17 +18,19 @@ import {
 	MenuItem,
 	VisuallyHidden,
 	__experimentalItemGroup as ItemGroup,
+	__experimentalItem as Item,
 	__experimentalHStack as HStack,
 	__experimentalTruncate as Truncate,
 	Dropdown,
 	Placeholder,
 	Spinner,
+	ColorIndicator,
 	__experimentalDropdownContentWrapper as DropdownContentWrapper,
 } from '@wordpress/components';
 import { __, _x, sprintf } from '@wordpress/i18n';
 import { store as noticesStore } from '@wordpress/notices';
 import { getFilename } from '@wordpress/url';
-import { useRef, useState, useEffect, useMemo } from '@wordpress/element';
+import { useRef, useState, useMemo } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { focus } from '@wordpress/dom';
 import { isBlobURL } from '@wordpress/blob';
@@ -116,13 +118,7 @@ function InspectorImagePreviewItem( {
 	filename,
 	label,
 	className,
-	onToggleCallback = noop,
 } ) {
-	useEffect( () => {
-		if ( typeof toggleProps?.isOpen !== 'undefined' ) {
-			onToggleCallback( toggleProps?.isOpen );
-		}
-	}, [ toggleProps?.isOpen, onToggleCallback ] );
 	return (
 		<ItemGroup as={ as } className={ className } { ...toggleProps }>
 			<HStack
@@ -130,19 +126,16 @@ function InspectorImagePreviewItem( {
 				as="span"
 				className="block-editor-global-styles-background-panel__inspector-preview-inner"
 			>
-				{ imgUrl && (
-					<span
-						className="block-editor-global-styles-background-panel__inspector-image-indicator-wrapper"
-						aria-hidden
-					>
-						<span
-							className="block-editor-global-styles-background-panel__inspector-image-indicator"
-							style={ {
-								backgroundImage: `url(${ imgUrl })`,
-							} }
-						/>
-					</span>
-				) }
+				<ColorIndicator
+					aria-hidden
+					style={ {
+						'--image-url': imgUrl ? `url(${ imgUrl })` : undefined,
+					} }
+					className={ clsx(
+						'block-editor-global-styles-background-panel__inspector-image-indicator',
+						{ 'has-image': !! imgUrl }
+					) }
+				/>
 				<FlexItem as="span" style={ imgUrl ? {} : { flexGrow: 1 } }>
 					<Truncate
 						numberOfLines={ 1 }
@@ -170,15 +163,13 @@ function BackgroundControlsPanel( {
 	filename,
 	url: imgUrl,
 	children,
-	onToggle: onToggleCallback = noop,
 	hasImageValue,
 } ) {
 	if ( ! hasImageValue ) {
 		return;
 	}
 
-	const imgLabel =
-		label || getFilename( imgUrl ) || __( 'Add background image' );
+	const imgLabel = label || getFilename( imgUrl ) || __( 'Image' );
 
 	return (
 		<Dropdown
@@ -186,8 +177,12 @@ function BackgroundControlsPanel( {
 			renderToggle={ ( { onToggle, isOpen } ) => {
 				const toggleProps = {
 					onClick: onToggle,
-					className:
+					className: clsx(
 						'block-editor-global-styles-background-panel__dropdown-toggle',
+						{
+							'is-open': isOpen,
+						}
+					),
 					'aria-expanded': isOpen,
 					'aria-label': __(
 						'Background size, position and repeat options.'
@@ -201,7 +196,6 @@ function BackgroundControlsPanel( {
 						label={ imgLabel }
 						toggleProps={ toggleProps }
 						as="button"
-						onToggleCallback={ onToggleCallback }
 					/>
 				);
 			} }
@@ -348,11 +342,10 @@ function BackgroundImageControls( {
 			} )
 		);
 	const canRemove = ! hasValue && hasBackgroundImageValue( inheritedValue );
-	const imgLabel =
-		title || getFilename( url ) || __( 'Add background image' );
+	const imgLabel = title || getFilename( url ) || __( 'Image' );
 
 	return (
-		<div
+		<Item
 			ref={ replaceContainerRef }
 			className="block-editor-global-styles-background-panel__image-tools-panel-item"
 		>
@@ -400,7 +393,7 @@ function BackgroundImageControls( {
 				onFilesDrop={ onFilesDrop }
 				label={ __( 'Drop to upload' ) }
 			/>
-		</div>
+		</Item>
 	);
 }
 
@@ -683,23 +676,13 @@ export default function BackgroundImagePanel( {
 			settings?.background?.backgroundPosition ||
 			settings?.background?.backgroundRepeat );
 
-	const [ isDropDownOpen, setIsDropDownOpen ] = useState( false );
-
 	return (
-		<div
-			className={ clsx(
-				'block-editor-global-styles-background-panel__inspector-media-replace-container',
-				{
-					'is-open': isDropDownOpen,
-				}
-			) }
-		>
+		<>
 			{ shouldShowBackgroundImageControls ? (
 				<BackgroundControlsPanel
 					label={ title }
 					filename={ title }
 					url={ url }
-					onToggle={ setIsDropDownOpen }
 					hasImageValue={ hasImageValue }
 				>
 					<VStack spacing={ 3 } className="single-column">
@@ -709,10 +692,8 @@ export default function BackgroundImagePanel( {
 							inheritedValue={ resolvedInheritedValue }
 							displayInPanel
 							onResetImage={ () => {
-								setIsDropDownOpen( false );
 								resetBackground();
 							} }
-							onRemoveImage={ () => setIsDropDownOpen( false ) }
 							defaultValues={ defaultValues }
 						/>
 						<BackgroundSizeControls
@@ -730,12 +711,10 @@ export default function BackgroundImagePanel( {
 					inheritedValue={ resolvedInheritedValue }
 					defaultValues={ defaultValues }
 					onResetImage={ () => {
-						setIsDropDownOpen( false );
 						resetBackground();
 					} }
-					onRemoveImage={ () => setIsDropDownOpen( false ) }
 				/>
 			) }
-		</div>
+		</>
 	);
 }
