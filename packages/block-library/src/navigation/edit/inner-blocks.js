@@ -73,6 +73,11 @@ export default function NavigationInnerBlocks( {
 	const showPlaceholder =
 		! hasCustomPlaceholder && ! hasMenuItems && ! isSelected;
 
+	const defaultRenderingMode = useSelect( ( select ) => {
+		const { getBlockEditingMode } = select( blockEditorStore );
+		return getBlockEditingMode( clientId ) === 'default';
+	} );
+
 	const innerBlocksProps = useInnerBlocksProps(
 		{
 			className: 'wp-block-navigation__container',
@@ -93,13 +98,14 @@ export default function NavigationInnerBlocks( {
 			// the sibling inserter.
 			// See https://github.com/WordPress/gutenberg/issues/37572.
 			renderAppender:
-				isSelected ||
+				defaultRenderingMode &&
+				( isSelected ||
 				( isImmediateParentOfSelectedBlock &&
 					! selectedBlockHasChildren ) ||
 				// Show the appender while dragging to allow inserting element between item and the appender.
 				parentOrChildHasSelection
 					? InnerBlocks.ButtonBlockAppender
-					: false,
+					: false ),
 			placeholder: showPlaceholder ? placeholder : undefined,
 			__experimentalCaptureToolbars: true,
 			__unstableDisableLayoutClassNames: true,

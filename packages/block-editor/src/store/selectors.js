@@ -3046,6 +3046,10 @@ export const getBlockEditingMode = createRegistrySelector(
 				clientId = '';
 			}
 
+			if ( areInnerBlocksControlled( state, clientId ) ) {
+				return 'contentOnly';
+			}
+
 			// In zoom-out mode, override the behavior set by
 			// __unstableSetBlockEditingMode to only allow editing the top-level
 			// sections.

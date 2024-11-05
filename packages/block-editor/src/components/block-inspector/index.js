@@ -29,8 +29,10 @@ import useBlockInspectorAnimationSettings from './useBlockInspectorAnimationSett
 import BlockInfo from '../block-info-slot-fill';
 import BlockQuickNavigation from '../block-quick-navigation';
 import { useBorderPanelLabel } from '../../hooks/border';
+import { privateApis as blockEditorPrivateApis } from '../../private-apis';
 
 import { unlock } from '../../lock-unlock';
+const { PrivateListView } = unlock( blockEditorPrivateApis );
 
 function BlockStylesPanel( { clientId } ) {
 	return (
@@ -223,6 +225,7 @@ const BlockInspectorSingleBlock = ( {
 		},
 		[ blockName ]
 	);
+
 	const blockInformation = useBlockDisplayInformation( clientId );
 	const borderPanelLabel = useBorderPanelLabel( { blockName } );
 	const contentClientIds = useSelect(
@@ -246,6 +249,20 @@ const BlockInspectorSingleBlock = ( {
 		[ isSectionBlock, clientId ]
 	);
 
+	const { selectedContentClientId, isSelectedContentClientIdControlling } =
+		useSelect( ( select ) => {
+			const { getSelectedBlockClientId, areInnerBlocksControlled } =
+				select( blockEditorStore );
+
+			const _selectedBlockClientId = getSelectedBlockClientId();
+			return {
+				selectedContentClientId: _selectedBlockClientId,
+				isSelectedContentClientIdControlling: areInnerBlocksControlled(
+					_selectedBlockClientId
+				),
+			};
+		} );
+
 	return (
 		<div className="block-editor-block-inspector">
 			<BlockCard
@@ -268,13 +285,29 @@ const BlockInspectorSingleBlock = ( {
 						<BlockStylesPanel clientId={ clientId } />
 					) }
 
-					{ contentClientIds && contentClientIds?.length > 0 && (
-						<PanelBody title={ __( 'Content' ) }>
-							<BlockQuickNavigation
-								clientIds={ contentClientIds }
-							/>
-						</PanelBody>
-					) }
+					{ ! isSelectedContentClientIdControlling &&
+						contentClientIds &&
+						contentClientIds?.length > 0 && (
+							<PanelBody title={ __( 'Content' ) }>
+								<BlockQuickNavigation
+									clientIds={ contentClientIds }
+								/>
+							</PanelBody>
+						) }
+
+					{ isSelectedContentClientIdControlling &&
+						contentClientIds &&
+						contentClientIds?.length > 0 && (
+							<PanelBody title={ __( 'Content' ) }>
+								<PrivateListView
+									rootClientId={ selectedContentClientId }
+									ignoreRenderingMode
+									isExpanded
+									description={ __( 'Inner blocks' ) }
+									showAppender={ false }
+								/>
+							</PanelBody>
+						) }
 
 					{ ! isSectionBlock && (
 						<>

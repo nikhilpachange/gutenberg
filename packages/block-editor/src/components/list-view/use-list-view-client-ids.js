@@ -10,22 +10,29 @@ import { useSelect } from '@wordpress/data';
 import { store as blockEditorStore } from '../../store';
 import { unlock } from '../../lock-unlock';
 
-export default function useListViewClientIds( { blocks, rootClientId } ) {
+export default function useListViewClientIds( {
+	blocks,
+	rootClientId,
+	ignoreRenderingMode,
+} ) {
 	return useSelect(
 		( select ) => {
 			const {
 				getDraggedBlockClientIds,
 				getSelectedBlockClientIds,
 				getEnabledClientIdsTree,
+				__unstableGetClientIdsTree: getClientIdsTree,
 			} = unlock( select( blockEditorStore ) );
 
 			return {
 				selectedClientIds: getSelectedBlockClientIds(),
 				draggedClientIds: getDraggedBlockClientIds(),
 				clientIdsTree:
-					blocks ?? getEnabledClientIdsTree( rootClientId ),
+					blocks ?? ignoreRenderingMode
+						? getClientIdsTree( rootClientId )
+						: getEnabledClientIdsTree( rootClientId ),
 			};
 		},
-		[ blocks, rootClientId ]
+		[ blocks, rootClientId, ignoreRenderingMode ]
 	);
 }

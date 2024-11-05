@@ -90,6 +90,7 @@ function getEnabledClientIdsTreeUnmemoized( state, rootClientId ) {
 			state,
 			clientId
 		);
+
 		if ( getBlockEditingMode( state, clientId ) !== 'disabled' ) {
 			result.push( { clientId, innerBlocks } );
 		} else {

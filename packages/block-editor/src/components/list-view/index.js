@@ -78,6 +78,7 @@ export const BLOCK_LIST_ITEM_HEIGHT = 32;
  * @param {?HTMLElement}   props.dropZoneElement        Optional element to be used as the drop zone.
  * @param {?boolean}       props.showBlockMovers        Flag to enable block movers. Defaults to `false`.
  * @param {?boolean}       props.isExpanded             Flag to determine whether nested levels are expanded by default. Defaults to `false`.
+ * @param {?boolean}       props.ignoreRenderingMode    Flag to ignore rendering mode and always show the block. Defaults to `false`.
  * @param {?boolean}       props.showAppender           Flag to show or hide the block appender. Defaults to `false`.
  * @param {?ComponentType} props.blockSettingsMenu      Optional more menu substitution. Defaults to the standard `BlockSettingsDropdown` component.
  * @param {string}         props.rootClientId           The client id of the root block from which we determine the blocks to show in the list.
@@ -93,6 +94,7 @@ function ListViewComponent(
 		dropZoneElement,
 		showBlockMovers = false,
 		isExpanded = false,
+		ignoreRenderingMode = false,
 		showAppender = false,
 		blockSettingsMenu: BlockSettingsMenu = BlockSettingsDropdown,
 		rootClientId,
@@ -115,7 +117,7 @@ function ListViewComponent(
 
 	const instanceId = useInstanceId( ListViewComponent );
 	const { clientIdsTree, draggedClientIds, selectedClientIds } =
-		useListViewClientIds( { blocks, rootClientId } );
+		useListViewClientIds( { blocks, rootClientId, ignoreRenderingMode } );
 	const blockIndexes = useListViewBlockIndexes( clientIdsTree );
 
 	const { getBlock } = useSelect( blockEditorStore );
