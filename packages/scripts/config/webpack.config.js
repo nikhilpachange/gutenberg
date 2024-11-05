@@ -123,6 +123,7 @@ const baseConfig = {
 					type: 'css/mini-extract',
 					test: /[\\/]style(\.module)?\.(pc|sc|sa|c)ss$/,
 					chunks( chunk ) {
+						// Ensure that the main style file can still be generated when provided as an entry point.
 						return chunk.name !== 'style';
 					},
 					enforce: true,
