@@ -2614,16 +2614,13 @@ class WP_Theme_JSON_Gutenberg {
 		$include_node_paths_only = $options['include_node_paths_only'] ?? false;
 
 		// Top-level.
-		if ( $include_node_paths_only ) {
-			$nodes[] = array(
-				'path' => array( 'styles' ),
-			);
-		} else {
-			$nodes[] = array(
-				'path'     => array( 'styles' ),
-				'selector' => static::ROOT_BLOCK_SELECTOR,
-			);
+		$node = array(
+			'path' => array( 'styles' ),
+		);
+		if ( ! $include_node_paths_only ) {
+			$node['selector'] = static::ROOT_BLOCK_SELECTOR;
 		}
+		$nodes[] = $node;
 
 		if ( isset( $theme_json['styles']['elements'] ) ) {
 			foreach ( self::ELEMENTS as $element => $selector ) {
@@ -2632,32 +2629,25 @@ class WP_Theme_JSON_Gutenberg {
 				}
 
 				// Handle element defaults.
-				if ( $include_node_paths_only ) {
-					$nodes[] = array(
-						'path' => array( 'styles', 'elements', $element ),
-					);
-				} else {
-					$nodes[] = array(
-						'path'     => array( 'styles', 'elements', $element ),
-						'selector' => static::ELEMENTS[ $element ],
-					);
+				$node = array(
+					'path' => array( 'styles', 'elements', $element ),
+				);
+				if ( ! $include_node_paths_only ) {
+					$node['selector'] = static::ELEMENTS[ $element ];
 				}
+				$nodes[] = $node;
 
 				// Handle any pseudo selectors for the element.
 				if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] ) ) {
 					foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
-
 						if ( isset( $theme_json['styles']['elements'][ $element ][ $pseudo_selector ] ) ) {
-							if ( $include_node_paths_only ) {
-								$nodes[] = array(
-									'path' => array( 'styles', 'elements', $element, $pseudo_selector ),
-								);
-							} else {
-								$nodes[] = array(
-									'path'     => array( 'styles', 'elements', $element ),
-									'selector' => static::append_to_selector( static::ELEMENTS[ $element ], $pseudo_selector ),
-								);
+							$node = array(
+								'path' => array( 'styles', 'elements', $element ),
+							);
+							if ( ! $include_node_paths_only ) {
+								$node['selector'] = static::append_to_selector( static::ELEMENTS[ $element ], $pseudo_selector );
 							}
+							$nodes[] = $node;
 						}
 					}
 				}
