@@ -2799,6 +2799,13 @@ class WP_Theme_JSON_Gutenberg {
 						$nodes[] = array(
 							'path' => array( 'styles', 'blocks', $name, 'variations', $variation ),
 						);
+						if ( isset( $node['blocks'] ) ) {
+							foreach ( $node['blocks'] as $variation_block_name => $node ) {
+								$nodes[] = array(
+									'path' => array( 'styles', 'blocks', $name, 'variations', $variation, 'blocks', $variation_block_name ),
+								);
+							}
+						}
 					}
 				}
 			} else {

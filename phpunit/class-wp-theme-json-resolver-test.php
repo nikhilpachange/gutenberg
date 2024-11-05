@@ -1405,6 +1405,15 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 							'url' => 'file:./example/img/group-twinky.png',
 						),
 					),
+					'blocks'     => array(
+						'core/group' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./example/img/group-fonzis.png',
+								),
+							),
+						),
+					),
 				),
 			)
 		);
@@ -1414,6 +1423,12 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 				'name'   => 'file:./example/img/group-twinky.png',
 				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/group-twinky.png',
 				'target' => 'styles.blocks.core/group.variations.group-background-twinky.background.backgroundImage.url',
+				'type'   => 'image/png',
+			),
+			array(
+				'name'   => 'file:./example/img/group-fonzis.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/group-fonzis.png',
+				'target' => 'styles.blocks.core/group.variations.group-background-twinky.blocks.core/group.background.backgroundImage.url',
 				'type'   => 'image/png',
 			),
 		);
