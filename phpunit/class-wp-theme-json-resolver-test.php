@@ -1308,6 +1308,22 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 								),
 							),
 						),
+						'core/group' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'file:./example/img/group.gif',
+								),
+							),
+							'elements'   => array(
+								'button' => array(
+									'background' => array(
+										'backgroundImage' => array(
+											'url' => 'file:./example/img/button.png',
+										),
+									),
+								),
+							),
+						),
 					),
 				),
 			)
@@ -1332,6 +1348,18 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 				'target' => 'styles.blocks.core/verse.background.backgroundImage.url',
 				'type'   => 'image/gif',
 			),
+			array(
+				'name'   => 'file:./example/img/group.gif',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/group.gif',
+				'target' => 'styles.blocks.core/group.background.backgroundImage.url',
+				'type'   => 'image/gif',
+			),
+			array(
+				'name'   => 'file:./example/img/button.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/button.png',
+				'target' => 'styles.blocks.core/group.elements.button.background.backgroundImage.url',
+				'type'   => 'image/png',
+			),
 		);
 
 		/*
@@ -1348,6 +1376,47 @@ class WP_Theme_JSON_Resolver_Gutenberg_Test extends WP_UnitTestCase {
 		remove_filter( 'theme_file_uri', $filter_theme_file_uri_callback );
 
 		$this->assertSame( $expected_data, $actual );
+	}
+
+	public function test_get_resolved_theme_uris_in_variations() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'       => 'group-background-twinky',
+				'label'      => 'Group block twinky background',
+				'style_data' => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'url' => 'file:./example/img/group-twinky.png',
+						),
+					),
+				),
+			)
+		);
+		$theme_json    = WP_Theme_JSON_Resolver_Gutenberg::get_theme_data();
+		$expected_data = array(
+			array(
+				'name'   => 'file:./example/img/group-twinky.png',
+				'href'   => 'https://example.org/wp-content/themes/example-theme/example/img/group-twinky.png',
+				'target' => 'styles.blocks.core/group.variations.group-background-twinky.background.backgroundImage.url',
+				'type'   => 'image/png',
+			),
+		);
+		/*
+		 * This filter callback normalizes the return value from `get_theme_file_uri`
+		 * to guard against changes in test environments.
+		 * The test suite otherwise returns full system dir path, e.g.,
+		 * /wordpress-phpunit/includes/../data/themedir1/default/example/img/image.png
+		 */
+		$filter_theme_file_uri_callback = function ( $file ) {
+			return 'https://example.org/wp-content/themes/example-theme/example/' . explode( 'example/', $file )[1];
+		};
+		add_filter( 'theme_file_uri', $filter_theme_file_uri_callback );
+		$actual = WP_Theme_JSON_Resolver_Gutenberg::get_resolved_theme_uris( $theme_json );
+		remove_filter( 'theme_file_uri', $filter_theme_file_uri_callback );
+
+		$this->assertSame( $expected_data, $actual );
+		unregister_block_style( 'core/group', 'group-background-twinky' );
 	}
 
 	/**

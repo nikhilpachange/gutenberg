@@ -855,53 +855,35 @@ class WP_Theme_JSON_Resolver_Gutenberg {
 		// Using the same file convention when registering web fonts. See: WP_Font_Face_Resolver:: to_theme_file_uri.
 		$placeholder = 'file:./';
 
-		// Top level styles.
-		$background_image_url = $theme_json_data['styles']['background']['backgroundImage']['url'] ?? null;
-		if (
-			isset( $background_image_url ) &&
-			is_string( $background_image_url ) &&
-			// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
-			str_starts_with( $background_image_url, $placeholder ) ) {
+		/*
+		 * Style values are merged at the leaf level, however
+		 * some values provide exceptions, namely style values that are
+		 * objects and represent unique definitions for the style.
+		 */
+		$style_nodes = $theme_json->get_styles_nodes_paths();
+
+		foreach ( $style_nodes as $style_node ) {
+			$path                  = $style_node['path'];
+			$background_image_path = array_merge( $path, array( 'background', 'backgroundImage', 'url' ) );
+			$background_image_url  = _wp_array_get( $theme_json_data, $background_image_path, null );
+			if (
+				isset( $background_image_url ) &&
+				is_string( $background_image_url ) &&
+				// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
+				str_starts_with( $background_image_url, $placeholder ) ) {
 				$file_type          = wp_check_filetype( $background_image_url );
 				$src_url            = str_replace( $placeholder, '', $background_image_url );
 				$resolved_theme_uri = array(
 					'name'   => $background_image_url,
 					'href'   => sanitize_url( get_theme_file_uri( $src_url ) ),
-					'target' => 'styles.background.backgroundImage.url',
+					'target' => implode( '.', $background_image_path ),
 				);
 				if ( isset( $file_type['type'] ) ) {
 					$resolved_theme_uri['type'] = $file_type['type'];
 				}
 				$resolved_theme_uris[] = $resolved_theme_uri;
-		}
-
-		// Block styles.
-		if ( ! empty( $theme_json_data['styles']['blocks'] ) ) {
-			foreach ( $theme_json_data['styles']['blocks'] as $block_name => $block_styles ) {
-				if ( ! isset( $block_styles['background']['backgroundImage']['url'] ) ) {
-					continue;
-				}
-				$background_image_url = $block_styles['background']['backgroundImage']['url'] ?? null;
-				if (
-					isset( $background_image_url ) &&
-					is_string( $background_image_url ) &&
-					// Skip if the src doesn't start with the placeholder, as there's nothing to replace.
-					str_starts_with( $background_image_url, $placeholder ) ) {
-					$file_type          = wp_check_filetype( $background_image_url );
-					$src_url            = str_replace( $placeholder, '', $background_image_url );
-					$resolved_theme_uri = array(
-						'name'   => $background_image_url,
-						'href'   => sanitize_url( get_theme_file_uri( $src_url ) ),
-						'target' => "styles.blocks.{$block_name}.background.backgroundImage.url",
-					);
-					if ( isset( $file_type['type'] ) ) {
-						$resolved_theme_uri['type'] = $file_type['type'];
-					}
-					$resolved_theme_uris[] = $resolved_theme_uri;
-				}
 			}
 		}
-
 		return $resolved_theme_uris;
 	}
 
