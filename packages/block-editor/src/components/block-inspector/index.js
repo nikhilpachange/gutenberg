@@ -262,6 +262,8 @@ const BlockInspectorSingleBlock = ( {
 				),
 			};
 		} );
+	const { __unstableGetEditorMode } = useSelect( blockEditorStore );
+	const editorMode = __unstableGetEditorMode();
 
 	return (
 		<div className="block-editor-block-inspector">
@@ -311,6 +313,20 @@ const BlockInspectorSingleBlock = ( {
 
 					{ ! isSectionBlock && (
 						<>
+							{ editorMode === 'navigation' &&
+								isSelectedContentClientIdControlling && (
+									<PanelBody title={ __( 'Content' ) }>
+										<PrivateListView
+											rootClientId={
+												selectedContentClientId
+											}
+											ignoreRenderingMode
+											isExpanded
+											description={ __( 'Inner blocks' ) }
+											showAppender={ false }
+										/>
+									</PanelBody>
+								) }
 							<InspectorControls.Slot />
 							<InspectorControls.Slot group="list" />
 							<InspectorControls.Slot
