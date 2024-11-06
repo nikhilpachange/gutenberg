@@ -13,6 +13,7 @@ import {
 	slugField,
 	parentField,
 	passwordField,
+	customFields,
 } from '@wordpress/fields';
 import {
 	createInterpolateElement,
@@ -354,6 +355,7 @@ function usePostFields( viewType ) {
 				],
 			},
 			passwordField,
+			customFields,
 		],
 		[ authors, viewType, frontPageId, postsPageId ]
 	);

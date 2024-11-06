@@ -79,6 +79,7 @@ function PostEditForm( { postType, postId } ) {
 				'slug',
 				'parent',
 				'comment_status',
+				'custom_fields',
 			].filter(
 				( field ) =>
 					ids.length === 1 ||
