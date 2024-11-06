@@ -23,7 +23,19 @@ function UnforwardedButtonGroup(
 	const classes = clsx( 'components-button-group', className );
 
 	return (
-		<div ref={ ref } role="group" className={ classes } { ...restProps } />
+		<>
+			<link
+				rel="stylesheet"
+				data-precedence="low"
+				href="../wp-content/plugins/gutenberg/packages/components/src/button-group/style.css"
+			/>
+			<div
+				ref={ ref }
+				role="group"
+				className={ classes }
+				{ ...restProps }
+			/>
+		</>
 	);
 }
 
