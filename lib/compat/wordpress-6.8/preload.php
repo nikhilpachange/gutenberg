@@ -17,7 +17,6 @@ function gutenberg_block_editor_preload_paths_6_8( $paths, $context ) {
 			}
 		}
 
-		// Core already preloads both of these for `core/edit-post`.
 		$paths[] = '/wp/v2/settings';
 		$paths[] = array( '/wp/v2/settings', 'OPTIONS' );
 		$paths[] = '/?_fields=' . implode(
