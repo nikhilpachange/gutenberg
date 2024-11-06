@@ -525,36 +525,20 @@ export interface SupportedLayouts {
 	table?: Omit< ViewTable, 'type' >;
 }
 
-interface BaseFieldLayout {
+export type FormField = {
 	id: string;
 	label?: string;
-}
-
-export interface RegularFieldLayout extends BaseFieldLayout {
-	layout: 'regular';
-}
-
-export interface PanelFieldLayout extends BaseFieldLayout {
-	layout: 'panel';
-	fields?: FormField[];
-}
-
-export interface InlineFieldLayout extends BaseFieldLayout {
-	layout: 'inline';
-}
-
-export type FormField =
-	| string
-	| RegularFieldLayout
-	| PanelFieldLayout
-	| InlineFieldLayout;
+	layout?: 'regular' | 'panel';
+	labelPosition?: 'side' | 'top';
+	children?: Array< FormField | string >;
+};
 
 /**
  * The form configuration.
  */
 export type Form = {
-	type?: 'regular' | 'panel' | 'inline';
-	fields?: FormField[];
+	type?: 'regular' | 'panel';
+	fields?: Array< FormField | string >;
 };
 
 export interface DataFormProps< Item > {

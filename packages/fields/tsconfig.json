@@ -21,6 +21,7 @@
 		{ "path": "../notices" },
 		{ "path": "../dataviews" },
 		{ "path": "../blob" },
+		{ "path": "../block-editor" },
 		{ "path": "../core-data" },
 		{ "path": "../hooks" },
 		{ "path": "../html-entities" },

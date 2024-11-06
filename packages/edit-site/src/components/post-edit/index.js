@@ -79,9 +79,8 @@ function PostEditForm( { postType, postId } ) {
 					id: 'status',
 					label: __( 'Status & Visibility' ),
 					layout: 'panel',
-					fields: [ 'status', 'password' ],
+					children: [ 'status', 'password' ],
 				},
-				'status_and_visibility',
 				'author',
 				'date',
 				'slug',
@@ -89,8 +88,8 @@ function PostEditForm( { postType, postId } ) {
 				'comment_status',
 				{
 					id: 'template',
-					layout: 'inline',
-					fields: [ 'template' ],
+					layout: 'regular',
+					labelPosition: 'side',
 				},
 			].filter(
 				( field ) =>
