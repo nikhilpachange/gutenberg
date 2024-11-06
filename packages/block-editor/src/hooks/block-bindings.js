@@ -49,6 +49,7 @@ const useToolsPanelDropdownMenuProps = () => {
 
 function BlockBindingsPanelDropdown( { attribute, binding } ) {
 	const blockContext = useContext( BlockContext );
+	const { updateBlockBindings } = useBlockBindingsUtils();
 	const registeredSources = getBlockBindingsSources();
 	// Get a new object with the rendered components to check if they are null.
 	const sourcesComponents = Object.entries( registeredSources ).reduce(
@@ -70,6 +71,9 @@ function BlockBindingsPanelDropdown( { attribute, binding } ) {
 				if ( SourceComponent ) {
 					acc[ name ] = SourceComponent;
 				}
+			} else if ( name !== 'core/pattern-overrides' ) {
+				// TODO: Look for a proper way to opt-in/opt-out for this.
+				acc[ name ] = null;
 			}
 
 			return acc;
@@ -84,6 +88,20 @@ function BlockBindingsPanelDropdown( { attribute, binding } ) {
 
 	return Object.entries( sourcesComponents ).map(
 		( [ sourceName, SourceComponent ] ) => {
+			if ( ! SourceComponent ) {
+				return (
+					<DropdownMenuV2.Item
+						onClick={ () => {
+							updateBlockBindings( {
+								[ attribute ]: { source: sourceName },
+							} );
+						} }
+					>
+						{ registeredSources[ sourceName ].label }
+					</DropdownMenuV2.Item>
+				);
+			}
+
 			return (
 				<DropdownMenuV2
 					key={ sourceName }
