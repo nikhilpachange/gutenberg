@@ -28,8 +28,6 @@ const postTypesWithoutParentTemplate = [
 	PATTERN_TYPES.user,
 ];
 
-const authorizedPostTypes = [ 'page', 'post' ];
-
 function useResolveEditedEntityAndContext( { postId, postType } ) {
 	const { hasLoadedAllDependencies, homepageId, postsPageId } = useSelect(
 		( select ) => {
@@ -181,11 +179,7 @@ function useResolveEditedEntityAndContext( { postId, postType } ) {
 
 			// If we're rendering a specific page, we need to resolve its template.
 			// The site editor only supports pages for now, not other CPTs.
-			if (
-				postType &&
-				postId &&
-				authorizedPostTypes.includes( postType )
-			) {
+			if ( postType && postId ) {
 				return resolveTemplateForPostTypeAndId( postType, postId );
 			}
 
@@ -205,7 +199,7 @@ function useResolveEditedEntityAndContext( { postId, postType } ) {
 			return {};
 		}
 
-		if ( postType && postId && authorizedPostTypes.includes( postType ) ) {
+		if ( postType && postId ) {
 			return { postType, postId };
 		}
 		// TODO: for post types lists we should probably not render the front page, but maybe a placeholder
