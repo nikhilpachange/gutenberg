@@ -2688,7 +2688,7 @@ class WP_Theme_JSON_Gutenberg {
 	}
 
 	/**
-	 * A public helper to get all styles nodes path in theme.json,
+	 * A public helper to get all style node paths in theme.json,
 	 * including elements and block styles variations. This is useful
 	 * when iterating over all style nodes to search for or replace any values.
 	 *
