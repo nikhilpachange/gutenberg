@@ -406,8 +406,7 @@ export default function PostList( { postType } ) {
 				defaultLayouts={ defaultLayouts }
 				header={
 					window.__experimentalQuickEditDataViews &&
-					view.type !== LAYOUT_LIST &&
-					postType === 'page' && (
+					view.type !== LAYOUT_LIST && (
 						<Button
 							size="compact"
 							isPressed={ quickEdit }

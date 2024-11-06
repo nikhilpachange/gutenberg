@@ -14,12 +14,18 @@ import SidebarNavigationScreen from '../sidebar-navigation-screen';
 import SidebarNavigationScreenMain from '../sidebar-navigation-screen-main';
 import DataViewsSidebarContent from '../sidebar-dataviews';
 import PostList from '../post-list';
+import { PostEdit } from '../post-edit';
 
 const { useLocation } = unlock( routerPrivateApis );
 
+function PostQuickEdit() {
+	const { params } = useLocation();
+	return <PostEdit postType={ params.postType } postId={ params.postId } />;
+}
+
 export default function useActiveRoute() {
 	const { params = {} } = useLocation();
-	const { postType, layout, canvas } = params;
+	const { postType, layout, canvas, quickEdit } = params;
 	const labels = useSelect(
 		( select ) => {
 			return select( coreStore ).getPostType( postType )?.labels;
@@ -28,7 +34,7 @@ export default function useActiveRoute() {
 	);
 
 	// Posts list.
-	if ( [ 'post' ].includes( postType ) ) {
+	if ( postType ) {
 		const isListLayout = layout === 'list' || ! layout;
 		return {
 			name: 'posts-list',
@@ -50,6 +56,7 @@ export default function useActiveRoute() {
 					) : (
 						<PostList postType={ postType } />
 					),
+				edit: quickEdit && <PostQuickEdit />,
 			},
 			widths: {
 				content: isListLayout ? 380 : undefined,
