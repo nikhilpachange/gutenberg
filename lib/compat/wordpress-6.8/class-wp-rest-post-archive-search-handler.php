@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 6.6.0
+ * @since 6.8.0
  */
 
 /**
  * Core class representing a search handler for Post Archives in the REST API.
  *
- * @since 5.6.0
+ * @since 6.8.0
  *
  * @see WP_REST_Search_Handler
  */
@@ -19,7 +19,7 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Constructor.
 	 *
-	 * @since 5.6.0
+	 * @since 6.8.0
 	 */
 	public function __construct() {
 		$this->type = 'post-type-archive';
@@ -28,7 +28,7 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Searches post-type archives for a given search request.
 	 *
-	 * @since 5.6.0
+	 * @since 6.8.0
 	 *
 	 * @param WP_REST_Request $request Full REST request.
 	 * @return array {
@@ -74,7 +74,7 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Prepares the search result for a given post archive ID.
 	 *
-	 * @since 5.6.0
+	 * @since 6.8.0
 	 *
 	 * @param int   $id     Term ID.
 	 * @param array $fields Fields to include for the post archive.
@@ -112,7 +112,7 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Prepares links for the search result of a given ID.
 	 *
-	 * @since 5.6.0
+	 * @since 6.8.0
 	 *
 	 * @param int $id Item ID.
 	 * @return array[] Array of link arrays for the given item.
