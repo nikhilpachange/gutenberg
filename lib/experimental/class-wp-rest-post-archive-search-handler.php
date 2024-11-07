@@ -23,12 +23,10 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	 */
 	public function __construct() {
 		$this->type = 'post-type-archive';
-
-		$this->subtypes = array( 'post', 'page', 'book', 'product' );
 	}
 
 	/**
-	 * Searches terms for a given search request.
+	 * Searches post-type archives for a given search request.
 	 *
 	 * @since 5.6.0
 	 *
@@ -36,20 +34,17 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	 * @return array {
 	 *     Associative array containing found IDs and total count for the matching search results.
 	 *
-	 *     @type int[]               $ids   Found term IDs.
-	 *     @type string|int|WP_Error $total Numeric string containing the number of terms in that
-	 *                                      taxonomy, 0 if there are no results, or WP_Error if
-	 *                                      the requested taxonomy does not exist.
+	 *     @type int[]               $ids   Found post archive IDs.
+	 *     @type string|int|WP_Error $total Numeric string containing the number of post-type archives found, or WP_Error object.
 	 * }
 	 */
 	public function search_items( WP_REST_Request $request ) {
-		// $taxonomies = $request[ WP_REST_Search_Controller::PROP_SUBTYPE ];
-		// if ( in_array( WP_REST_Search_Controller::TYPE_ANY, $taxonomies, true ) ) {
-		// $taxonomies = $this->subtypes;
+
+		$search_term = $request['search'];
 
 		$args = array(
 			'public'       => true,
-			'has_archive'  => true,
+			'has_archive'  => true, // ensure only posts with archive are considered.
 			'show_in_rest' => true,
 			'_builtin'     => false,
 		);
@@ -57,45 +52,50 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 		$post_types = get_post_types( $args, 'objects' );
 
 		$search_results = array();
+		$found_ids      = array();
 
+		if ( ! empty( $post_types ) ) {
 
-		foreach ( $post_types as $post_type ) {
-			// Check if the search term matches the post type name.
-			if ( stripos( $post_type->name, $search_term ) !== false ) {
-				$search_results[] = array(
-					'post_type'   => $post_type->name,
-					'label'       => $post_type->label,
-					'description' => $post_type->description,
-					'has_archive' => $post_type->has_archive,
-					// Add more information as needed.
-				);
+			foreach ( $post_types as $post_type ) {
+				// Check if the search term matches the post type name.
+				if ( empty( $search_term ) || stripos( $post_type->name, $search_term ) !== false ) {
+					$search_results[] = array(
+						'post_type'   => $post_type->name,
+						'label'       => $post_type->label,
+						'description' => $post_type->description,
+						'has_archive' => $post_type->has_archive,
+						'link'        => get_post_type_archive_link( $post_type->name ),
+						// Add more information as needed.
+					);
+
+					$found_ids[] = $post_type->name;
+
+				}
 			}
 		}
 
-		unset( $query_args['paged'], $query_args['posts_per_page'] );
-
-		$total = count( $search_results );
+		$page     = (int) $request['page'];
+		$per_page = (int) $request['per_page'];
 
 		return array(
-			self::RESULT_IDS   => $found_ids,
-			self::RESULT_TOTAL => $total,
+			self::RESULT_IDS   => array_slice( $found_ids, ( $page - 1 ) * $per_page, $per_page ),
+			self::RESULT_TOTAL => count( $found_ids ),
 		);
 	}
 
 	/**
-	 * Prepares the search result for a given term ID.
+	 * Prepares the search result for a given post archive ID.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param int   $id     Term ID.
-	 * @param array $fields Fields to include for the term.
+	 * @param array $fields Fields to include for the post archive.
 	 * @return array {
-	 *     Associative array containing fields for the term based on the `$fields` parameter.
+	 *     Associative array containing fields for the post-archive based on the `$fields` parameter.
 	 *
-	 *     @type int    $id    Optional. Term ID.
-	 *     @type string $title Optional. Term name.
-	 *     @type string $url   Optional. Term permalink URL.
-	 *     @type string $type  Optional. Term taxonomy name.
+	 *     @type int    $id    Optional. Post Archive ID.
+	 *     @type string $title Optional. Post Archive name.
+	 *     @type string $url   Optional. Post Archive permalink URL.
 	 * }
 	 */
 	public function prepare_item( $id, array $fields ) {
@@ -112,9 +112,6 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 		if ( in_array( WP_REST_Search_Controller::PROP_URL, $fields, true ) ) {
 			$data[ WP_REST_Search_Controller::PROP_URL ] = get_post_type_archive_link( $id );
 		}
-		if ( in_array( WP_REST_Search_Controller::PROP_TYPE, $fields, true ) ) {
-			$data[ WP_REST_Search_Controller::PROP_TYPE ] = $post_type->slug;
-		}
 
 		return $data;
 	}
@@ -128,22 +125,10 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	 * @return array[] Array of link arrays for the given item.
 	 */
 	public function prepare_item_links( $id ) {
-		// $term = get_term( $id );
 
 		$links = array();
-
-		// $item_route = rest_get_route_for_term( $term );
-		// if ( $item_route ) {
-		// $links['self'] = array(
-		// 'href'       => rest_url( $item_route ),
-		// 'embeddable' => true,
-		// );
-		// }
-
-		// $links['about'] = array(
-		// 'href' => rest_url( sprintf( 'wp/v2/taxonomies/%s', $term->taxonomy ) ),
-		// );
 
 		return $links;
 	}
 }
+

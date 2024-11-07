@@ -99,7 +99,7 @@ add_filter( 'get_sample_permalink', 'gutenberg_auto_draft_get_sample_permalink',
 
 
 function register_post_archive_rest_search_handler( $handlers ) {
-	$handlers['post_type_archive'] = new WP_REST_Post_Archive_Search_Handler();
+	$handlers[] = new WP_REST_Post_Archive_Search_Handler();
 
 
 	return $handlers;
