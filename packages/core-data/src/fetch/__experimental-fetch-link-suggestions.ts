@@ -240,7 +240,13 @@ export default async function fetchLinkSuggestions(
 		);
 	}
 
-	if ( ! type || type === 'post-type-archive' ) {
+	const DEBUGGING_ONLY_REMOVE_BEFORE_MERGE = true;
+
+	if (
+		DEBUGGING_ONLY_REMOVE_BEFORE_MERGE ||
+		! type ||
+		type === 'post-type-archive'
+	) {
 		queries.push(
 			apiFetch< SearchAPIResult[] >( {
 				path: addQueryArgs( '/wp/v2/search', {
