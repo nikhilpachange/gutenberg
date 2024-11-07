@@ -48,5 +48,8 @@
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"scripts": {
+		"build:wp": "esbuild src/index.ts --bundle --outdir=wp --external:react --external:react-dom --format=esm --tree-shaking=true"
 	}
 }
