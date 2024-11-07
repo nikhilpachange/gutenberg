@@ -95,13 +95,3 @@ function gutenberg_auto_draft_get_sample_permalink( $permalink, $id, $title, $na
 	return $permalink;
 }
 add_filter( 'get_sample_permalink', 'gutenberg_auto_draft_get_sample_permalink', 10, 5 );
-
-
-
-function register_post_archive_rest_search_handler( $handlers ) {
-	$handlers[] = new WP_REST_Post_Archive_Search_Handler();
-
-
-	return $handlers;
-}
-add_filter( 'wp_rest_search_handlers', 'register_post_archive_rest_search_handler' );

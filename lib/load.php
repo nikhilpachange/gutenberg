@@ -49,7 +49,7 @@ if ( class_exists( 'WP_REST_Controller' ) ) {
 	// WordPress 6.8 compat.
 	require __DIR__ . '/compat/wordpress-6.8/block-comments.php';
 	require __DIR__ . '/compat/wordpress-6.8/class-gutenberg-rest-comment-controller-6-8.php';
-	require_once __DIR__ . '/experimental/class-wp-rest-post-archive-search-handler.php';
+	require __DIR__ . '/compat/wordpress-6.8/class-wp-rest-post-archive-search-handler.php';
 
 	// Plugin specific code.
 	require_once __DIR__ . '/class-wp-rest-global-styles-controller-gutenberg.php';
