@@ -43,10 +43,15 @@ function createSlotRegistry(): SlotFillBubblesVirtuallyContext {
 
 	const updateSlot: SlotFillBubblesVirtuallyContext[ 'updateSlot' ] = (
 		name,
+		ref,
 		fillProps
 	) => {
 		const slot = slots.get( name );
 		if ( ! slot ) {
+			return;
+		}
+
+		if ( slot.ref !== ref ) {
 			return;
 		}
 

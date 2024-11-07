@@ -58,7 +58,7 @@ function Slot(
 	// fillProps may be an update that interacts with the layout, so we
 	// useLayoutEffect.
 	useLayoutEffect( () => {
-		registry.updateSlot( name, fillProps );
+		registry.updateSlot( name, ref, fillProps );
 	} );
 
 	return (
