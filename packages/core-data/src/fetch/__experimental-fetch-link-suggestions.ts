@@ -240,13 +240,7 @@ export default async function fetchLinkSuggestions(
 		);
 	}
 
-	const DEBUGGING_ONLY_REMOVE_BEFORE_MERGE = true;
-
-	if (
-		DEBUGGING_ONLY_REMOVE_BEFORE_MERGE ||
-		! type ||
-		type === 'post-type-archive'
-	) {
+	if ( ! type || type === 'post-type-archive' ) {
 		queries.push(
 			apiFetch< SearchAPIResult[] >( {
 				path: addQueryArgs( '/wp/v2/search', {
@@ -254,14 +248,18 @@ export default async function fetchLinkSuggestions(
 					page,
 					per_page: perPage,
 					type: 'post-type-archive',
-					subtype,
 				} ),
 			} )
 				.then( ( results ) => {
 					return results.map( ( result ) => {
 						return {
-							...result,
-							meta: { kind: 'post-type-archive', subtype },
+							id: result.id,
+							url: result.url,
+							title:
+								decodeEntities( result.title || '' ) ||
+								__( '(no title)' ),
+							type: `${ result.type } archive`,
+							kind: 'post-type-archive',
 						};
 					} );
 				} )
