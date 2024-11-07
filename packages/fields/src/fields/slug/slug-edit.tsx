@@ -34,7 +34,9 @@ const SlugEdit = ( {
 }: DataFormControlProps< BasePost > ) => {
 	const { id } = field;
 
-	const slug = field.getValue( { item: data } );
+	const value = field.getValue( { item: data } );
+
+	const slug = value.length > 0 ? value : data.id.toString();
 
 	const [ isValid, setIsValid ] = useState( true );
 
@@ -47,7 +49,7 @@ const SlugEdit = ( {
 	const permalinkSuffix = suffix;
 	const isEditable = PERMALINK_POSTNAME_REGEX.test( permalinkTemplate );
 	const originalSlugRef = useRef( slug );
-	const slugToDisplay = slug;
+	const slugToDisplay = slug.length > 0 ? slug : data.id.toString();
 	const permalink = isEditable
 		? `${ permalinkPrefix }${ slugToDisplay }${ permalinkSuffix }`
 		: safeDecodeURIComponent( data.link || '' );
@@ -60,10 +62,10 @@ const SlugEdit = ( {
 
 	const onChangeControl = useCallback(
 		( newValue?: string ) => {
-			setIsValid( field.isValid( newValue ?? '' ) );
 			onChange( {
 				[ id ]: newValue,
 			} );
+			setIsValid( field.isValid( newValue ) );
 		},
 		[ field, id, onChange ]
 	);

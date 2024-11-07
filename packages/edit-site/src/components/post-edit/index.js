@@ -7,7 +7,7 @@ import clsx from 'clsx';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { DataForm } from '@wordpress/dataviews';
+import { DataForm, isItemValid } from '@wordpress/dataviews';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { __experimentalVStack as VStack } from '@wordpress/components';
@@ -20,6 +20,7 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
 import Page from '../page';
 import usePostFields from '../post-fields';
 import { unlock } from '../../lock-unlock';
+import { usePostEditContext } from './context';
 
 const { PostCardPanel } = unlock( editorPrivateApis );
 
@@ -96,6 +97,9 @@ function PostEditForm( { postType, postId } ) {
 		} ),
 		[ ids ]
 	);
+
+	const { setIsValidForm } = usePostEditContext();
+
 	const onChange = ( edits ) => {
 		for ( const id of ids ) {
 			if (
@@ -120,6 +124,12 @@ function PostEditForm( { postType, postId } ) {
 					...edits,
 				} ) );
 			}
+			const isValidForm = isItemValid(
+				{ ...record, ...edits },
+				fields,
+				form
+			);
+			setIsValidForm( isValidForm );
 		}
 	};
 	useEffect( () => {

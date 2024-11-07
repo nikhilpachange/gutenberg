@@ -11,6 +11,7 @@ import { check } from '@wordpress/icons';
  */
 import SaveButton from '../save-button';
 import { isPreviewingTheme } from '../../utils/is-previewing-theme';
+import { usePostEditContext } from '../post-edit/context';
 
 export default function SaveHub() {
 	const { isDisabled, isSaving } = useSelect( ( select ) => {
@@ -27,6 +28,11 @@ export default function SaveHub() {
 				( ! dirtyEntityRecords.length && ! isPreviewingTheme() ),
 		};
 	}, [] );
+
+	const { isValidForm } = usePostEditContext();
+
+	console.log( isValidForm );
+
 	return (
 		<HStack className="edit-site-save-hub" alignment="right" spacing={ 4 }>
 			<SaveButton

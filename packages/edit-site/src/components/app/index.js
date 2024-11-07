@@ -23,6 +23,7 @@ import useInitEditedEntityFromURL from '../sync-state-with-url/use-init-edited-e
 import useActiveRoute from '../layout/router';
 import useSetCommandContext from '../../hooks/commands/use-set-command-context';
 import { useRegisterSiteEditorRoutes } from '../site-editor-routes';
+import { PostEditProvider } from '../post-edit/context';
 
 const { RouterProvider } = unlock( routerPrivateApis );
 const { GlobalStylesProvider } = unlock( editorPrivateApis );
@@ -59,7 +60,9 @@ export default function App() {
 			<GlobalStylesProvider>
 				<UnsavedChangesWarning />
 				<RouterProvider>
-					<AppLayout />
+					<PostEditProvider>
+						<AppLayout />
+					</PostEditProvider>
 					<PluginArea onError={ onPluginAreaError } />
 				</RouterProvider>
 			</GlobalStylesProvider>

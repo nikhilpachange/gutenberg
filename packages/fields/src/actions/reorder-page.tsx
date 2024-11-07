@@ -69,6 +69,7 @@ function ReorderModal( {
 		}
 	}
 	const isSaveDisabled = ! isItemValid( item, fields, formOrderAction );
+	console.log( isSaveDisabled );
 	return (
 		<form onSubmit={ onOrder }>
 			<VStack spacing="5">
