@@ -64,7 +64,7 @@ export function getSuggestionsQuery( type, kind ) {
 				return { type: 'term', subtype: type };
 			}
 			if ( kind === 'post-type-archive' ) {
-				return { type: 'post-type-archive', subtype: type };
+				return { type: 'post-type-archive' };
 			}
 			if ( kind === 'post-type' ) {
 				return { type: 'post', subtype: type };
