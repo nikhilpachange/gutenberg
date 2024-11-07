@@ -88,7 +88,6 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	 */
 	public function prepare_item( $id, array $fields ) {
 
-
 		$post_type = get_post_type_object( $id );
 
 		$data = array();
@@ -103,7 +102,9 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 			$data[ WP_REST_Search_Controller::PROP_URL ] = get_post_type_archive_link( $id );
 		}
 
-
+		if ( in_array( WP_REST_Search_Controller::PROP_TYPE, $fields, true ) ) {
+			$data[ WP_REST_Search_Controller::PROP_TYPE ] = $post_type->name;
+		}
 
 		return $data;
 	}
