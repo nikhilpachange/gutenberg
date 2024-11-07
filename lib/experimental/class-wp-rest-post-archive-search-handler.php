@@ -50,26 +50,14 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 		);
 
 		$post_types = get_post_types( $args, 'objects' );
-
-		$search_results = array();
-		$found_ids      = array();
+		$found_ids  = array();
 
 		if ( ! empty( $post_types ) ) {
 
 			foreach ( $post_types as $post_type ) {
 				// Check if the search term matches the post type name.
 				if ( empty( $search_term ) || stripos( $post_type->name, $search_term ) !== false ) {
-					$search_results[] = array(
-						'post_type'   => $post_type->name,
-						'label'       => $post_type->label,
-						'description' => $post_type->description,
-						'has_archive' => $post_type->has_archive,
-						'link'        => get_post_type_archive_link( $post_type->name ),
-						// Add more information as needed.
-					);
-
 					$found_ids[] = $post_type->name;
-
 				}
 			}
 		}
@@ -93,25 +81,29 @@ class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 	 * @return array {
 	 *     Associative array containing fields for the post-archive based on the `$fields` parameter.
 	 *
-	 *     @type int    $id    Optional. Post Archive ID.
+	 *     @type string    $id    Optional. Post Archive Slug.
 	 *     @type string $title Optional. Post Archive name.
 	 *     @type string $url   Optional. Post Archive permalink URL.
 	 * }
 	 */
 	public function prepare_item( $id, array $fields ) {
+
+
 		$post_type = get_post_type_object( $id );
 
 		$data = array();
 
 		if ( in_array( WP_REST_Search_Controller::PROP_ID, $fields, true ) ) {
-			$data[ WP_REST_Search_Controller::PROP_ID ] = (int) $id;
+			$data[ WP_REST_Search_Controller::PROP_ID ] = $id;
 		}
 		if ( in_array( WP_REST_Search_Controller::PROP_TITLE, $fields, true ) ) {
-			$data[ WP_REST_Search_Controller::PROP_TITLE ] = $post_type->name;
+			$data[ WP_REST_Search_Controller::PROP_TITLE ] = $post_type->labels->archives;
 		}
 		if ( in_array( WP_REST_Search_Controller::PROP_URL, $fields, true ) ) {
 			$data[ WP_REST_Search_Controller::PROP_URL ] = get_post_type_archive_link( $id );
 		}
+
+
 
 		return $data;
 	}
