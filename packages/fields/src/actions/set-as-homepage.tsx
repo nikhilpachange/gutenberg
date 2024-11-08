@@ -213,13 +213,20 @@ const setAsHomepage: Action< PostWithPermissions > = {
 			return false;
 		}
 
-		// Don't show the action if the page is already set as the homepage.
-		const pageOnFront = select( coreStore ).getEntityRecord< Settings >(
+		const siteSettings = select( coreStore ).getEntityRecord< Settings >(
 			'root',
 			'site'
-		)?.page_on_front;
+		);
+		const pageOnFront = siteSettings?.page_on_front;
+		const pageForPosts = siteSettings?.page_for_posts;
 
+		// Don't show the action if the page is already set as the homepage.
 		if ( pageOnFront === post.id ) {
+			return false;
+		}
+
+		// Don't show the action if the page is already set as the page for posts.
+		if ( pageForPosts === post.id ) {
 			return false;
 		}
 
