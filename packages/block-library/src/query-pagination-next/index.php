@@ -28,7 +28,11 @@ function render_block_core_query_pagination_next( $attributes, $content, $block 
 	$gutenberg_experiments  = get_option( 'gutenberg-experiments' );
 	$instant_search_enabled = isset( $gutenberg_experiments['gutenberg-search-query-block'] ) && $gutenberg_experiments['gutenberg-search-query-block'];
 	$search_query_global    = empty( $_GET['instant-search'] ) ? '' : sanitize_text_field( $_GET['instant-search'] );
-	$search_query_direct    = empty( $_GET[ 'instant-search-' . $block->context['queryId'] ] ) ? '' : sanitize_text_field( $_GET[ 'instant-search-' . $block->context['queryId'] ] );
+	$search_query_direct    = '';
+	if ( isset( $block->context['queryId'] ) ) {
+		$search_param        = 'instant-search-' . $block->context['queryId'];
+		$search_query_direct = empty( $_GET[ $search_param ] ) ? '' : sanitize_text_field( $_GET[ $search_param ] );
+	}
 
 	$wrapper_attributes = get_block_wrapper_attributes();
 	$show_label         = isset( $block->context['showLabel'] ) ? (bool) $block->context['showLabel'] : true;
