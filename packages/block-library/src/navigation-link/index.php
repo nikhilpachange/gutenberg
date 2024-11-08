@@ -372,11 +372,8 @@ function block_core_navigation_link_filter_variations( $variations, $block_type 
  */
 function block_core_navigation_link_build_variations() {
 
-
 	$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 	$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
-
-
 
 	/*
 	 * Use two separate arrays as a way to order the variations in the UI.
@@ -405,7 +402,7 @@ function block_core_navigation_link_build_variations() {
 			}
 		);
 		if ( $has_archive ) {
-			$variation = array(
+			$variation    = array(
 				'name'        => 'post-type-archive',
 				'title'       => __( 'Post Type Archive Link' ),
 				'description' => __( 'A link to a post type archive' ),
@@ -416,9 +413,6 @@ function block_core_navigation_link_build_variations() {
 			);
 			$variations[] = $variation;
 		}
-
-
-
 	}
 	if ( $taxonomies ) {
 		foreach ( $taxonomies as $taxonomy ) {
