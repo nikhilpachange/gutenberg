@@ -41,6 +41,8 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 	public function search_items( WP_REST_Request $request ) {
 
 		$search_term = $request['search'];
+		$page        = (int) $request['page'];
+		$per_page    = (int) $request['per_page'];
 
 		$args = array(
 			'public'       => true,
@@ -49,21 +51,17 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 			'_builtin'     => false,
 		);
 
-		$post_types = get_post_types( $args, 'objects' );
+		$post_types = get_post_types( $args );
 		$found_ids  = array();
 
 		if ( ! empty( $post_types ) ) {
-
 			foreach ( $post_types as $post_type ) {
 				// Check if the search term matches the post type name.
-				if ( empty( $search_term ) || stripos( $post_type->name, $search_term ) !== false ) {
-					$found_ids[] = $post_type->name;
+				if ( empty( $search_term ) || stripos( $post_type, $search_term ) !== false ) {
+					$found_ids[] = $post_type;
 				}
 			}
 		}
-
-		$page     = (int) $request['page'];
-		$per_page = (int) $request['per_page'];
 
 		return array(
 			self::RESULT_IDS   => array_slice( $found_ids, ( $page - 1 ) * $per_page, $per_page ),
