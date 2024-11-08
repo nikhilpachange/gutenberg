@@ -16,7 +16,7 @@ import { __, _x } from '@wordpress/i18n';
  * Internal dependencies
  */
 import FilterSummary from './filter-summary';
-import { default as AddFilter, AddFilterDropdownMenu } from './add-filter';
+import { default as AddFilter, AddFilterMenu } from './add-filter';
 import ResetFilters from './reset-filters';
 import DataViewsContext from '../dataviews-context';
 import { sanitizeOperators } from '../../utils';
@@ -100,7 +100,7 @@ export function FilterVisibilityToggle( {
 	}
 	if ( ! hasVisibleFilters ) {
 		return (
-			<AddFilterDropdownMenu
+			<AddFilterMenu
 				filters={ filters }
 				view={ view }
 				onChangeView={ onChangeViewWithFilterVisibility }
