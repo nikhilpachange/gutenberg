@@ -397,7 +397,7 @@ function block_core_navigation_link_build_variations() {
 		// If any of the post types have `has_archive` set to true then add a post-type-archive variation.
 		$has_archive = array_filter(
 			$post_types,
-			function( $post_type ) {
+			function ( $post_type ) {
 				return $post_type->has_archive;
 			}
 		);
