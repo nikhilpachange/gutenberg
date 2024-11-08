@@ -43,7 +43,7 @@ add_action( 'rest_api_init', 'gutenberg_register_edit_site_export_controller_end
  * Registers REST search handler for Post Type Archives.
  */
 function gutenberg_register_post_archive_rest_search_handler( $handlers ) {
-	$handlers[] = new WP_REST_Post_Archive_Search_Handler();
+	$handlers[] = new Gutenberg_REST_Post_Archive_Search_Handler();
 	return $handlers;
 }
 add_filter( 'wp_rest_search_handlers', 'gutenberg_register_post_archive_rest_search_handler' );
