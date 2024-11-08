@@ -103,7 +103,7 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 		}
 
 		if ( in_array( WP_REST_Search_Controller::PROP_TYPE, $fields, true ) ) {
-			$data[ WP_REST_Search_Controller::PROP_TYPE ] = $post_type->name;
+			$data[ WP_REST_Search_Controller::PROP_TYPE ] = sprintf( '%s-%s', $post_type->name, __( 'archive' ) );
 		}
 
 		return $data;
@@ -114,9 +114,10 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 	 *
 	 * @since 6.8.0
 	 *
+	 * @param int $id Item ID.
 	 * @return array[] Array of link arrays for the given item.
 	 */
-	public function prepare_item_links() {
+	public function prepare_item_links( $id ) {
 
 		$links = array();
 

@@ -258,7 +258,7 @@ export default async function fetchLinkSuggestions(
 							title:
 								decodeEntities( result.title || '' ) ||
 								__( '(no title)' ),
-							type: `${ result.type } archive`,
+							type: `${ result.type }`,
 							kind: 'post-type-archive',
 						};
 					} );

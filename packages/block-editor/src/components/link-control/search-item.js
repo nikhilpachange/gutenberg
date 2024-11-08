@@ -154,6 +154,10 @@ function getVisualTypeName( suggestion ) {
 		return 'blog home';
 	}
 
+	if ( suggestion.kind === 'post-type-archive' ) {
+		return 'archive';
+	}
+
 	// Rename 'post_tag' to 'tag'. Ideally, the API would return the localised CPT or taxonomy label.
 	return suggestion.type === 'post_tag' ? 'tag' : suggestion.type;
 }
