@@ -14,7 +14,7 @@
  *
  * @see WP_REST_Search_Handler
  */
-class WP_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
+class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler {
 
 	/**
 	 * Constructor.
