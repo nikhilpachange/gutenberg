@@ -116,9 +116,6 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 	 * @return array[] Array of link arrays for the given item.
 	 */
 	public function prepare_item_links( $id ) {
-
-		$links = array();
-
-		return $links;
+		return array();
 	}
 }
