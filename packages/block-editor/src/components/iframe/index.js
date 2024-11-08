@@ -420,7 +420,10 @@ function Iframe( {
 		}
 
 		if ( prefersReducedMotion ) {
-			onZoomOutTransitionEnd();
+			// Hack: Wait for the window values to recalculate.
+			iframeDocument.defaultView.requestAnimationFrame(
+				onZoomOutTransitionEnd
+			);
 		} else {
 			iframeDocument.documentElement.addEventListener(
 				'transitionend',
