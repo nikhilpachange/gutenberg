@@ -47,4 +47,41 @@ test.describe( 'Homepage Settings via Editor', () => {
 			page.getByRole( 'menuitem', { name: 'Set as homepage' } )
 		).toBeVisible();
 	} );
+
+	// test( 'should show "Set as homepage" action on draft pages', async ( {
+	// 	requestUtils,
+	// 	page,
+	// } ) => {
+	// 	await requestUtils.createPage( {
+	// 		title: 'Draft page',
+	// 		status: 'draft',
+	// 	} );
+	// 	const draftPage = page
+	// 		.getByRole( 'gridcell' )
+	// 		.getByLabel( 'Draft page' );
+	// 	const draftPageRow = page
+	// 		.getByRole( 'row' )
+	// 		.filter( { has: draftPage } );
+	// 	await draftPageRow.click();
+	// 	await draftPageRow
+	// 		.getByRole( 'button', {
+	// 			name: 'Actions',
+	// 		} )
+	// 		.click();
+	// 	await expect(
+	// 		page.getByRole( 'menuitem', { name: 'Set as homepage' } )
+	// 	).toBeVisible();
+	// } );
+
+	// test( 'should not show "Set as homepage" action on current homepage', async ( {
+	// 	page,
+	// } ) => {
+	// 	//
+	// } );
+
+	// test( 'should not show "Set as homepage" action on current posts page', async ( {
+	// 	page,
+	// } ) => {
+	// 	//
+	// } );
 } );
