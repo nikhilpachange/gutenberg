@@ -348,9 +348,16 @@ export default function PostList( { postType } ) {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
+	const siteSettings = useSelect( ( select ) => {
+		return select( coreStore ).getEntityRecord( 'root', 'site' );
+	} );
+	const pageOnFront = siteSettings?.page_on_front;
+	const pageForPosts = siteSettings?.page_for_posts;
 	const actions = useMemo(
 		() => [ editAction, ...postTypeActions ],
-		[ postTypeActions, editAction ]
+		// The "Set as homepage" action eligibility depends on the pageOnFront and pageForPosts settings.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[ postTypeActions, editAction, pageOnFront, pageForPosts ]
 	);
 
 	const [ showAddPostModal, setShowAddPostModal ] = useState( false );
