@@ -206,10 +206,19 @@ const setAsHomepage: Action< PostWithPermissions > = {
 		}
 
 		// A front-page template overrides homepage settings, so don't show the action if it's present.
-		const homepageTemplate =
-			select( coreStore ).__experimentalGetTemplateForLink( '/' );
-
-		if ( homepageTemplate && 'front-page' === homepageTemplate.slug ) {
+		const templates = select( coreStore ).getEntityRecords(
+			'postType',
+			'wp_template',
+			{
+				per_page: -1,
+			}
+		);
+		if (
+			templates?.some(
+				( template ) =>
+					'slug' in template && template.slug === 'front-page'
+			)
+		) {
 			return false;
 		}
 
