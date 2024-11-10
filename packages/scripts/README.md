@@ -46,10 +46,6 @@ _Example:_
 
 It might also be a good idea to get familiar with the [JavaScript Build Setup tutorial](https://github.com/WordPress/gutenberg/tree/HEAD/docs/how-to-guides/javascript/js-build-setup.md) for setting up a development environment to use ESNext syntax. It gives a very in-depth explanation of how to use the [build](#build) and [start](#start) scripts.
 
-## Automatic block.json detection and the source code directory
-
-When using the `start` or `build` commands, the source code directory ( the default is `./src`) and its subdirectories are scanned for the existence of `block.json` files. If one or more are found, they are treated a entry points and will be output into corresponding folders in the `build` directory. This allows for the creation of multiple blocks that use a single build process. The source directory can be customized using the `--webpack-src-dir` flag and the output directory with the `--output-path` flag.
-
 ## Updating to New Release
 
 To update an existing project to a new version of `@wordpress/scripts`, open the [changelog](https://github.com/WordPress/gutenberg/blob/HEAD/packages/scripts/CHANGELOG.md), find the version you’re currently on (check `package.json` in the top-level directory of your project), and apply the migration instructions for the newer versions.
@@ -65,20 +61,6 @@ We commit to keeping the breaking changes minimal so you can upgrade `@wordpress
 Transforms your code according the configuration provided so it’s ready for production and optimized for the best performance.
 
 _This script exits after producing a single build. For incremental builds, better suited for development, see the [start](#start) script._
-
-The entry points for your project get detected by scanning all script fields in `block.json` files located in the `src` directory. The script fields in `block.json` should pass relative paths to `block.json` in the same folder.
-
-_Example:_
-
-```json
-{
-	"editorScript": "file:index.js",
-	"script": "file:script.js",
-	"viewScript": "file:view.js"
-}
-```
-
-The fallback entry point is `src/index.js` (other supported extensions: `.jsx`, `.ts`, and `.tsx`) in case there is no `block.json` file found. In that scenario, the output generated will be written to `build/index.js`.
 
 _Example:_
 
@@ -112,6 +94,10 @@ Experimental support for the block.json `viewScriptModule` field is available vi
 `--experimental-modules` option. With this option enabled, script and module fields will all be
 compiled. The `viewScriptModule` field is analogous to the `viewScript` field, but will compile a module
 and should be registered in WordPress using the Modules API.
+
+#### How to structure the project?
+
+Learn more [how to structure your project](#project-structure-and-build-scripts) to optimize the development experience based on your specific needs.
 
 #### Advanced information
 
@@ -393,20 +379,6 @@ Transforms your code according the configuration provided so it’s ready for de
 
 _For single builds, better suited for production, see the [build](#build) script._
 
-The entry points for your project get detected by scanning all script fields in `block.json` files located in the `src` directory. The script fields in `block.json` should pass relative paths to `block.json` in the same folder.
-
-_Example:_
-
-```json
-{
-	"editorScript": "file:index.js",
-	"script": "file:script.js",
-	"viewScript": "file:view.js"
-}
-```
-
-The fallback entry point is `src/index.js` (other supported extensions: `.jsx`, `.ts`, and `.tsx`) in case there is no `block.json` file found. In that scenario, the output generated will be written to `build/index.js`.
-
 _Example:_
 
 ```json
@@ -444,6 +416,10 @@ Experimental support for the block.json `viewScriptModule` field is available vi
 `--experimental-modules` option. With this option enabled, script and module fields will all be
 compiled. The `viewScriptModule` field is analogous to the `viewScript` field, but will compile a module
 and should be registered in WordPress using the Modules API.
+
+#### How to structure the project?
+
+Learn more [how to structure your project](#project-structure-and-build-scripts) to optimize the development experience based on your specific needs.
 
 #### Advanced information
 
@@ -640,35 +616,28 @@ To also debug the browser context, run `wp-scripts --inspect-brk test-e2e --pupp
 
 For more e2e debugging tips check out the [Puppeteer debugging docs](https://developers.google.com/web/tools/puppeteer/debugging).
 
-## Advanced Usage
-
-In general, this package should be used with the set of recommended config files. While it’s possible to override every single config file provided, if you have to do it, it means that your use case is far more complicated than anticipated. If that happens, it would be better to avoid using the whole abstraction layer and set up your project with full control over tooling used.
-
-### Working with build scripts
+## Project structure and build scripts
 
 The `build` and `start` commands use [webpack](https://webpack.js.org/) behind the scenes. webpack is a tool that helps you transform your code into something else. For example: it can take code written in ESNext and output ES5 compatible code that is minified for production.
 
-#### Default webpack config
+### Developing blocks
 
-`@wordpress/scripts` bundles the default webpack config used as a base by the WordPress editor. These are the defaults:
+The entry points for your project get detected by scanning all script fields in `block.json` files located in the `src` directory. There might be multiple blocks in the project. The script fields listed in the `block.json` file get automatically detected as entry point when the relative path to `block.json` in the source `src` directory is provided (example: `file:index.js`). In contrast to that, the style fields should pass relative paths to the CSS files that will get generated in the `build` folder. The source directory can be customized using the `--webpack-src-dir` flag and the output directory with the `--output-path` flag.
 
--   [Entry](https://webpack.js.org/configuration/entry-context/#entry): the entry points for your project get detected by scanning the source folder `src`. First, it seeks all `block.json` metadata files located in the entire directory. For every metadata file discovered, the script fields `editorScript`, `script` and `viewScript` are analyzed. For every file reference found (example: `file:index.js`) an entry point is created. In case there is no `block.json` file found in the root of the directory, then two additional files can be set as entry points if corresponding files exist. The main JavaScript entry point `index.js` (other extensions are allowed for the source file to account for TypeScript and JSX) and the main stylesheet `style.css` (other extensions are allowed for the source file to account for PCSS, SCSS, or SASS).
--   [Output](https://webpack.js.org/configuration/output): `build/[name].js`, for example: `build/index.js`, `build/style.css`, or `build/my-block/index.js`.
--   [Loaders](https://webpack.js.org/loaders/):
-    -   [`babel-loader`](https://webpack.js.org/loaders/babel-loader/) allows transpiling JavaScript and TypeScript files using Babel and webpack.
-    -   [`@svgr/webpack`](https://www.npmjs.com/package/@svgr/webpack) and [`url-loader`](https://webpack.js.org/loaders/url-loader/) makes it possible to handle SVG files in JavaScript code.
-    -   [`css-loader`](https://webpack.js.org/loaders/css-loader/) chained with [`postcss-loader`](https://webpack.js.org/loaders/postcss-loader/) and [sass-loader](https://webpack.js.org/loaders/sass-loader/) let webpack process CSS, PCSS, SASS or SCSS files referenced in JavaScript files.
--   [Plugins](https://webpack.js.org/configuration/plugins) (among others):
-    -   [`CopyWebpackPlugin`](https://webpack.js.org/plugins/copy-webpack-plugin/) copies all `block.json` metadata files discovered in the source directory `src` to the build directory `build`, and PHP files referenced in these metadata files inside `render` and `variations` fields.
-    -   [`MiniCssExtractPlugin`](https://webpack.js.org/plugins/mini-css-extract-plugin/) extracts CSS files imported inside JavaScript files into separate files. It creates a CSS file per JavaScript entry point which contains CSS.
-    -   [`@wordpress/dependency-extraction-webpack-plugin`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/dependency-extraction-webpack-plugin/README.md) is used with the default configuration to ensure that WordPress provided scripts are not included in the built bundle.
-
-#### Using CSS
+The following example shows the structure of the project for a single block plugin added directly to the `src` directory:
 
 _Example:_
 
+```json
+{
+	"editorScript": "file:index.js",
+	"editorStyle": "file:index.css",
+	"style": "file:style-index.css"
+}
+```
+
 ```scss
-// index.scss
+// src/index.scss
 $body-color: red;
 
 .wp-block-my-block {
@@ -677,16 +646,18 @@ $body-color: red;
 ```
 
 ```css
-/* style.css */
+/* src/style.css */
 .wp-block-my-block {
 	background-color: black;
 }
 ```
 
 ```js
-// index.js
+// src/index.js
 import './index.scss';
 import './style.css';
+
+// Block registration goes next...
 ```
 
 When you run the build using the default command `wp-scripts build` (also applies to `start`) in addition to the JavaScript file `index.js` generated in the `build` folder, you should see two more files:
@@ -694,19 +665,27 @@ When you run the build using the default command `wp-scripts build` (also applie
 1. `index.css` – all imported CSS files are bundled into one chunk named after the entry point, which defaults to `index.js`, and thus the file created becomes `index.css`. This is for styles used only in the editor.
 2. `style-index.css` – imported `style.css` file(s) (applies to PCSS, SASS and SCSS extensions) get bundled into one `style-index.css` file that is meant to be used both on the front-end and in the editor.
 
-You can also have multiple entry points as described in the docs for the script:
+Note: You can also bundle CSS modules by prefixing `.module` to the extension, e.g. `style.module.scss`. Otherwise, these files are handled like all other `style.scss`. They will also be extracted into `style-index.css`.
+
+### Developing for plugins and themes
+
+In that scenario, it's necessary to follow established conventions. The main JavaScript entry point is `src/index.js` (other extensions are allowed for the source file to account for TypeScript and JSX) and the main stylesheet is `src/style.css` (other extensions are allowed for the source file to account for PCSS, SCSS, or SASS). The output generated will be written to `build/index.js`.
+
+Note that it's still possible to include blocks when developing a project targeting a plugin or theme. The only requirement is to include block files in separate subdirectories of the `src` directory so the respective `block.json` files can be used to detect all the entry points successfully. Example: `src/my-block/block.json` and `src/my-other-block/block.json`.
+
+### Explicitly defined entry points
+
+Providing multiple entry points as arguments for the command is also possible. This approach turns off the automatic detection of entry points used with other scenarios and moves the responsibility to the developer to list paths to JavaScript files explicitly:
 
 ```bash
 wp-scripts start entry-one.js entry-two.js --output-path=custom
 ```
 
-If you do so, then CSS files generated will follow the names of the entry points: `entry-one.css` and `entry-two.css`.
+If you do so, then CSS generated based on import statements in the JavaScript code will follow the names of the entry points: `entry-one.css` and `entry-two.css`.
 
 Avoid using `style` keyword in an entry point name, this might break your build process.
 
-You can also bundle CSS modules by prefixing `.module` to the extension, e.g. `style.module.scss`. Otherwise, these files are handled like all other `style.scss`. They will also be extracted into `style-index.css`.
-
-#### Using fonts and images
+### Using fonts and images
 
 It is possible to reference font (`woff`, `woff2`, `eot`, `ttf` and `otf`) and image (`bmp`, `png`, `jpg`, `jpeg`, `gif` and `wepb`) files from CSS that is controlled by webpack as explained in the previous section.
 
@@ -724,7 +703,7 @@ _Example:_
 }
 ```
 
-#### Using SVG
+### Using SVG
 
 _Example:_
 
@@ -739,6 +718,25 @@ const App = () => (
 );
 ```
 
+## Advanced Usage
+
+In general, this package should be used with the set of recommended config files. While it’s possible to override every single config file provided, if you have to do it, it means that your use case is far more complicated than anticipated. If that happens, it would be better to avoid using the whole abstraction layer and set up your project with full control over tooling used.
+
+### Default webpack config
+
+`@wordpress/scripts` bundles the default webpack config used as a base by the WordPress editor. These are the defaults:
+
+-   [Entry](https://webpack.js.org/configuration/entry-context/#entry): the entry points for your project get detected by scanning the source folder `src`. First, it seeks all `block.json` metadata files located in the entire directory. For every metadata file discovered, the script fields `editorScript`, `script` and `viewScript` are analyzed. For every file reference found (example: `file:index.js`) an entry point is created. In case there is no `block.json` file found in the root of the directory (single block plugin), then two additional files can be set as entry points if corresponding files exist. The main JavaScript entry point `index.js` (other extensions are allowed for the source file to account for TypeScript and JSX) and the main stylesheet `style.css` (other extensions are allowed for the source file to account for PCSS, SCSS, or SASS).
+-   [Output](https://webpack.js.org/configuration/output): `build/[name].js`, for example: `build/index.js`, `build/style.css`, or `build/my-block/index.js`.
+-   [Loaders](https://webpack.js.org/loaders/):
+    -   [`babel-loader`](https://webpack.js.org/loaders/babel-loader/) allows transpiling JavaScript and TypeScript files using Babel and webpack.
+    -   [`@svgr/webpack`](https://www.npmjs.com/package/@svgr/webpack) and [`url-loader`](https://webpack.js.org/loaders/url-loader/) makes it possible to handle SVG files in JavaScript code.
+    -   [`css-loader`](https://webpack.js.org/loaders/css-loader/) chained with [`postcss-loader`](https://webpack.js.org/loaders/postcss-loader/) and [sass-loader](https://webpack.js.org/loaders/sass-loader/) let webpack process CSS, PCSS, SASS or SCSS files referenced in JavaScript files.
+-   [Plugins](https://webpack.js.org/configuration/plugins) (among others):
+    -   [`CopyWebpackPlugin`](https://webpack.js.org/plugins/copy-webpack-plugin/) copies all `block.json` metadata files discovered in the source directory `src` to the build directory `build`, and PHP files referenced in these metadata files inside `render` and `variations` fields.
+    -   [`MiniCssExtractPlugin`](https://webpack.js.org/plugins/mini-css-extract-plugin/) extracts CSS files imported inside JavaScript files into separate files. It creates a CSS file per JavaScript entry point which contains CSS.
+    -   [`@wordpress/dependency-extraction-webpack-plugin`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/dependency-extraction-webpack-plugin/README.md) is used with the default configuration to ensure that WordPress provided scripts are not included in the built bundle.
+
 #### Provide your own webpack config
 
 Should there be any situation where you want to provide your own webpack config, you can do so. The `build` and `start` commands will use your provided file when:
@@ -746,7 +744,7 @@ Should there be any situation where you want to provide your own webpack config,
 -   the command receives a `--config` argument. Example: `wp-scripts build --config my-own-webpack-config.js`.
 -   there is a file called `webpack.config.js` or `webpack.config.babel.js` in the top-level directory of your project (at the same level as `package.json`).
 
-##### Extending the webpack config
+#### Extending the webpack config
 
 To extend the provided webpack config, or replace subsections within the provided webpack config, you can provide your own `webpack.config.js` file, `require` the provided `webpack.config.js` file, and use the [`spread` operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax) to import all of or part of the provided configuration.
 
