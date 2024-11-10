@@ -187,10 +187,12 @@ function getWordPressSrcDirectory() {
 
 /**
  * Detects the list of entry points to use with webpack. There are several steps:
- *  1. Use the legacy webpack 4 format passed as CLI arguments.
- *  2. Scan `block.json` files for scripts listed.
- *  3. Add `src/index.*` JavaScript file when exists.
- *  4. Add `src/style.*` CSS file when exists.
+ *  1. Uses the legacy webpack 4 format passed as CLI arguments. Example: `wp-scripts build index.js`.
+ *     Using this option will set entry points based on the list of the paths passed.
+ *  2. Scans all `block.json` files for script paths listed inside `editorScript`, `script` and `viewScript` fields.
+ *     If `src/block.json` is detected in the project, the scanning finishes for backward compatibility.
+ *  3. Adds `src/index.*` JavaScript file when exists.
+ *  4. Adds `src/style.*` CSS file when exists.
  *
  * @see https://webpack.js.org/concepts/entry-points/
  *
