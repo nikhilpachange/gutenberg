@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking Change
+
+-   Automatically detect entry points for the default JavaScript and CSS files when using `build` and `start` commands ([#66466](https://github.com/WordPress/gutenberg/pull/66466)). The intention is to simplify the configuration for developers so popular files like `index.js` or `style.css` will be automatically used as entry points by default. The changes might impact the existing projects if they had these files defined in the source `src` folder. However, the hope is that it will be fine as safe guards were included to respect legacy behavior.
+
 ### Bug Fix
 
 -   Make `start` script more resilient for developer errors ([#66752](https://github.com/WordPress/gutenberg/pull/66752)).
