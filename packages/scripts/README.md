@@ -117,7 +117,6 @@ and should be registered in WordPress using the Modules API.
 
 This script uses [webpack](https://webpack.js.org/) behind the scenes. It’ll look for a webpack config in the top-level directory of your package and will use it if it finds one. If none is found, it’ll use the default config provided by `@wordpress/scripts` packages. Learn more in the [Advanced Usage](#advanced-usage) section.
 
-
 ### `build-blocks-manifest`
 
 This script generates a PHP file containing block metadata from all
@@ -128,10 +127,12 @@ when registering multiple block types, as it allows you to use
 Usage: `wp-scripts build-blocks-manifest [options]`
 
 Options:
-- `--input`: Specify the input directory (default: 'build')
-- `--output`: Specify the output file path (default: 'build/blocks-manifest.php')
+
+-   `--input`: Specify the input directory (default: 'build')
+-   `--output`: Specify the output file path (default: 'build/blocks-manifest.php')
 
 Example:
+
 ```bash
 wp-scripts build-blocks-manifest --input=src --output=dist/blocks-manifest.php
 ```
@@ -651,15 +652,15 @@ The `build` and `start` commands use [webpack](https://webpack.js.org/) behind t
 
 `@wordpress/scripts` bundles the default webpack config used as a base by the WordPress editor. These are the defaults:
 
--   [Entry](https://webpack.js.org/configuration/entry-context/#entry): the entry points for your project get detected by scanning all script fields in `block.json` files located in the `src` directory. The fallback entry point is `src/index.js` (other supported extensions: `.jsx`, `.ts`, and `.tsx`) in case there is no `block.json` file found.
--   [Output](https://webpack.js.org/configuration/output): `build/[name].js`, for example: `build/index.js`, or `build/my-block/index.js`.
+-   [Entry](https://webpack.js.org/configuration/entry-context/#entry): the entry points for your project get detected by scanning the source folder `src`. First, it seeks all `block.json` metadata files located in the entire directory. For every metadata file discovered, the script fields `editorScript`, `script` and `viewScript` are analyzed. For every file reference found (example: `file:index.js`) an entry point is created. In case there is no `block.json` file found in the root of the directory, then two additional files can be set as entry points if corresponding files exist. The main JavaScript entry point `index.js` (other extensions are allowed for the source file to account for TypeScript and JSX) and the main stylesheet `style.css` (other extensions are allowed for the source file to account for PCSS, SCSS, or SASS).
+-   [Output](https://webpack.js.org/configuration/output): `build/[name].js`, for example: `build/index.js`, `build/style.css`, or `build/my-block/index.js`.
 -   [Loaders](https://webpack.js.org/loaders/):
     -   [`babel-loader`](https://webpack.js.org/loaders/babel-loader/) allows transpiling JavaScript and TypeScript files using Babel and webpack.
     -   [`@svgr/webpack`](https://www.npmjs.com/package/@svgr/webpack) and [`url-loader`](https://webpack.js.org/loaders/url-loader/) makes it possible to handle SVG files in JavaScript code.
-    -   [`css-loader`](https://webpack.js.org/loaders/css-loader/) chained with [`postcss-loader`](https://webpack.js.org/loaders/postcss-loader/) and [sass-loader](https://webpack.js.org/loaders/sass-loader/) let webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+    -   [`css-loader`](https://webpack.js.org/loaders/css-loader/) chained with [`postcss-loader`](https://webpack.js.org/loaders/postcss-loader/) and [sass-loader](https://webpack.js.org/loaders/sass-loader/) let webpack process CSS, PCSS, SASS or SCSS files referenced in JavaScript files.
 -   [Plugins](https://webpack.js.org/configuration/plugins) (among others):
-    -   [`CopyWebpackPlugin`](https://webpack.js.org/plugins/copy-webpack-plugin/) copies all `block.json` files discovered in the `src` directory to the build directory.
-    -   [`MiniCssExtractPlugin`](https://webpack.js.org/plugins/mini-css-extract-plugin/) extracts CSS into separate files. It creates a CSS file per JavaScript entry point which contains CSS.
+    -   [`CopyWebpackPlugin`](https://webpack.js.org/plugins/copy-webpack-plugin/) copies all `block.json` metadata files discovered in the source directory `src` to the build directory `build`, and PHP files referenced in these metadata files inside `render` and `variations` fields.
+    -   [`MiniCssExtractPlugin`](https://webpack.js.org/plugins/mini-css-extract-plugin/) extracts CSS files imported inside JavaScript files into separate files. It creates a CSS file per JavaScript entry point which contains CSS.
     -   [`@wordpress/dependency-extraction-webpack-plugin`](https://github.com/WordPress/gutenberg/tree/HEAD/packages/dependency-extraction-webpack-plugin/README.md) is used with the default configuration to ensure that WordPress provided scripts are not included in the built bundle.
 
 #### Using CSS
@@ -684,7 +685,6 @@ $body-color: red;
 
 ```js
 // index.js
-import './index.pcss';
 import './index.scss';
 import './style.css';
 ```
