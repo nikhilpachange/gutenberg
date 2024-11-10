@@ -319,7 +319,10 @@ function getWebpackEntryPoints( buildType ) {
 		}
 
 		const hasBlockJsonInRoot = blockMetadataFiles.includes(
-			fromProjectRoot( getWordPressSrcDirectory() ) + sep + 'block.json'
+			join(
+				fromProjectRoot( getWordPressSrcDirectory() ),
+				'block.json'
+			).replace( /\\/g, '/' )
 		);
 		if ( ! hasBlockJsonInRoot ) {
 			// 3. Checks whether a standard JavaScript file name can be detected in the defined source directory,

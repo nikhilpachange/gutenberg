@@ -67,7 +67,7 @@ const cssLoaders = [
 	{
 		loader: require.resolve( 'postcss-loader' ),
 		options: {
-			// Provide a fallback configuration if there's not
+			// Provides a fallback configuration if there's not
 			// one explicitly available in the project.
 			...( ! hasPostCSSConfig() && {
 				postcssOptions: {
@@ -78,7 +78,7 @@ const cssLoaders = [
 								...postcssPlugins,
 								require( 'postcss-import' ),
 								require( 'cssnano' )( {
-									// Provide a fallback configuration if there's not
+									// Provides a fallback configuration if there's not
 									// one explicitly available in the project.
 									...( ! hasCssnanoConfig() && {
 										preset: [
@@ -115,7 +115,7 @@ const baseConfig = {
 		extensions: [ '.jsx', '.ts', '.tsx', '...' ],
 	},
 	optimization: {
-		// Only concatenate modules in production, when not analyzing bundles.
+		// Only concatenates modules in production, when not analyzing bundles.
 		concatenateModules: isProduction && ! process.env.WP_BUNDLE_ANALYZER,
 		splitChunks: {
 			cacheGroups: {
@@ -123,7 +123,8 @@ const baseConfig = {
 					type: 'css/mini-extract',
 					test: /[\\/]style(\.module)?\.(pc|sc|sa|c)ss$/,
 					chunks( chunk ) {
-						// Ensure that the main style file can still be generated when provided as an entry point.
+						// Ensures that the main style file can still be generated
+						// when provided as an entry point.
 						return chunk.name !== 'style';
 					},
 					enforce: true,
@@ -165,12 +166,12 @@ const baseConfig = {
 						loader: require.resolve( 'babel-loader' ),
 						options: {
 							// Babel uses a directory within local node_modules
-							// by default. Use the environment variable option
+							// by default. Uses the environment variable option
 							// to enable more persistent caching.
 							cacheDirectory:
 								process.env.BABEL_CACHE_DIRECTORY || true,
 
-							// Provide a fallback configuration if there's not
+							// Provides a fallback configuration if there's not
 							// one explicitly available in the project.
 							...( ! hasBabelConfig() && {
 								babelrc: false,
@@ -250,11 +251,11 @@ if ( process.env.WP_DEVTOOL ) {
 }
 
 if ( ! isProduction ) {
-	// Set default sourcemap mode if it wasn't set by WP_DEVTOOL.
+	// Sets the default sourcemap mode if it wasn't set by WP_DEVTOOL.
 	baseConfig.devtool = baseConfig.devtool || 'source-map';
 }
 
-// Add source-map-loader if devtool is set, whether in dev mode or not.
+// Adds source-map-loader if devtool is set, whether in dev mode or not.
 if ( baseConfig.devtool ) {
 	baseConfig.module.rules.unshift( {
 		test: /\.(j|t)sx?$/,
@@ -290,17 +291,17 @@ const scriptConfig = {
 
 	plugins: [
 		new webpack.DefinePlugin( {
-			// Inject the `SCRIPT_DEBUG` global, used for development features flagging.
+			// Injects the `SCRIPT_DEBUG` global, used for development features flagging.
 			'globalThis.SCRIPT_DEBUG': JSON.stringify( ! isProduction ),
 			SCRIPT_DEBUG: JSON.stringify( ! isProduction ),
 		} ),
 
-		// If we run a modules build, the 2 compilations can "clean" each other's output
-		// Prevent the cleaning from happening
+		// If a modules build run, the 2 compilations can "clean" each other's output.
+		// It prevents the cleaning from happening.
 		! hasExperimentalModulesFlag &&
 			new CleanWebpackPlugin( {
 				cleanAfterEveryBuildPatterns: [ '!fonts/**', '!images/**' ],
-				// Prevent it from deleting webpack assets during builds that have
+				// Prevents from deleting webpack assets during builds that have
 				// multiple configurations returned in the webpack config.
 				cleanStaleWebpackAssets: false,
 			} ),
