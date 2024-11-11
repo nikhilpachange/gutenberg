@@ -167,24 +167,21 @@ export default function PostTemplateEdit( {
 					Object.assign( query, builtTaxQuery );
 				}
 			}
-			if ( perPage ) {
-				// When we inherit from global query always need to set the
-				// `perPage` based on the reading settings.
-				if ( inherit ) {
-					query.per_page =
-						// Gets changes made via the template area posts per
-						// page setting. These won't be saved until the page is
-						// saved, but we should reflect this setting within the
-						// query loops that inherit it.
-						+getEntityRecordEdits( 'root', 'site' )
-							?.posts_per_page ||
-						( canUser( 'read', { kind: 'root', name: 'site' } )
-							? +getEntityRecord( 'root', 'site' )?.posts_per_page
-							: +getSettings().postsPerPage ) ||
-						INHERITED_QUERY_DEFAULT_PER_PAGE;
-				} else {
-					query.per_page = perPage || CUSTOM_QUERY_DEFAULT_PER_PAGE;
-				}
+			// When we inherit from global query always need to set the
+			// `perPage` based on the reading settings.
+			if ( inherit ) {
+				query.per_page =
+					// Gets changes made via the template area posts per
+					// page setting. These won't be saved until the page is
+					// saved, but we should reflect this setting within the
+					// query loops that inherit it.
+					+getEntityRecordEdits( 'root', 'site' )?.posts_per_page ||
+					( canUser( 'read', { kind: 'root', name: 'site' } )
+						? +getEntityRecord( 'root', 'site' )?.posts_per_page
+						: +getSettings().postsPerPage ) ||
+					INHERITED_QUERY_DEFAULT_PER_PAGE;
+			} else {
+				query.per_page = perPage || CUSTOM_QUERY_DEFAULT_PER_PAGE;
 			}
 			if ( author ) {
 				query.author = author;
