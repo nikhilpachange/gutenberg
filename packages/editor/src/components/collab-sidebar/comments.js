@@ -35,12 +35,14 @@ import { sanitizeCommentString } from './utils';
 /**
  * Renders the Comments component.
  *
- * @param {Object}   props                  - The component props.
- * @param {Array}    props.threads          - The array of comment threads.
- * @param {Function} props.onEditComment    - The function to handle comment editing.
- * @param {Function} props.onAddReply       - The function to add a reply to a comment.
- * @param {Function} props.onCommentDelete  - The function to delete a comment.
- * @param {Function} props.onCommentResolve - The function to mark a comment as resolved.
+ * @param {Object}   props                     - The component props.
+ * @param {Array}    props.threads             - The array of comment threads.
+ * @param {Function} props.onEditComment       - The function to handle comment editing.
+ * @param {Function} props.onAddReply          - The function to add a reply to a comment.
+ * @param {Function} props.onCommentDelete     - The function to delete a comment.
+ * @param {Function} props.onCommentResolve    - The function to mark a comment as resolved.
+ * @param {boolean}  props.showCommentBoard    - The function to edit the comment.
+ * @param {Function} props.setShowCommentBoard - The function to delete the comment.
  * @return {JSX.Element} The rendered Comments component.
  */
 export function Comments( {
@@ -49,6 +51,8 @@ export function Comments( {
 	onAddReply,
 	onCommentDelete,
 	onCommentResolve,
+	showCommentBoard,
+	setShowCommentBoard,
 } ) {
 	const [ actionState, setActionState ] = useState( false );
 	const [ isConfirmDialogOpen, setIsConfirmDialogOpen ] = useState( false );
@@ -209,33 +213,36 @@ export function Comments( {
 						spacing="3"
 					>
 						<CommentBoard thread={ thread } />
-						{ 'reply' === actionState?.action &&
-							thread.id === actionState?.id && (
-								<HStack
-									alignment="left"
+						{ ( ( showCommentBoard &&
+							blockCommentId === thread.id ) ||
+							( 'reply' === actionState?.action &&
+								thread.id === actionState?.id ) ) && (
+							<HStack
+								alignment="left"
+								spacing="3"
+								justify="flex-start"
+								className="editor-collab-sidebar-panel__user-comment"
+							>
+								<VStack
 									spacing="3"
-									justify="flex-start"
-									className="editor-collab-sidebar-panel__user-comment"
+									className="editor-collab-sidebar-panel__comment-field"
 								>
-									<VStack
-										spacing="3"
-										className="editor-collab-sidebar-panel__comment-field"
-									>
-										<CommentForm
-											onSubmit={ ( inputComment ) => {
-												onAddReply(
-													inputComment,
-													thread.id
-												);
-												setActionState( false );
-											} }
-											onCancel={ () =>
-												setActionState( false )
-											}
-										/>
-									</VStack>
-								</HStack>
-							) }
+									<CommentForm
+										onSubmit={ ( inputComment ) => {
+											onAddReply(
+												inputComment,
+												thread.id
+											);
+											setActionState( false );
+										} }
+										onCancel={ () => {
+											setActionState( false );
+											setShowCommentBoard( false );
+										} }
+									/>
+								</VStack>
+							</HStack>
+						) }
 						{ 0 < thread?.reply?.length &&
 							thread.reply.map( ( reply ) => (
 								<VStack

@@ -234,6 +234,8 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 				onAddReply={ addNewComment }
 				onCommentDelete={ onCommentDelete }
 				onCommentResolve={ onCommentResolve }
+				showCommentBoard={ showCommentBoard }
+				setShowCommentBoard={ setShowCommentBoard }
 			/>
 		</div>
 	);
