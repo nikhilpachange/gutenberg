@@ -50,6 +50,6 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build:wp": "esbuild src/index.ts --bundle --outdir=wp --external:react --external:react-dom --format=esm --tree-shaking=true"
+		"build:wp": "esbuild src/index.ts --bundle --jsx=automatic --outdir=wp --external:react* --external:sprintf-js --external:hoist-non-react-statics --external:use-sync-external-store --external:deepmerge --external:fast-deep-equal --external:highlight-words-core --external:remove-accents --external:equivalent-key-map --external:rungen --external:moment* --external:clsx --external:is-plain-object --external:tslib --external:pascal-case --external:camel-case --external:change-case --external:lower-case --external:no-case --external:dot-case --external:memize --external:@tannin/* --external:tannin --format=esm --tree-shaking=true"
 	}
 }
