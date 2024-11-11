@@ -249,19 +249,38 @@ const BlockInspectorSingleBlock = ( {
 		[ isSectionBlock, clientId ]
 	);
 
-	const { selectedContentClientId, isSelectedContentClientIdControlling } =
-		useSelect( ( select ) => {
-			const { getSelectedBlockClientId, areInnerBlocksControlled } =
-				select( blockEditorStore );
+	const {
+		selectedContentClientId,
+		isSelectedContentClientIdControlling,
+		isSelectedBlockInContentOnlyContainer,
+	} = useSelect( ( select ) => {
+		const {
+			getSelectedBlockClientId,
+			areInnerBlocksControlled,
+			getBlockRootClientId,
+			getTemplateLock,
+		} = select( blockEditorStore );
 
-			const _selectedBlockClientId = getSelectedBlockClientId();
-			return {
-				selectedContentClientId: _selectedBlockClientId,
-				isSelectedContentClientIdControlling: areInnerBlocksControlled(
-					_selectedBlockClientId
-				),
-			};
-		} );
+		const _selectedBlockClientId = getSelectedBlockClientId();
+		const _isSelectedContentClientIdControlling = areInnerBlocksControlled(
+			_selectedBlockClientId
+		);
+
+		const rootClientId = getBlockRootClientId( _selectedBlockClientId );
+		const templateLock = getTemplateLock( rootClientId );
+
+		const _isSelectedBlockInContentOnlyContainer =
+			templateLock === 'contentOnly';
+
+		return {
+			selectedContentClientId: _selectedBlockClientId,
+			isSelectedContentClientIdControlling:
+				_isSelectedContentClientIdControlling,
+			isSelectedBlockInContentOnlyContainer:
+				_isSelectedBlockInContentOnlyContainer,
+			hasContentLockedParent: false,
+		};
+	} );
 	const { __unstableGetEditorMode } = useSelect( blockEditorStore );
 	const editorMode = __unstableGetEditorMode();
 
@@ -298,6 +317,7 @@ const BlockInspectorSingleBlock = ( {
 						) }
 
 					{ isSelectedContentClientIdControlling &&
+						isSelectedBlockInContentOnlyContainer &&
 						contentClientIds &&
 						contentClientIds?.length > 0 && (
 							<PanelBody title={ __( 'Content' ) }>
@@ -314,6 +334,7 @@ const BlockInspectorSingleBlock = ( {
 					{ ! isSectionBlock && (
 						<>
 							{ editorMode === 'navigation' &&
+								isSelectedBlockInContentOnlyContainer &&
 								isSelectedContentClientIdControlling && (
 									<PanelBody title={ __( 'Content' ) }>
 										<PrivateListView
