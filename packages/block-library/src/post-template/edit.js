@@ -27,6 +27,9 @@ const TEMPLATE = [
 	[ 'core/post-excerpt' ],
 ];
 
+const INHERITED_QUERY_DEFAULT_PER_PAGE = 10;
+const CUSTOM_QUERY_DEFAULT_PER_PAGE = 3;
+
 function PostTemplateInnerBlocks( { classList } ) {
 	const innerBlocksProps = useInnerBlocksProps(
 		{ className: clsx( 'wp-block-post', classList ) },
@@ -108,8 +111,14 @@ export default function PostTemplateEdit( {
 	const [ activeBlockContextId, setActiveBlockContextId ] = useState();
 	const { posts, blocks } = useSelect(
 		( select ) => {
-			const { getEntityRecords, getTaxonomies } = select( coreStore );
-			const { getBlocks } = select( blockEditorStore );
+			const {
+				getEntityRecords,
+				getTaxonomies,
+				getEntityRecord,
+				getEntityRecordEdits,
+				canUser,
+			} = select( coreStore );
+			const { getBlocks, getSettings } = select( blockEditorStore );
 			const templateCategory =
 				inherit &&
 				templateSlug?.startsWith( 'category-' ) &&
@@ -159,7 +168,23 @@ export default function PostTemplateEdit( {
 				}
 			}
 			if ( perPage ) {
-				query.per_page = perPage;
+				// When we inherit from global query always need to set the
+				// `perPage` based on the reading settings.
+				if ( inherit ) {
+					query.per_page =
+						// Gets changes made via the template area posts per
+						// page setting. These won't be saved until the page is
+						// saved, but we should reflect this setting within the
+						// query loops that inherit it.
+						+getEntityRecordEdits( 'root', 'site' )
+							?.posts_per_page ||
+						( canUser( 'read', { kind: 'root', name: 'site' } )
+							? +getEntityRecord( 'root', 'site' )?.posts_per_page
+							: +getSettings().postsPerPage ) ||
+						INHERITED_QUERY_DEFAULT_PER_PAGE;
+				} else {
+					query.per_page = perPage || CUSTOM_QUERY_DEFAULT_PER_PAGE;
+				}
 			}
 			if ( author ) {
 				query.author = author;

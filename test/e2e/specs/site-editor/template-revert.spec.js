@@ -248,7 +248,9 @@ class TemplateRevertUtils {
 						record.blocks
 					);
 				} else if ( record.content ) {
-					return record.content;
+					return window.wp.blocks.__unstableSerializeAndClean(
+						window.wp.blocks.parse( record.content )
+					);
 				}
 			}
 			return '';

@@ -4,7 +4,7 @@
 		"isValid": true,
 		"attributes": {
 			"query": {
-				"perPage": null,
+				"perPage": 3,
 				"pages": 0,
 				"offset": 0,
 				"postType": "post",

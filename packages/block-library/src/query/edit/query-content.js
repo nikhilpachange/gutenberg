@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { useSelect, useDispatch } from '@wordpress/data';
+import { useDispatch } from '@wordpress/data';
 import { useInstanceId } from '@wordpress/compose';
 import { useEffect, useCallback } from '@wordpress/element';
 import {
@@ -13,7 +13,6 @@ import {
 } from '@wordpress/block-editor';
 import { SelectControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { store as coreStore } from '@wordpress/core-data';
 
 /**
  * Internal dependencies
@@ -23,8 +22,6 @@ import QueryToolbar from './query-toolbar';
 import QueryInspectorControls from './inspector-controls';
 import EnhancedPaginationModal from './enhanced-pagination-modal';
 import { getQueryContextFromTemplate } from '../utils';
-
-const DEFAULTS_POSTS_PER_PAGE = 3;
 
 const TEMPLATE = [ [ 'core/post-template' ] ];
 export default function QueryContent( {
@@ -37,11 +34,10 @@ export default function QueryContent( {
 } ) {
 	const {
 		queryId,
-		query,
+		query = {},
 		displayLayout,
 		enhancedPagination,
 		tagName: TagName = 'div',
-		query: { inherit } = {},
 	} = attributes;
 	const { templateSlug } = context;
 	const { isSingular } = getQueryContextFromTemplate( templateSlug );
@@ -52,30 +48,6 @@ export default function QueryContent( {
 	const innerBlocksProps = useInnerBlocksProps( blockProps, {
 		template: TEMPLATE,
 	} );
-	const { postsPerPage } = useSelect( ( select ) => {
-		const { getSettings } = select( blockEditorStore );
-		const { getEntityRecord, getEntityRecordEdits, canUser } =
-			select( coreStore );
-		const settingPerPage = canUser( 'read', {
-			kind: 'root',
-			name: 'site',
-		} )
-			? +getEntityRecord( 'root', 'site' )?.posts_per_page
-			: +getSettings().postsPerPage;
-
-		// Gets changes made via the template area posts per page setting. These won't be saved
-		// until the page is saved, but we should reflect this setting within the query loops
-		// that inherit it.
-		const editedSettingPerPage = +getEntityRecordEdits( 'root', 'site' )
-			?.posts_per_page;
-
-		return {
-			postsPerPage:
-				editedSettingPerPage ||
-				settingPerPage ||
-				DEFAULTS_POSTS_PER_PAGE,
-		};
-	}, [] );
 	// There are some effects running where some initialization logic is
 	// happening and setting some values to some attributes (ex. queryId).
 	// These updates can cause an `undo trap` where undoing will result in
@@ -91,13 +63,6 @@ export default function QueryContent( {
 	);
 	useEffect( () => {
 		const newQuery = {};
-		// When we inherit from global query always need to set the `perPage`
-		// based on the reading settings.
-		if ( inherit && query.perPage !== postsPerPage ) {
-			newQuery.perPage = postsPerPage;
-		} else if ( ! query.perPage && postsPerPage ) {
-			newQuery.perPage = postsPerPage;
-		}
 		// We need to reset the `inherit` value if in a singular template, as queries
 		// are not inherited when in singular content (e.g. post, page, 404, blank).
 		if ( isSingular && query.inherit ) {
@@ -108,10 +73,7 @@ export default function QueryContent( {
 			updateQuery( newQuery );
 		}
 	}, [
-		query.perPage,
 		query.inherit,
-		postsPerPage,
-		inherit,
 		isSingular,
 		__unstableMarkNextChangeAsNotPersistent,
 		updateQuery,
