@@ -3074,6 +3074,10 @@ export const getBlockEditingMode = createRegistrySelector(
 				return 'disabled';
 			}
 
+			if ( state?.patternBlockEditingModes?.has( clientId ) ) {
+				return state?.patternBlockEditingModes.get( clientId );
+			}
+
 			const editorMode = __unstableGetEditorMode( state );
 			if ( editorMode === 'navigation' ) {
 				const sectionRootClientId = getSectionRootClientId( state );
