@@ -18,11 +18,14 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { getItemTitle } from './utils';
-import type { CoreDataError, PostWithPermissions } from '../types';
+import type {
+	CoreDataError,
+	PostWithPermissionsAndSiteSettings,
+} from '../types';
 
 const PAGE_POST_TYPE = 'page';
 
-const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
+const SetAsHomepageModal: ActionModal< PostWithPermissionsAndSiteSettings >[ 'RenderModal' ] =
 	( { items, closeModal, onActionPerformed } ) => {
 		const [ item ] = items;
 		const pageTitle = getItemTitle( item );
@@ -153,7 +156,7 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 		);
 	};
 
-const setAsHomepage: Action< PostWithPermissions > = {
+const setAsHomepage: Action< PostWithPermissionsAndSiteSettings > = {
 	id: 'set-as-homepage',
 	label: __( 'Set as homepage' ),
 	isEligible( post ) {
@@ -182,20 +185,13 @@ const setAsHomepage: Action< PostWithPermissions > = {
 			return false;
 		}
 
-		const siteSettings = select( coreStore ).getEntityRecord< Settings >(
-			'root',
-			'site'
-		);
-		const pageOnFront = siteSettings?.page_on_front;
-		const pageForPosts = siteSettings?.page_for_posts;
-
 		// Don't show the action if the page is already set as the homepage.
-		if ( pageOnFront === post.id ) {
+		if ( post.siteSettings.pageOnFront === post.id ) {
 			return false;
 		}
 
 		// Don't show the action if the page is already set as the page for posts.
-		if ( pageForPosts === post.id ) {
+		if ( post.siteSettings.pageForPosts === post.id ) {
 			return false;
 		}
 

@@ -295,7 +295,7 @@ export default function PostList( { postType } ) {
 	} = useEntityRecordsWithPermissions( 'postType', postType, queryArgs );
 
 	// The REST API sort the authors by ID, but we want to sort them by name.
-	const data = useMemo( () => {
+	let data = useMemo( () => {
 		if ( ! isLoadingFields && view?.sort?.field === 'author' ) {
 			return filterSortAndPaginate(
 				records,
@@ -348,17 +348,28 @@ export default function PostList( { postType } ) {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
-	const siteSettings = useSelect( ( select ) => {
-		return select( coreStore ).getEntityRecord( 'root', 'site' );
-	} );
-	const pageOnFront = siteSettings?.page_on_front;
-	const pageForPosts = siteSettings?.page_for_posts;
+
 	const actions = useMemo(
 		() => [ editAction, ...postTypeActions ],
-		// The "Set as homepage" action eligibility depends on the pageOnFront and pageForPosts settings.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[ postTypeActions, editAction, pageOnFront, pageForPosts ]
+		[ editAction, postTypeActions ]
 	);
+
+	const siteSettings = useSelect( ( select ) => {
+		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
+		return {
+			pageOnFront: site?.page_on_front,
+			pageForPosts: site?.page_for_posts,
+		};
+	} );
+
+	if ( siteSettings ) {
+		data = data.map( ( item ) => {
+			return {
+				...item,
+				siteSettings,
+			};
+		} );
+	}
 
 	const [ showAddPostModal, setShowAddPostModal ] = useState( false );
 
