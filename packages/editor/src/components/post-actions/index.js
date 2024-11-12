@@ -22,10 +22,16 @@ const { Menu, kebabCase } = unlock( componentsPrivateApis );
 
 export default function PostActions( { postType, postId, onActionPerformed } ) {
 	const [ isActionsMenuOpen, setIsActionsMenuOpen ] = useState( false );
-	const { item, permissions } = useSelect(
+	const { item, permissions, siteSettings } = useSelect(
 		( select ) => {
-			const { getEditedEntityRecord, getEntityRecordPermissions } =
-				unlock( select( coreStore ) );
+			const {
+				getEditedEntityRecord,
+				getEntityRecordPermissions,
+				getEntityRecord,
+			} = unlock( select( coreStore ) );
+			const site = getEntityRecord( 'root', 'site' );
+			const pageOnFront = site?.page_on_front;
+			const pageForPosts = site?.page_for_posts;
 			return {
 				item: getEditedEntityRecord( 'postType', postType, postId ),
 				permissions: getEntityRecordPermissions(
@@ -33,6 +39,7 @@ export default function PostActions( { postType, postId, onActionPerformed } ) {
 					postType,
 					postId
 				),
+				siteSettings: { pageOnFront, pageForPosts },
 			};
 		},
 		[ postId, postType ]
@@ -41,8 +48,9 @@ export default function PostActions( { postType, postId, onActionPerformed } ) {
 		return {
 			...item,
 			permissions,
+			siteSettings,
 		};
-	}, [ item, permissions ] );
+	}, [ item, permissions, siteSettings ] );
 	const allActions = usePostActions( { postType, onActionPerformed } );
 
 	const actions = useMemo( () => {
