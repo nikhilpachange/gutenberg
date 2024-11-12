@@ -9,6 +9,12 @@ import clsx from 'clsx';
 import { __, sprintf } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
 import {
+	featuredImageField,
+	slugField,
+	parentField,
+	passwordField,
+} from '@wordpress/fields';
+import {
 	createInterpolateElement,
 	useMemo,
 	useState,
@@ -30,14 +36,7 @@ import { useEntityRecords, store as coreStore } from '@wordpress/core-data';
 /**
  * Internal dependencies
  */
-import {
-	LAYOUT_GRID,
-	LAYOUT_TABLE,
-	LAYOUT_LIST,
-	OPERATOR_IS_ANY,
-} from '../../utils/constants';
-import { default as Link, useLink } from '../routes/link';
-import Media from '../media';
+import { OPERATOR_IS_ANY } from '../../utils/constants';
 
 // See https://github.com/WordPress/gutenberg/issues/55886
 // We do not support custom statutes at the moment.
@@ -80,46 +79,6 @@ const getFormattedDate = ( dateToDisplay ) =>
 		getSettings().formats.datetimeAbbreviated,
 		getDate( dateToDisplay )
 	);
-
-function FeaturedImage( { item, viewType } ) {
-	const isDisabled = item.status === 'trash';
-	const { onClick } = useLink( {
-		postId: item.id,
-		postType: item.type,
-		canvas: 'edit',
-	} );
-	const hasMedia = !! item.featured_media;
-	const size =
-		viewType === LAYOUT_GRID
-			? [ 'large', 'full', 'medium', 'thumbnail' ]
-			: [ 'thumbnail', 'medium', 'large', 'full' ];
-	const media = hasMedia ? (
-		<Media
-			className="edit-site-post-list__featured-image"
-			id={ item.featured_media }
-			size={ size }
-		/>
-	) : null;
-	const renderButton = viewType !== LAYOUT_LIST && ! isDisabled;
-	return (
-		<div
-			className={ `edit-site-post-list__featured-image-wrapper is-layout-${ viewType }` }
-		>
-			{ renderButton ? (
-				<button
-					className="edit-site-post-list__featured-image-button"
-					type="button"
-					onClick={ onClick }
-					aria-label={ item.title?.rendered || __( '(no title)' ) }
-				>
-					{ media }
-				</button>
-			) : (
-				media
-			) }
-		</div>
-	);
-}
 
 function PostStatusField( { item } ) {
 	const status = STATUSES.find( ( { value } ) => value === item.status );
@@ -175,7 +134,7 @@ function PostAuthorField( { item } ) {
 	);
 }
 
-function usePostFields( viewType ) {
+function usePostFields() {
 	const { records: authors, isResolving: isLoadingAuthors } =
 		useEntityRecords( 'root', 'user', { per_page: -1 } );
 
@@ -190,15 +149,7 @@ function usePostFields( viewType ) {
 
 	const fields = useMemo(
 		() => [
-			{
-				id: 'featured-image',
-				label: __( 'Featured Image' ),
-				getValue: ( { item } ) => item.featured_media,
-				render: ( { item } ) => (
-					<FeaturedImage item={ item } viewType={ viewType } />
-				),
-				enableSorting: false,
-			},
+			featuredImageField,
 			{
 				label: __( 'Title' ),
 				id: 'title',
@@ -208,30 +159,10 @@ function usePostFields( viewType ) {
 						? item.title
 						: item.title?.raw,
 				render: ( { item } ) => {
-					const addLink =
-						[ LAYOUT_TABLE, LAYOUT_GRID ].includes( viewType ) &&
-						item.status !== 'trash';
 					const renderedTitle =
 						typeof item.title === 'string'
 							? item.title
 							: item.title?.rendered;
-					const title = addLink ? (
-						<Link
-							params={ {
-								postId: item.id,
-								postType: item.type,
-								canvas: 'edit',
-							} }
-						>
-							{ decodeEntities( renderedTitle ) ||
-								__( '(no title)' ) }
-						</Link>
-					) : (
-						<span>
-							{ decodeEntities( renderedTitle ) ||
-								__( '(no title)' ) }
-						</span>
-					);
 
 					let suffix = '';
 					if ( item.id === frontPageId ) {
@@ -254,7 +185,10 @@ function usePostFields( viewType ) {
 							alignment="center"
 							justify="flex-start"
 						>
-							{ title }
+							<span>
+								{ decodeEntities( renderedTitle ) ||
+									__( '(no title)' ) }
+							</span>
 							{ suffix }
 						</HStack>
 					);
@@ -303,7 +237,7 @@ function usePostFields( viewType ) {
 					if ( isDraftOrPrivate ) {
 						return createInterpolateElement(
 							sprintf(
-								/* translators: %s: page creation date */
+								/* translators: %s: page creation or modification date. */
 								__( '<span>Modified: <time>%s</time></span>' ),
 								getFormattedDate( item.date )
 							),
@@ -354,7 +288,7 @@ function usePostFields( viewType ) {
 					if ( isPending ) {
 						return createInterpolateElement(
 							sprintf(
-								/* translators: %s: the newest of created or modified date for the page */
+								/* translators: %s: page creation or modification date. */
 								__( '<span>Modified: <time>%s</time></span>' ),
 								getFormattedDate( dateToDisplay )
 							),
@@ -369,6 +303,8 @@ function usePostFields( viewType ) {
 					return <time>{ getFormattedDate( item.date ) }</time>;
 				},
 			},
+			slugField,
+			parentField,
 			{
 				id: 'comment_status',
 				label: __( 'Discussion' ),
@@ -395,8 +331,9 @@ function usePostFields( viewType ) {
 					},
 				],
 			},
+			passwordField,
 		],
-		[ authors, viewType, frontPageId, postsPageId ]
+		[ authors, frontPageId, postsPageId ]
 	);
 
 	return {
