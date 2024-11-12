@@ -3046,12 +3046,6 @@ export const getBlockEditingMode = createRegistrySelector(
 				clientId = '';
 			}
 
-			// All controlling blocks are treated as content only
-			// by default.
-			if ( areInnerBlocksControlled( state, clientId ) ) {
-				return 'contentOnly';
-			}
-
 			// In zoom-out mode, override the behavior set by
 			// __unstableSetBlockEditingMode to only allow editing the top-level
 			// sections.
@@ -3071,6 +3065,12 @@ export const getBlockEditingMode = createRegistrySelector(
 
 				// Sections are always contentOnly.
 				if ( sectionsClientIds?.includes( clientId ) ) {
+					return 'contentOnly';
+				}
+
+				// All controlling blocks are treated as content only
+				// by default.
+				if ( areInnerBlocksControlled( state, clientId ) ) {
 					return 'contentOnly';
 				}
 
@@ -3113,6 +3113,15 @@ export const getBlockEditingMode = createRegistrySelector(
 				);
 				const isContent = hasContentRoleAttribute( name );
 
+				// All controlling blocks are treated as content only
+				// by default.
+				if (
+					! isContent &&
+					areInnerBlocksControlled( state, clientId )
+				) {
+					return 'contentOnly';
+				}
+
 				return isContent ? 'contentOnly' : 'disabled';
 			}
 
@@ -3136,6 +3145,16 @@ export const getBlockEditingMode = createRegistrySelector(
 					select( blocksStore )
 				);
 				const isContent = hasContentRoleAttribute( name );
+
+				// All controlling blocks are treated as content only
+				// by default.
+				if (
+					! isContent &&
+					areInnerBlocksControlled( state, clientId )
+				) {
+					return 'contentOnly';
+				}
+
 				return isContent ? 'contentOnly' : 'disabled';
 			}
 			// Otherwise, check if there's an ancestor that is contentOnly

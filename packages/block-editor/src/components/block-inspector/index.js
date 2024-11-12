@@ -215,6 +215,7 @@ const BlockInspectorSingleBlock = ( {
 	isSectionBlock,
 } ) => {
 	const availableTabs = useInspectorControlsTabs( blockName );
+
 	const showTabs = ! isSectionBlock && availableTabs?.length > 1;
 
 	const hasBlockStyles = useSelect(
