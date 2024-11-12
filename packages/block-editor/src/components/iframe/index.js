@@ -499,6 +499,16 @@ function Iframe( {
 		}
 
 		return () => {
+			// This will get removed on cleanup every time.
+			iframeDocument.documentElement.classList.remove(
+				'zoom-out-animation'
+			);
+
+			// TODO: Move this scrolltopnext out of the cleanup function
+			// We need to apply this after the animation has completed.
+			// Set the final scroll position that was just animated to.
+			iframeDocument.documentElement.scrollTop = scrollTopNext;
+
 			iframeDocument.documentElement.style.removeProperty(
 				'--wp-block-editor-iframe-zoom-out-scroll-top'
 			);
@@ -506,20 +516,10 @@ function Iframe( {
 				'--wp-block-editor-iframe-zoom-out-scroll-top-next'
 			);
 
-			// This will get removed on cleanup every time.
-			iframeDocument.documentElement.classList.remove(
-				'zoom-out-animation'
-			);
-
 			iframeDocument.documentElement.removeEventListener(
 				'transitionend',
 				onZoomOutTransitionEnd
 			);
-
-			// TODO: Move this scrolltopnext out of the cleanup function
-			// We need to apply this after the animation has completed.
-			// Set the final scroll position that was just animated to.
-			iframeDocument.documentElement.scrollTop = scrollTopNext;
 		};
 	}, [ iframeDocument, prefersReducedMotion, isAnimatingZoomOut ] );
 
