@@ -61,14 +61,6 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$this->assertArrayHasKey( '/wp/v2/counts/(?P<post_type>[\w-]+)', $routes );
 	}
 
-	public function test_context_param() {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/counts/post' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-	}
-
 	/**
 	 * @covers Gutenberg_REST_Post_Counts_Controller::get_item_schema
 	 */
@@ -76,15 +68,10 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/counts/post' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
-		$properties = $data['schema']['properties'];
+		$properties = $data['schema']['patternProperties'];
 
-		$this->assertCount( 6, $properties );
-		$this->assertArrayHasKey( 'publish', $properties );
-		$this->assertArrayHasKey( 'future', $properties );
-		$this->assertArrayHasKey( 'draft', $properties );
-		$this->assertArrayHasKey( 'pending', $properties );
-		$this->assertArrayHasKey( 'private', $properties );
-		$this->assertArrayHasKey( 'trash', $properties );
+		$this->assertCount( 1, $properties );
+		$this->assertArrayHasKey( '^\w+$', $properties );
 	}
 
 	/**
@@ -110,6 +97,7 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
+		register_post_status( 'post_counts_status', array( 'public' => true ) );
 
 		$published = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$future    = self::factory()->post->create(
@@ -122,6 +110,7 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$pending   = self::factory()->post->create( array( 'post_status' => 'pending' ) );
 		$private   = self::factory()->post->create( array( 'post_status' => 'private' ) );
 		$trashed   = self::factory()->post->create( array( 'post_status' => 'trash' ) );
+		$custom    = self::factory()->post->create( array( 'post_status' => 'post_counts_status' ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/counts/post' );
 		$response = rest_get_server()->dispatch( $request );
@@ -133,6 +122,7 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		$this->assertSame( 1, $data['pending'], 'Pending post count mismatch.' );
 		$this->assertSame( 1, $data['private'], 'Private post count mismatch.' );
 		$this->assertSame( 1, $data['trash'], 'Trashed post count mismatch.' );
+		$this->assertSame( 1, $data['post_counts_status'], 'Custom post count mismatch.' );
 
 		wp_delete_post( $published, true );
 		wp_delete_post( $future, true );
@@ -140,6 +130,26 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 		wp_delete_post( $pending, true );
 		wp_delete_post( $private, true );
 		wp_delete_post( $trashed, true );
+		wp_delete_post( $custom, true );
+		unset( $GLOBALS['wp_post_statuses']['post_counts_status'] );
+	}
+
+	/**
+	 * @covers WP_REST_Post_Counts_Controller::get_item
+	 */
+	public function test_get_item_with_sanitized_custom_post_status() {
+		wp_set_current_user( self::$admin_id );
+		register_post_status( '#<>post-me_AND9!', array( 'public' => true ) );
+
+		$custom   = self::factory()->post->create( array( 'post_status' => 'post-me_and9' ) );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/counts/post' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 1, $data['post-me_and9'], 'Custom post count mismatch.' );
+
+		wp_delete_post( $custom, true );
+		unset( $GLOBALS['wp_post_statuses']['post-me_and9'] );
 	}
 
 	/**
@@ -208,5 +218,12 @@ class Gutenberg_Test_REST_Post_Counts_Controller extends WP_Test_REST_Controller
 	 */
 	public function test_prepare_item() {
 		// Controller does not implement test_prepare_item().
+	}
+
+	/**
+	 * @doesNotPerformAssertions
+	 */
+	public function test_context_param() {
+		// Controller does not implement context_param().
 	}
 }
