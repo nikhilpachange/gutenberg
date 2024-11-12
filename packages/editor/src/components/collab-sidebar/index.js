@@ -67,7 +67,8 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 		};
 	}, [] );
 
-	const { getSelectedBlockClientId } = useSelect( blockEditorStore );
+	const { getSelectedBlockClientId, getBlocks } =
+		useSelect( blockEditorStore );
 	const { updateBlockAttributes } = useDispatch( blockEditorStore );
 
 	// Process comments to build the tree structure
@@ -96,7 +97,20 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 			}
 		} );
 
-		return result;
+		const blockCommentIds = getBlocks()
+			?.filter( ( block ) => !! block?.attributes?.blockCommentId )
+			?.map( ( block ) => block.attributes.blockCommentId );
+
+		const uniqueIds = [ ...new Set( blockCommentIds.values() ) ];
+
+		const threadIdMap = new Map(
+			filteredComments?.map( ( thread ) => [ thread.id, thread ] )
+		);
+		const sortedThreads = uniqueIds
+			.map( ( id ) => threadIdMap.get( id ) )
+			.filter( ( thread ) => thread !== undefined );
+
+		return sortedThreads;
 	}, [ threads ] );
 
 	// Function to save the comment.
