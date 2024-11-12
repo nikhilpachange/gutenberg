@@ -26,28 +26,25 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 	( { items, closeModal, onActionPerformed } ) => {
 		const [ item ] = items;
 		const pageTitle = getItemTitle( item );
-		const { currentHomePage, pageForPosts, showOnFront } = useSelect(
-			( _select ) => {
-				const { getEntityRecord } = _select( coreStore );
-				const siteSettings: Settings | undefined = getEntityRecord(
-					'root',
-					'site'
-				);
-				const pageOnFront = siteSettings?.page_on_front;
-				return {
-					currentHomePage: getEntityRecord(
-						'postType',
-						'page',
-						pageOnFront
-					),
-					pageForPosts: siteSettings?.page_for_posts,
-					showOnFront: siteSettings?.show_on_front,
-				};
-			}
-		);
+		const { currentHomePage, showOnFront } = useSelect( ( _select ) => {
+			const { getEntityRecord } = _select( coreStore );
+			const siteSettings: Settings | undefined = getEntityRecord(
+				'root',
+				'site'
+			);
+			const pageOnFront = siteSettings?.page_on_front;
+			return {
+				currentHomePage: getEntityRecord(
+					'postType',
+					'page',
+					pageOnFront
+				),
+				showOnFront: siteSettings?.show_on_front,
+			};
+		} );
 		const currentHomePageTitle = getItemTitle( currentHomePage as Page );
 
-		const { editEntityRecord, saveEditedEntityRecord, saveEntityRecord } =
+		const { saveEditedEntityRecord, saveEntityRecord } =
 			useDispatch( coreStore );
 		const { createSuccessNotice, createErrorNotice } =
 			useDispatch( noticesStore );
@@ -92,43 +89,6 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 			}
 		}
 
-		async function onSetLatestPostsHomepage( event: React.FormEvent ) {
-			event.preventDefault();
-
-			try {
-				await editEntityRecord( 'root', 'site', undefined, {
-					page_for_posts: 0,
-					page_on_front: 0,
-					show_on_front: 'posts',
-				} );
-
-				closeModal?.();
-
-				await saveEditedEntityRecord( 'root', 'site', undefined, {
-					page_for_posts: 0,
-					page_on_front: 0,
-					show_on_front: 'posts',
-				} );
-
-				createSuccessNotice(
-					__( 'Homepage set to display latest posts' ),
-					{
-						type: 'snackbar',
-					}
-				);
-				onActionPerformed?.( items );
-			} catch ( error ) {
-				const typedError = error as CoreDataError;
-				const errorMessage =
-					typedError.message && typedError.code !== 'unknown_error'
-						? typedError.message
-						: __(
-								'An error occurred while setting the homepage to display latest posts'
-						  );
-				createErrorNotice( errorMessage, { type: 'snackbar' } );
-			}
-		}
-
 		const renderModalBody = () => {
 			if ( 'posts' === showOnFront ) {
 				return (
@@ -163,13 +123,8 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 			);
 		};
 
-		const submitAction =
-			showOnFront === 'posts' || item.id !== pageForPosts
-				? onSetPageAsHomepage
-				: onSetLatestPostsHomepage;
-
 		return (
-			<form onSubmit={ submitAction }>
+			<form onSubmit={ onSetPageAsHomepage }>
 				<VStack spacing="5">
 					{ renderModalBody() }
 					<HStack justify="right">
