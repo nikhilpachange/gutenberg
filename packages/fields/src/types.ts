@@ -74,10 +74,15 @@ export type PostWithPermissions = Post & {
 	};
 };
 
-export type PostWithPermissionsAndSiteSettings = PostWithPermissions & {
-	siteSettings: {
-		pageOnFront: number;
-		pageForPosts: number;
+export type PostWithPermissionsAndContext = PostWithPermissions & {
+	additionalContext: {
+		siteSettings: {
+			pageOnFront?: number;
+			pageForPosts?: number;
+		};
+		themeInfo: {
+			hasFrontPageTemplate: boolean;
+		};
 	};
 };
 

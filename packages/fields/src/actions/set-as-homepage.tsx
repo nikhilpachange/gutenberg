@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { select, useDispatch, useSelect } from '@wordpress/data';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import type { Settings, Page } from '@wordpress/core-data';
 import { __, sprintf } from '@wordpress/i18n';
@@ -18,14 +18,11 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { getItemTitle } from './utils';
-import type {
-	CoreDataError,
-	PostWithPermissionsAndSiteSettings,
-} from '../types';
+import type { CoreDataError, PostWithPermissionsAndContext } from '../types';
 
 const PAGE_POST_TYPE = 'page';
 
-const SetAsHomepageModal: ActionModal< PostWithPermissionsAndSiteSettings >[ 'RenderModal' ] =
+const SetAsHomepageModal: ActionModal< PostWithPermissionsAndContext >[ 'RenderModal' ] =
 	( { items, closeModal, onActionPerformed } ) => {
 		const [ item ] = items;
 		const pageTitle = getItemTitle( item );
@@ -156,10 +153,14 @@ const SetAsHomepageModal: ActionModal< PostWithPermissionsAndSiteSettings >[ 'Re
 		);
 	};
 
-const setAsHomepage: Action< PostWithPermissionsAndSiteSettings > = {
+const setAsHomepage: Action< PostWithPermissionsAndContext > = {
 	id: 'set-as-homepage',
 	label: __( 'Set as homepage' ),
 	isEligible( post ) {
+		const { pageOnFront, pageForPosts } =
+			post.additionalContext?.siteSettings;
+		const { hasFrontPageTemplate } = post.additionalContext?.themeInfo;
+
 		if ( post.status === 'trash' ) {
 			return false;
 		}
@@ -169,29 +170,17 @@ const setAsHomepage: Action< PostWithPermissionsAndSiteSettings > = {
 		}
 
 		// A front-page template overrides homepage settings, so don't show the action if it's present.
-		const templates = select( coreStore ).getEntityRecords(
-			'postType',
-			'wp_template',
-			{
-				per_page: -1,
-			}
-		);
-		if (
-			templates?.some(
-				( template ) =>
-					'slug' in template && template.slug === 'front-page'
-			)
-		) {
+		if ( hasFrontPageTemplate ) {
 			return false;
 		}
 
 		// Don't show the action if the page is already set as the homepage.
-		if ( post.siteSettings.pageOnFront === post.id ) {
+		if ( pageOnFront === post.id ) {
 			return false;
 		}
 
 		// Don't show the action if the page is already set as the page for posts.
-		if ( post.siteSettings.pageForPosts === post.id ) {
+		if ( pageForPosts === post.id ) {
 			return false;
 		}
 
