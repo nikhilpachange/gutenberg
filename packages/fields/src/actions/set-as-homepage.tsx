@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { select, useDispatch } from '@wordpress/data';
+import { select, useDispatch, useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import type { Settings, Page } from '@wordpress/core-data';
 import { __, sprintf } from '@wordpress/i18n';
@@ -26,20 +26,25 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 	( { items, closeModal, onActionPerformed } ) => {
 		const [ item ] = items;
 		const pageTitle = getItemTitle( item );
-		const siteSettings = select( coreStore ).getEntityRecord< Settings >(
-			'root',
-			'site'
+		const { currentHomePage, pageForPosts, showOnFront } = useSelect(
+			( _select ) => {
+				const { getEntityRecord } = _select( coreStore );
+				const siteSettings: Settings | undefined = getEntityRecord(
+					'root',
+					'site'
+				);
+				const pageOnFront = siteSettings?.page_on_front;
+				return {
+					currentHomePage: getEntityRecord(
+						'postType',
+						'page',
+						pageOnFront
+					),
+					pageForPosts: siteSettings?.page_for_posts,
+					showOnFront: siteSettings?.show_on_front,
+				};
+			}
 		);
-		const pageOnFront = siteSettings?.page_on_front || null;
-		const currentHomePage =
-			pageOnFront &&
-			select( coreStore ).getEntityRecord(
-				'postType',
-				'page',
-				pageOnFront
-			);
-		const pageForPosts = siteSettings?.page_for_posts;
-		const showOnFront = siteSettings?.show_on_front;
 		const currentHomePageTitle = getItemTitle( currentHomePage as Page );
 
 		const { editEntityRecord, saveEditedEntityRecord, saveEntityRecord } =
