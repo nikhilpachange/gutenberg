@@ -65,7 +65,7 @@ const SetAsHomepageModal: ActionModal< PostWithPermissions >[ 'RenderModal' ] =
 				}
 
 				// Save new home page settings.
-				await editEntityRecord( 'root', 'site', undefined, {
+				await saveEntityRecord( 'root', 'site', {
 					page_on_front: item.id,
 					show_on_front: 'page',
 				} );
