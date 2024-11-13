@@ -243,3 +243,15 @@ export const hasContentRoleAttribute = ( state, blockTypeName ) => {
 		}
 	);
 };
+
+/**
+ * Returns the values from `getValues` when it is called as a promise.
+ *
+ * @param {Object} state  Data state.
+ * @param {string} source Source object.
+ *
+ * @return {Object} The values obtained from calling `getValues` asynchronously.
+ */
+export function asyncBlockBindingsGetValues( state, source ) {
+	return state.asyncBlockBindingsGetValues[ source.name ];
+}
