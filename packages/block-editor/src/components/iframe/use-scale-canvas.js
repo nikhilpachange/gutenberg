@@ -261,7 +261,6 @@ export function useScaleCanvas( {
 		iframeDocument,
 		contentHeight,
 		containerWidth,
-		isZoomedOut,
 		scaleContainerWidth,
 	] );
 }
