@@ -48,6 +48,8 @@ import SiteIcon from '../site-icon';
 import useEditorIframeProps from '../block-editor/use-editor-iframe-props';
 import useEditorTitle from './use-editor-title';
 import { useIsSiteEditorLoading } from '../layout/hooks';
+import { useAdaptEditorToCanvas } from './use-adapt-editor-to-canvas';
+import { TEMPLATE_POST_TYPE } from '../../utils/constants';
 
 const { Editor, BackButton } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
@@ -80,13 +82,14 @@ const siteIconVariants = {
 export default function EditSiteEditor( { isPostsList = false } ) {
 	const disableMotion = useReducedMotion();
 	const { params } = useLocation();
+	const { canvas = 'view' } = params;
 	const isLoading = useIsSiteEditorLoading();
+	useAdaptEditorToCanvas( canvas );
 	const {
 		editedPostType,
 		editedPostId,
 		contextPostType,
 		contextPostId,
-		canvasMode,
 		isEditingPage,
 		supportsGlobalStyles,
 		showIconLabels,
@@ -97,7 +100,6 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 		const {
 			getEditorCanvasContainerView,
 			getEditedPostContext,
-			getCanvasMode,
 			isPage,
 			getEditedPostType,
 			getEditedPostId,
@@ -114,7 +116,6 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 			editedPostId: getEditedPostId(),
 			contextPostType: _context?.postId ? _context.postType : undefined,
 			contextPostId: _context?.postId ? _context.postId : undefined,
-			canvasMode: getCanvasMode(),
 			isEditingPage: isPage(),
 			supportsGlobalStyles: getCurrentTheme()?.is_block_theme,
 			showIconLabels: get( 'core', 'showIconLabels' ),
@@ -129,7 +130,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 	const _isPreviewingTheme = isPreviewingTheme();
 	const hasDefaultEditorCanvasView = ! useHasEditorCanvasContainer();
 	const iframeProps = useEditorIframeProps();
-	const isEditMode = canvasMode === 'edit';
+	const isEditMode = canvas === 'edit';
 	const postWithTemplate = !! contextPostId;
 	const loadingProgressId = useInstanceId(
 		CanvasLoader,
@@ -144,19 +145,16 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 				// Forming a "block formatting context" to prevent margin collapsing.
 				// @see https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context
 				css:
-					canvasMode === 'view'
+					canvas === 'view'
 						? `body{min-height: 100vh; ${
 								currentPostIsTrashed ? '' : 'cursor: pointer;'
 						  }}`
 						: undefined,
 			},
 		],
-		[ settings.styles, canvasMode, currentPostIsTrashed ]
+		[ settings.styles, canvas, currentPostIsTrashed ]
 	);
-	const { setCanvasMode } = unlock( useDispatch( editSiteStore ) );
-	const { __unstableSetEditorMode, resetZoomLevel } = unlock(
-		useDispatch( blockEditorStore )
-	);
+	const { resetZoomLevel } = unlock( useDispatch( blockEditorStore ) );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const history = useHistory();
 	const onActionPerformed = useCallback(
@@ -179,7 +177,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 								: newItem.title?.rendered;
 						createSuccessNotice(
 							sprintf(
-								// translators: %s: Title of the created post e.g: "Post 1".
+								// translators: %s: Title of the created post or template, e.g: "Hello world".
 								__( '"%s" successfully created.' ),
 								decodeEntities( _title )
 							),
@@ -217,11 +215,19 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 
 	return (
 		<>
-			<GlobalStylesRenderer />
+			<GlobalStylesRenderer
+				disableRootPadding={ editedPostType !== TEMPLATE_POST_TYPE }
+			/>
 			<EditorKeyboardShortcutsRegister />
 			{ isEditMode && <BlockKeyboardShortcuts /> }
 			{ ! isReady ? <CanvasLoader id={ loadingProgressId } /> : null }
-			{ isEditMode && <WelcomeGuide /> }
+			{ isEditMode && (
+				<WelcomeGuide
+					postType={
+						postWithTemplate ? contextPostType : editedPostType
+					}
+				/>
+			) }
 			{ isReady && (
 				<Editor
 					postType={
@@ -264,10 +270,6 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 											showTooltip
 											tooltipPosition="middle right"
 											onClick={ () => {
-												setCanvasMode( 'view' );
-												__unstableSetEditorMode(
-													'edit'
-												);
 												resetZoomLevel();
 
 												// TODO: this is a temporary solution to navigate to the posts list if we are
@@ -276,10 +278,29 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 													isPostsList &&
 													params?.focusMode
 												) {
-													history.push( {
-														page: 'gutenberg-posts-dashboard',
-														postType: 'post',
-													} );
+													history.push(
+														{
+															page: 'gutenberg-posts-dashboard',
+															postType: 'post',
+														},
+														undefined,
+														{
+															transition:
+																'canvas-mode-view-transition',
+														}
+													);
+												} else {
+													history.push(
+														{
+															...params,
+															canvas: undefined,
+														},
+														undefined,
+														{
+															transition:
+																'canvas-mode-view-transition',
+														}
+													);
 												}
 											} }
 										>

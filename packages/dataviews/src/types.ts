@@ -106,7 +106,7 @@ export type Field< Item > = {
 	/**
 	 * Callback used to render the field. Defaults to `field.getValue`.
 	 */
-	render?: ComponentType< { item: Item } >;
+	render?: ComponentType< DataViewRenderFieldProps< Item > >;
 
 	/**
 	 * Callback used to render an edit control for the field.
@@ -122,6 +122,11 @@ export type Field< Item > = {
 	 * Callback used to validate the field.
 	 */
 	isValid?: ( item: Item, context?: ValidationContext ) => boolean;
+
+	/**
+	 * Callback used to decide if a field should be displayed.
+	 */
+	isVisible?: ( item: Item ) => boolean;
 
 	/**
 	 * Whether the field is sortable.
@@ -159,7 +164,7 @@ export type NormalizedField< Item > = Field< Item > & {
 	label: string;
 	header: string | ReactElement;
 	getValue: ( args: { item: Item } ) => any;
-	render: ComponentType< { item: Item } >;
+	render: ComponentType< DataViewRenderFieldProps< Item > >;
 	Edit: ComponentType< DataFormControlProps< Item > >;
 	sort: ( a: Item, b: Item, direction: SortDirection ) => number;
 	isValid: ( item: Item, context?: ValidationContext ) => boolean;
@@ -179,6 +184,10 @@ export type DataFormControlProps< Item > = {
 	field: NormalizedField< Item >;
 	onChange: ( value: Record< string, any > ) => void;
 	hideLabelFromVision?: boolean;
+};
+
+export type DataViewRenderFieldProps< Item > = {
+	item: Item;
 };
 
 /**
@@ -489,6 +498,8 @@ export interface ViewBaseProps< Item > {
 	onChangeSelection: SetSelection;
 	selection: string[];
 	setOpenedFilter: ( fieldId: string ) => void;
+	onClickItem: ( item: Item ) => void;
+	isItemClickable: ( item: Item ) => boolean;
 	view: View;
 	density: number;
 }
