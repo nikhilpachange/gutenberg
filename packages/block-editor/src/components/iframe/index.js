@@ -226,21 +226,6 @@ function Iframe( {
 		};
 	}, [] );
 
-	const [ iframeWindowInnerHeight, setIframeWindowInnerHeight ] = useState();
-
-	const iframeResizeRef = useRefEffect( ( node ) => {
-		const nodeWindow = node.ownerDocument.defaultView;
-
-		setIframeWindowInnerHeight( nodeWindow.innerHeight );
-		const onResize = () => {
-			setIframeWindowInnerHeight( nodeWindow.innerHeight );
-		};
-		nodeWindow.addEventListener( 'resize', onResize );
-		return () => {
-			nodeWindow.removeEventListener( 'resize', onResize );
-		};
-	}, [] );
-
 	const [ windowInnerWidth, setWindowInnerWidth ] = useState();
 
 	const windowResizeRef = useRefEffect( ( node ) => {
@@ -280,7 +265,6 @@ function Iframe( {
 				: scale,
 		frameSize: parseInt( frameSize ),
 		iframeDocument,
-		iframeWindowInnerHeight,
 		contentHeight,
 		containerWidth,
 		windowInnerWidth,
@@ -295,10 +279,6 @@ function Iframe( {
 		clearerRef,
 		writingFlowRef,
 		disabledRef,
-		// Avoid resize listeners when not needed, these will trigger
-		// unnecessary re-renders when animating the iframe width, or when
-		// expanding preview iframes.
-		isZoomedOut ? iframeResizeRef : null,
 	] );
 
 	// Correct doctype is required to enable rendering in standards
