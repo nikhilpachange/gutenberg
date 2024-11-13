@@ -11,6 +11,7 @@ export const asyncBlockBindingsGetValues =
 		dispatch( {
 			type: 'RECEIVE_BLOCK_BINDINGS_ASYNC_VALUES',
 			sourceName: source.name,
+			args,
 			values,
 		} );
 	};

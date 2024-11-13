@@ -427,7 +427,10 @@ export function asyncBlockBindingsGetValues( state = {}, action ) {
 		case 'RECEIVE_BLOCK_BINDINGS_ASYNC_VALUES':
 			return {
 				...state,
-				[ action.sourceName ]: action.values,
+				[ action.args.clientId ]: {
+					...state[ action.args.clientId ],
+					[ action.sourceName ]: action.values,
+				},
 			};
 	}
 
