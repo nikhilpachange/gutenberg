@@ -92,6 +92,11 @@ const getTransformCommands = () =>
 		// Simple block tranformation based on the `Block Transforms` API.
 		function onBlockTransform( name ) {
 			const newBlocks = switchToBlockType( blocks, name );
+
+			if ( ! newBlocks?.length ) {
+				return;
+			}
+
 			replaceBlocks( clientIds, newBlocks );
 			selectForMultipleBlocks( newBlocks );
 		}
@@ -181,7 +186,7 @@ const getQuickActionsCommands = () =>
 			// Activate the `transform` on `core/group` which does the conversion.
 			const newBlocks = switchToBlockType( blocks, groupingBlockName );
 
-			if ( ! newBlocks ) {
+			if ( ! newBlocks?.length ) {
 				return;
 			}
 			replaceBlocks( clientIds, newBlocks );

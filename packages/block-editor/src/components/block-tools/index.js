@@ -188,6 +188,9 @@ export default function BlockTools( {
 					blocks,
 					groupingBlockName
 				);
+				if ( ! newBlocks?.length ) {
+					return;
+				}
 				replaceBlocks( clientIds, newBlocks );
 				speak( __( 'Selected blocks are grouped.' ) );
 			}
