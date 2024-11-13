@@ -26,8 +26,8 @@ const SetAsHomepageModal: ActionModal< PostWithPermissionsAndContext >[ 'RenderM
 	( { items, closeModal, onActionPerformed } ) => {
 		const [ item ] = items;
 		const pageTitle = getItemTitle( item );
-		const { currentHomePage, showOnFront } = useSelect( ( _select ) => {
-			const { getEntityRecord } = _select( coreStore );
+		const { currentHomePage, showOnFront } = useSelect( ( select ) => {
+			const { getEntityRecord } = select( coreStore );
 			const siteSettings: Settings | undefined = getEntityRecord(
 				'root',
 				'site'
