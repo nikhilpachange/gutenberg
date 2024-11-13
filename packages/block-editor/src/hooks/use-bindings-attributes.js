@@ -132,7 +132,10 @@ export const withBlockBindingSupport = createHigherOrderComponent(
 					blockBindings
 				) ) {
 					const { source: sourceName, args: sourceArgs } = binding;
-					const source = sources[ sourceName ];
+					const source = {
+						name: sourceName,
+						...sources[ sourceName ],
+					};
 					if (
 						! source ||
 						! canBindAttribute( name, attributeName )
@@ -166,15 +169,26 @@ export const withBlockBindingSupport = createHigherOrderComponent(
 								values[ attr ] = source.label;
 							} );
 						} else {
-							values = source.getValues( {
+							// Use resolver to allow async fetching in `getValues`.
+							const args = {
 								select,
 								context: updatedContext,
 								clientId,
 								bindings,
-							} );
+							};
+							values =
+								source.getValues.constructor.name ===
+								'AsyncFunction'
+									? unlock(
+											select( blocksStore )
+									  ).asyncBlockBindingsGetValues(
+											source,
+											args
+									  )
+									: source.getValues( args );
 						}
 						for ( const [ attributeName, value ] of Object.entries(
-							values
+							values || {}
 						) ) {
 							if (
 								attributeName === 'url' &&

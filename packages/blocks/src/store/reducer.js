@@ -422,6 +422,21 @@ export function blockBindingsSources( state = {}, action ) {
 	return state;
 }
 
+export function asyncBlockBindingsGetValues( state = {}, action ) {
+	switch ( action.type ) {
+		case 'RECEIVE_BLOCK_BINDINGS_ASYNC_VALUES':
+			return {
+				...state,
+				[ action.args.clientId ]: {
+					...state[ action.args.clientId ],
+					[ action.sourceName ]: action.values,
+				},
+			};
+	}
+
+	return state;
+}
+
 export default combineReducers( {
 	bootstrappedBlockTypes,
 	unprocessedBlockTypes,
@@ -435,4 +450,5 @@ export default combineReducers( {
 	categories,
 	collections,
 	blockBindingsSources,
+	asyncBlockBindingsGetValues,
 } );
