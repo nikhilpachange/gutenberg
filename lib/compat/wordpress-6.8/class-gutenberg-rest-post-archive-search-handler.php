@@ -35,7 +35,7 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 	 *     Associative array containing found IDs and total count for the matching search results.
 	 *
 	 *     @type int[]               $ids   Found post archive IDs.
-	 *     @type string|int|WP_Error $total Numeric string containing the number of post-type archives found, or WP_Error object.
+	 *     @type int $total The number of post-type archives found.
 	 * }
 	 */
 	public function search_items( WP_REST_Request $request ) {
@@ -79,7 +79,7 @@ class Gutenberg_REST_Post_Archive_Search_Handler extends WP_REST_Search_Handler 
 	 * @return array {
 	 *     Associative array containing fields for the post-archive based on the `$fields` parameter.
 	 *
-	 *     @type string    $id    Optional. Post Archive Slug.
+	 *     @type id     $id    Optional. Post Archive Slug.
 	 *     @type string $title Optional. Post Archive name.
 	 *     @type string $url   Optional. Post Archive permalink URL.
 	 * }
