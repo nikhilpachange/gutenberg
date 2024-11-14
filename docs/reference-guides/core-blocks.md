@@ -561,7 +561,7 @@ Playlist track. ([Source](https://github.com/WordPress/gutenberg/tree/trunk/pack
 -	**Experimental:** true
 -	**Category:** media
 -	**Parent:** core/playlist
--	**Supports:** interactivity, ~~html~~, ~~inserter~~, ~~reusable~~
+-	**Supports:** interactivity (clientNavigation), ~~html~~, ~~inserter~~, ~~reusable~~
 -	**Attributes:** album, artist, id, image, length, title, type, url
 
 ## Author
