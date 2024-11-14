@@ -86,7 +86,7 @@ const siteIconVariants = {
 export default function EditSiteEditor( { isPostsList = false } ) {
 	const disableMotion = useReducedMotion();
 	const { params } = useLocation();
-	const { canvas = 'view' } = params;
+	const { canvas = 'view', path } = params;
 	const isLoading = useIsSiteEditorLoading();
 	useAdaptEditorToCanvas( canvas );
 	const entity = useResolveEditedEntity();
@@ -209,6 +209,17 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 		duration: disableMotion ? 0 : 0.2,
 	};
 
+	const isGlobalStylesPreview = path === '/wp_global_styles';
+
+	const _settings = useMemo( () => {
+		return {
+			...settings,
+			defaultRenderingMode: isGlobalStylesPreview
+				? 'template-locked'
+				: settings.defaultRenderingMode,
+		};
+	}, [ settings, isGlobalStylesPreview ] );
+
 	return (
 		<>
 			<GlobalStylesRenderer
@@ -227,7 +238,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					postType={ postWithTemplate ? context.postType : postType }
 					postId={ postWithTemplate ? context.postId : postId }
 					templateId={ postWithTemplate ? postId : undefined }
-					settings={ settings }
+					settings={ _settings }
 					className={ clsx( 'edit-site-editor__editor-interface', {
 						'show-icon-labels': showIconLabels,
 					} ) }
@@ -237,6 +248,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					}
 					customSavePanel={ _isPreviewingTheme && <SavePanel /> }
 					forceDisableBlockTools={ ! hasDefaultEditorCanvasView }
+					forceRemoveBlockTools={ isGlobalStylesPreview }
 					title={ title }
 					iframeProps={ iframeProps }
 					onActionPerformed={ onActionPerformed }
