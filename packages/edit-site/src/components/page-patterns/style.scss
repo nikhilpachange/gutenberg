@@ -123,10 +123,11 @@
 	}
 }
 
-.components-button.dataviews-all-actions-button.has-icon:not(.has-text) {
+.dataviews-all-actions-button.has-icon:not(.has-text) {
 	.dataviews-view-grid & {
-		min-width: 24px;
 		height: 24px;
+		width: 24px;
+		min-width: 24px;
 	}
 }
 
