@@ -5,6 +5,7 @@ import {
 	RichText,
 	useBlockProps,
 	__experimentalGetElementClassName,
+	__experimentalGetDimensionsClassesAndStyles as getDimensionsClassesAndStyles,
 } from '@wordpress/block-editor';
 
 /**
@@ -25,6 +26,9 @@ export default function save( { attributes } ) {
 		playsInline,
 		tracks,
 	} = attributes;
+
+	const dimensionsProps = getDimensionsClassesAndStyles( attributes );
+
 	return (
 		<figure { ...useBlockProps.save() }>
 			{ src && (
@@ -37,6 +41,8 @@ export default function save( { attributes } ) {
 					preload={ preload !== 'metadata' ? preload : undefined }
 					src={ src }
 					playsInline={ playsInline }
+					className={ dimensionsProps.className }
+					style={ dimensionsProps.style }
 				>
 					<Tracks tracks={ tracks } />
 				</video>

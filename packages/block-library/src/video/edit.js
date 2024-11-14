@@ -24,6 +24,7 @@ import {
 	MediaUploadCheck,
 	MediaReplaceFlow,
 	useBlockProps,
+	__experimentalGetDimensionsClassesAndStyles as useDimensionsProps,
 } from '@wordpress/block-editor';
 import { useRef, useEffect, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
@@ -58,6 +59,8 @@ function VideoEdit( {
 	const posterImageButton = useRef();
 	const { id, controls, poster, src, tracks } = attributes;
 	const [ temporaryURL, setTemporaryURL ] = useState( attributes.blob );
+
+	const dimensionsProps = useDimensionsProps( attributes );
 
 	useUploadMediaFromBlobURL( {
 		url: temporaryURL,
@@ -284,6 +287,8 @@ function VideoEdit( {
 						poster={ poster }
 						src={ src || temporaryURL }
 						ref={ videoPlayer }
+						className={ dimensionsProps.className }
+						style={ dimensionsProps.style }
 					>
 						<Tracks tracks={ tracks } />
 					</video>
