@@ -62,7 +62,7 @@ function NavigationMenuSelector( {
 		canUserCreateNavigationMenus,
 		canSwitchNavigationMenu,
 		isNavigationMenuMissing,
-	} = useNavigationMenu();
+	} = useNavigationMenu( currentMenuId );
 
 	const [ currentTitle ] = useEntityProp(
 		'postType',
