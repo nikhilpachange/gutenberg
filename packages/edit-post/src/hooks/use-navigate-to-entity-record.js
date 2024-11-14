@@ -5,6 +5,7 @@ import { useCallback, useReducer } from '@wordpress/element';
 import { useSelect, useDispatch, useRegistry } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
 import { store as coreStore } from '@wordpress/core-data';
+import { sprintf, __ } from '@wordpress/i18n';
 
 /**
  * A hook that records the 'entity' history in the post editor as a user
@@ -56,9 +57,22 @@ export default function useNavigateToEntityRecord(
 
 	const onNavigateToEntityRecord = useCallback(
 		async ( params ) => {
-			await registry
-				.resolveSelect( coreStore )
-				.getPostType( params.postType );
+			try {
+				await registry
+					.resolveSelect( coreStore )
+					.getPostType( params.postType );
+			} catch ( err ) {
+				throw new Error(
+					sprintf(
+						// translators: %s: the name of a post type.
+						__( `Unable to fetch post type "%s" from API.` ),
+						params.postType
+					),
+					{
+						cause: err,
+					}
+				);
+			}
 			dispatch( {
 				type: 'push',
 				post: { postId: params.postId, postType: params.postType },
