@@ -12,22 +12,12 @@ import {
 import { useDispatch, useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { store as noticesStore } from '@wordpress/notices';
-import { decodeEntities } from '@wordpress/html-entities';
 
-const PAGE_POST_TYPE = 'page';
-
-const getItemTitle = ( item ) => {
-	if ( typeof item.title === 'string' ) {
-		return decodeEntities( item.title );
-	}
-	if ( item.title && 'rendered' in item.title ) {
-		return decodeEntities( item.title.rendered );
-	}
-	if ( item.title && 'raw' in item.title ) {
-		return decodeEntities( item.title.raw );
-	}
-	return '';
-};
+/**
+ * Internal dependencies
+ */
+import { PAGE_POST_TYPE } from '../../utils/constants';
+import { getItemTitle } from '../../utils/get-item-title';
 
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;
