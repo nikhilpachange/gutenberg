@@ -291,8 +291,16 @@ export default function PostList( { postType } ) {
 		totalPages,
 	} = useEntityRecordsWithPermissions( 'postType', postType, queryArgs );
 
+	const siteSettings = useSelect( ( select ) => {
+		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
+		return {
+			pageOnFront: site?.page_on_front,
+			pageForPosts: site?.page_for_posts,
+		};
+	} );
+
 	// The REST API sort the authors by ID, but we want to sort them by name.
-	let data = useMemo( () => {
+	const data = useMemo( () => {
 		if ( ! isLoadingFields && view?.sort?.field === 'author' ) {
 			return filterSortAndPaginate(
 				records,
@@ -301,8 +309,12 @@ export default function PostList( { postType } ) {
 			).data;
 		}
 
+		records.forEach( ( record ) => {
+			record.siteSettings = siteSettings;
+		} );
+
 		return records;
-	}, [ records, fields, isLoadingFields, view?.sort ] );
+	}, [ isLoadingFields, view.sort, records, fields, siteSettings ] );
 
 	const ids = data?.map( ( record ) => getItemId( record ) ) ?? [];
 	const prevIds = usePrevious( ids ) ?? [];
@@ -349,23 +361,6 @@ export default function PostList( { postType } ) {
 		() => [ editAction, ...postTypeActions ],
 		[ postTypeActions, editAction ]
 	);
-
-	const siteSettings = useSelect( ( select ) => {
-		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
-		return {
-			pageOnFront: site?.page_on_front,
-			pageForPosts: site?.page_for_posts,
-		};
-	} );
-
-	if ( siteSettings ) {
-		data = data.map( ( item ) => {
-			return {
-				...item,
-				siteSettings,
-			};
-		} );
-	}
 
 	const [ showAddPostModal, setShowAddPostModal ] = useState( false );
 
