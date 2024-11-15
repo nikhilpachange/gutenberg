@@ -24,7 +24,7 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const pageTitle = getItemTitle( item );
 	const { currentHomePage, showOnFront } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
-		const siteSettings = getEntityRecord( 'root', 'site' );
+		const siteSettings = getEntityRecord( 'root', 'site', undefined );
 		const pageOnFront = siteSettings?.page_on_front;
 		return {
 			currentHomePage: getEntityRecord( 'postType', 'page', pageOnFront ),
@@ -149,7 +149,7 @@ export const useSetAsHomepageAction = () => {
 		pageForPosts,
 	} = useSelect( ( select ) => {
 		const { getEntityRecord, getEntityRecords } = select( coreStore );
-		const siteSettings = getEntityRecord( 'root', 'site' );
+		const siteSettings = getEntityRecord( 'root', 'site', undefined );
 		const templates = getEntityRecords( 'postType', 'wp_template', {
 			per_page: -1,
 		} );

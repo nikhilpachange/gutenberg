@@ -19,7 +19,8 @@ const TitleView = ( { item }: { item: BasePost } ) => {
 		const { getEntityRecord } = select( coreStore );
 		const siteSettings: Settings | undefined = getEntityRecord(
 			'root',
-			'site'
+			'site',
+			undefined
 		);
 		return {
 			frontPageId: siteSettings?.page_on_front,
