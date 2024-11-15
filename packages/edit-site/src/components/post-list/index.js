@@ -30,7 +30,10 @@ import {
 
 import AddNewPostModal from '../add-new-post';
 import { unlock } from '../../lock-unlock';
-import { useEditPostAction } from '../dataviews-actions';
+import {
+	useEditPostAction,
+	useSetAsHomepageAction,
+} from '../dataviews-actions';
 import { usePrevious } from '@wordpress/compose';
 
 const { usePostActions, usePostFields } = unlock( editorPrivateApis );
@@ -291,14 +294,6 @@ export default function PostList( { postType } ) {
 		totalPages,
 	} = useEntityRecordsWithPermissions( 'postType', postType, queryArgs );
 
-	const siteSettings = useSelect( ( select ) => {
-		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
-		return {
-			pageOnFront: site?.page_on_front,
-			pageForPosts: site?.page_for_posts,
-		};
-	} );
-
 	// The REST API sort the authors by ID, but we want to sort them by name.
 	const data = useMemo( () => {
 		if ( ! isLoadingFields && view?.sort?.field === 'author' ) {
@@ -309,12 +304,8 @@ export default function PostList( { postType } ) {
 			).data;
 		}
 
-		records.forEach( ( record ) => {
-			record.siteSettings = siteSettings;
-		} );
-
 		return records;
-	}, [ isLoadingFields, view.sort, records, fields, siteSettings ] );
+	}, [ isLoadingFields, view.sort, records, fields ] );
 
 	const ids = data?.map( ( record ) => getItemId( record ) ) ?? [];
 	const prevIds = usePrevious( ids ) ?? [];
@@ -357,9 +348,11 @@ export default function PostList( { postType } ) {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
+	const setAsHomepageAction = useSetAsHomepageAction();
+
 	const actions = useMemo(
-		() => [ editAction, ...postTypeActions ],
-		[ postTypeActions, editAction ]
+		() => [ editAction, setAsHomepageAction, ...postTypeActions ],
+		[ postTypeActions, editAction, setAsHomepageAction ]
 	);
 
 	const [ showAddPostModal, setShowAddPostModal ] = useState( false );

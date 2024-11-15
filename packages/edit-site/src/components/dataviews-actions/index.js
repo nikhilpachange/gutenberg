@@ -11,6 +11,7 @@ import { privateApis as routerPrivateApis } from '@wordpress/router';
  */
 import { PATTERN_TYPES } from '../../utils/constants';
 import { unlock } from '../../lock-unlock';
+import { useSetAsHomepageAction } from './set-as-homepage';
 
 const { useHistory } = unlock( routerPrivateApis );
 
@@ -41,3 +42,5 @@ export const useEditPostAction = () => {
 		[ history ]
 	);
 };
+
+export { useSetAsHomepageAction };

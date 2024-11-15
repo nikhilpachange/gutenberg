@@ -20,7 +20,6 @@ import {
 	exportPattern,
 	permanentlyDeletePost,
 	restorePost,
-	setAsHomepage,
 	trashPost,
 	renamePost,
 	resetPost,
@@ -89,26 +88,9 @@ export const registerPostTypeActions =
 				name: postType,
 			} );
 
-		const canManageOptions = await registry
-			.resolveSelect( coreStore )
-			.canUser( 'update', {
-				kind: 'root',
-				name: 'site',
-			} );
-
 		const currentTheme = await registry
 			.resolveSelect( coreStore )
 			.getCurrentTheme();
-
-		// A front-page template overrides homepage settings,
-		// so don't show the setAsHomepage action if it's present.
-		const templates = await registry
-			.resolveSelect( coreStore )
-			.getEntityRecords( 'postType', 'wp_template', { per_page: -1 } );
-		const hasFrontPageTemplate = !! templates?.find(
-			( template: { slug: string } ) =>
-				'slug' in template && template.slug === 'front-page'
-		);
 
 		const actions = [
 			postTypeConfig.viewable ? viewPost : undefined,
@@ -132,11 +114,6 @@ export const registerPostTypeActions =
 				? duplicatePattern
 				: undefined,
 			postTypeConfig.supports?.title ? renamePost : undefined,
-			canManageOptions &&
-			! hasFrontPageTemplate &&
-			postTypeConfig.slug === 'page'
-				? setAsHomepage
-				: undefined,
 			postTypeConfig?.supports?.[ 'page-attributes' ]
 				? reorderPage
 				: undefined,

@@ -90,13 +90,6 @@ export type PostWithPermissions = Post & {
 	};
 };
 
-export type PostWithPermissionsAndContext = PostWithPermissions & {
-	siteSettings: {
-		pageOnFront?: number;
-		pageForPosts?: number;
-	};
-};
-
 export interface PostType {
 	slug: string;
 	viewable: boolean;
