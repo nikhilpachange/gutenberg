@@ -214,9 +214,9 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 	const _settings = useMemo( () => {
 		return {
 			...settings,
-			defaultRenderingMode: isGlobalStylesPreview
-				? 'template-locked'
-				: settings.defaultRenderingMode,
+			isPreviewMode: isGlobalStylesPreview
+				? true
+				: settings.isPreviewMode,
 		};
 	}, [ settings, isGlobalStylesPreview ] );
 
@@ -248,7 +248,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					}
 					customSavePanel={ _isPreviewingTheme && <SavePanel /> }
 					forceDisableBlockTools={ ! hasDefaultEditorCanvasView }
-					forceRemoveBlockTools={ isGlobalStylesPreview }
+					showEditorFrame={ canvas === 'edit' }
 					title={ title }
 					iframeProps={ iframeProps }
 					onActionPerformed={ onActionPerformed }

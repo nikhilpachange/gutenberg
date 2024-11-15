@@ -53,7 +53,7 @@ const SidebarContent = ( {
 	keyboardShortcut,
 	onActionPerformed,
 	extraPanels,
-	forceRemoveBlockTools,
+	isPreviewMode,
 } ) => {
 	const tabListRef = useRef( null );
 	// Because `PluginSidebar` renders a `ComplementaryArea`, we
@@ -95,7 +95,7 @@ const SidebarContent = ( {
 				<Tabs.Context.Provider value={ tabsContextValue }>
 					<SidebarHeader
 						ref={ tabListRef }
-						forceRemoveBlockTools={ forceRemoveBlockTools }
+						isPreviewMode={ isPreviewMode }
 					/>
 				</Tabs.Context.Provider>
 			}
@@ -124,7 +124,7 @@ const SidebarContent = ( {
 					<PatternOverridesPanel />
 					{ extraPanels }
 				</Tabs.TabPanel>
-				{ ! forceRemoveBlockTools && (
+				{ ! isPreviewMode && (
 					<Tabs.TabPanel tabId={ sidebars.block } focusable={ false }>
 						<BlockInspector />
 					</Tabs.TabPanel>
@@ -134,13 +134,9 @@ const SidebarContent = ( {
 	);
 };
 
-const Sidebar = ( {
-	extraPanels,
-	onActionPerformed,
-	forceRemoveBlockTools,
-} ) => {
+const Sidebar = ( { extraPanels, onActionPerformed } ) => {
 	useAutoSwitchEditorSidebars();
-	const { tabName, keyboardShortcut, showSummary } = useSelect(
+	const { tabName, keyboardShortcut, showSummary, isPreviewMode } = useSelect(
 		( select ) => {
 			const shortcut = select(
 				keyboardShortcutsStore
@@ -161,6 +157,8 @@ const Sidebar = ( {
 					: sidebars.document;
 			}
 
+			const { getEditorSettings, getCurrentPostType } =
+				select( editorStore );
 			return {
 				tabName: _tabName,
 				keyboardShortcut: shortcut,
@@ -168,7 +166,8 @@ const Sidebar = ( {
 					TEMPLATE_POST_TYPE,
 					TEMPLATE_PART_POST_TYPE,
 					NAVIGATION_POST_TYPE,
-				].includes( select( editorStore ).getCurrentPostType() ),
+				].includes( getCurrentPostType() ),
+				isPreviewMode: getEditorSettings().isPreviewMode,
 			};
 		},
 		[]
@@ -197,7 +196,7 @@ const Sidebar = ( {
 				showSummary={ showSummary }
 				onActionPerformed={ onActionPerformed }
 				extraPanels={ extraPanels }
-				forceRemoveBlockTools={ forceRemoveBlockTools }
+				isPreviewMode={ isPreviewMode }
 			/>
 		</Tabs>
 	);

@@ -57,9 +57,9 @@ export default function EditorInterface( {
 	customSaveButton,
 	customSavePanel,
 	forceDisableBlockTools,
-	forceRemoveBlockTools,
 	title,
 	iframeProps,
+	showEditorFrame,
 } ) {
 	const {
 		mode,
@@ -111,6 +111,8 @@ export default function EditorInterface( {
 		[ entitiesSavedStatesCallback ]
 	);
 
+	const showFrame = ! isPreviewMode || showEditorFrame;
+
 	return (
 		<InterfaceSkeleton
 			isDistractionFree={ isDistractionFree }
@@ -123,7 +125,7 @@ export default function EditorInterface( {
 				secondarySidebar: secondarySidebarLabel,
 			} }
 			header={
-				! isPreviewMode && (
+				showFrame && (
 					<Header
 						forceIsDirty={ forceIsDirty }
 						setEntitiesSavedStatesCallback={
@@ -131,27 +133,25 @@ export default function EditorInterface( {
 						}
 						customSaveButton={ customSaveButton }
 						forceDisableBlockTools={ forceDisableBlockTools }
-						forceRemoveBlockTools={ forceRemoveBlockTools }
+						isPreviewMode={ isPreviewMode }
 						title={ title }
 					/>
 				)
 			}
 			editorNotices={ <EditorNotices /> }
 			secondarySidebar={
-				! isPreviewMode &&
+				showFrame &&
 				mode === 'visual' &&
 				( ( isInserterOpened && <InserterSidebar /> ) ||
 					( isListViewOpened && <ListViewSidebar /> ) )
 			}
 			sidebar={
-				! isPreviewMode &&
+				showFrame &&
 				! isDistractionFree && <ComplementaryArea.Slot scope="core" />
 			}
 			content={
 				<>
-					{ ! isDistractionFree && ! isPreviewMode && (
-						<EditorNotices />
-					) }
+					{ ! isDistractionFree && showFrame && <EditorNotices /> }
 
 					<EditorContentSlotFill.Slot>
 						{ ( [ editorCanvasView ] ) =>

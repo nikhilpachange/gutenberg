@@ -88,7 +88,12 @@ export default function BlockEdit( {
 				]
 			) }
 		>
-			<Edit { ...props } />
+			<Edit
+				{ ...{
+					...props,
+					isSelected: isPreviewMode ? false : isSelected,
+				} }
+			/>
 			{ originalBlockClientId && (
 				<MultipleUsageWarning
 					originalBlockClientId={ originalBlockClientId }

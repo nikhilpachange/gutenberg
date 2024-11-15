@@ -87,6 +87,19 @@ export default function BlockTools( {
 		expandBlock,
 	} = unlock( useDispatch( blockEditorStore ) );
 
+	const ref = useRef( false );
+	const blockToolbarRef = usePopoverScroll( __unstableContentRef );
+	const blockToolbarAfterRef = usePopoverScroll( __unstableContentRef );
+
+	const isPreviewMode = useSelect(
+		( select ) => select( blockEditorStore ).getSettings().isPreviewMode,
+		[]
+	);
+
+	if ( isPreviewMode ) {
+		return children;
+	}
+
 	function onKeyDown( event ) {
 		if ( event.defaultPrevented ) {
 			return;
@@ -193,13 +206,11 @@ export default function BlockTools( {
 			}
 		}
 	}
-	const blockToolbarRef = usePopoverScroll( __unstableContentRef );
-	const blockToolbarAfterRef = usePopoverScroll( __unstableContentRef );
 
 	return (
 		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
 		<div { ...props } onKeyDown={ onKeyDown }>
-			<InsertionPointOpenRef.Provider value={ useRef( false ) }>
+			<InsertionPointOpenRef.Provider value={ ref }>
 				{ ! isTyping && ! isZoomOutMode && (
 					<InsertionPoint
 						__unstableContentRef={ __unstableContentRef }

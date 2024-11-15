@@ -78,7 +78,6 @@ function Editor( {
 					<Sidebar
 						onActionPerformed={ onActionPerformed }
 						extraPanels={ extraSidebarPanels }
-						forceRemoveBlockTools={ props.forceRemoveBlockTools }
 					/>
 				</ExperimentalEditorProvider>
 			) }

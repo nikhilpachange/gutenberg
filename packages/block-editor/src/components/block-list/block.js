@@ -611,6 +611,7 @@ function BlockListBlockProvider( props ) {
 			const blockType = getBlockType( blockName );
 			const { supportsLayout, isPreviewMode } = getSettings();
 			const hasLightBlockWrapper = blockType?.apiVersion > 1;
+			const _isSelected = isBlockSelected( clientId );
 			const previewContext = {
 				isPreviewMode,
 				blockWithoutAttributes,
@@ -627,6 +628,7 @@ function BlockListBlockProvider( props ) {
 					? getBlockDefaultClassName( blockName )
 					: undefined,
 				blockTitle: blockType?.title,
+				isSelected: _isSelected,
 			};
 
 			// When in preview mode, we can avoid a lot of selection and
@@ -635,7 +637,6 @@ function BlockListBlockProvider( props ) {
 				return previewContext;
 			}
 
-			const _isSelected = isBlockSelected( clientId );
 			const canRemove = canRemoveBlock( clientId );
 			const canMove = canMoveBlock( clientId );
 			const match = getActiveBlockVariation( blockName, attributes );
@@ -666,7 +667,6 @@ function BlockListBlockProvider( props ) {
 				isSectionBlock: _isSectionBlock( clientId ),
 				canRemove,
 				canMove,
-				isSelected: _isSelected,
 				isTemporarilyEditingAsBlocks:
 					getTemporarilyEditingAsBlocks() === clientId,
 				blockEditingMode,

@@ -27,7 +27,7 @@ import EditorHistoryUndo from '../editor-history/undo';
 function DocumentTools( {
 	className,
 	disableBlockTools = false,
-	removeBlockTools = false,
+	isPreviewMode,
 } ) {
 	const { setIsInserterOpened, setIsListViewOpened } =
 		useDispatch( editorStore );
@@ -120,7 +120,7 @@ function DocumentTools( {
 			variant="unstyled"
 		>
 			<div className="editor-document-tools__left">
-				{ ! isDistractionFree && ! removeBlockTools && (
+				{ ! isDistractionFree && ! isPreviewMode && (
 					<ToolbarItem
 						ref={ inserterSidebarToggleRef }
 						as={ Button }
@@ -138,19 +138,17 @@ function DocumentTools( {
 				) }
 				{ ( isWideViewport || ! showIconLabels ) && (
 					<>
-						{ showTools &&
-							isLargeViewport &&
-							! removeBlockTools && (
-								<ToolbarItem
-									as={ ToolSelector }
-									showTooltip={ ! showIconLabels }
-									variant={
-										showIconLabels ? 'tertiary' : undefined
-									}
-									disabled={ disableBlockTools }
-									size="compact"
-								/>
-							) }
+						{ showTools && isLargeViewport && ! isPreviewMode && (
+							<ToolbarItem
+								as={ ToolSelector }
+								showTooltip={ ! showIconLabels }
+								variant={
+									showIconLabels ? 'tertiary' : undefined
+								}
+								disabled={ disableBlockTools }
+								size="compact"
+							/>
+						) }
 						<ToolbarItem
 							as={ EditorHistoryUndo }
 							showTooltip={ ! showIconLabels }
@@ -163,7 +161,7 @@ function DocumentTools( {
 							variant={ showIconLabels ? 'tertiary' : undefined }
 							size="compact"
 						/>
-						{ ! isDistractionFree && ! removeBlockTools && (
+						{ ! isDistractionFree && ! isPreviewMode && (
 							<ToolbarItem
 								as={ Button }
 								className="editor-document-tools__document-overview-toggle"

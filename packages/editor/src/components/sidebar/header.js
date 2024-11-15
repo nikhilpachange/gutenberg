@@ -15,7 +15,7 @@ import { sidebars } from './constants';
 
 const { Tabs } = unlock( componentsPrivateApis );
 
-const SidebarHeader = ( { forceRemoveBlockTools }, ref ) => {
+const SidebarHeader = ( { isPreviewMode }, ref ) => {
 	const { documentLabel } = useSelect( ( select ) => {
 		const { getPostTypeLabel } = select( editorStore );
 
@@ -35,7 +35,7 @@ const SidebarHeader = ( { forceRemoveBlockTools }, ref ) => {
 			>
 				{ documentLabel }
 			</Tabs.Tab>
-			{ ! forceRemoveBlockTools && (
+			{ ! isPreviewMode && (
 				<Tabs.Tab
 					tabId={ sidebars.block }
 					// Used for focus management in the SettingsSidebar component.
