@@ -288,8 +288,10 @@ export function MediaPlaceholder( {
 		}
 	}
 
-	async function onHTMLDrop( HTML ) {
-		const blocks = pasteHandler( { HTML } );
+	async function onDrop( event ) {
+		const blocks = pasteHandler( {
+			HTML: event.dataTransfer?.getData( 'default' ),
+		} );
 		return await handleBlocksDrop( blocks );
 	}
 
@@ -317,20 +319,20 @@ export function MediaPlaceholder( {
 
 			if ( instructions === undefined && mediaUpload ) {
 				instructions = __(
-					'Upload a media file or pick one from your media library.'
+					'Drag and drop an image or video, upload, or choose from your library.'
 				);
 
 				if ( isAudio ) {
 					instructions = __(
-						'Upload or drag an audio file here, or pick one from your library.'
+						'Drag and drop an audio file, upload, or choose from your library.'
 					);
 				} else if ( isImage ) {
 					instructions = __(
-						'Upload or drag an image file here, or pick one from your library.'
+						'Drag and drop an image, upload, or choose from your library.'
 					);
 				} else if ( isVideo ) {
 					instructions = __(
-						'Upload or drag a video file here, or pick one from your library.'
+						'Drag and drop a video, upload, or choose from your library.'
 					);
 				}
 			}
@@ -379,9 +381,7 @@ export function MediaPlaceholder( {
 			return null;
 		}
 
-		return (
-			<DropZone onFilesDrop={ onFilesUpload } onHTMLDrop={ onHTMLDrop } />
-		);
+		return <DropZone onFilesDrop={ onFilesUpload } onDrop={ onDrop } />;
 	};
 
 	const renderCancelLink = () => {
