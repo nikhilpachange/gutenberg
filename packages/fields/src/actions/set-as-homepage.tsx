@@ -3,7 +3,7 @@
  */
 import { useDispatch, useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
-import type { Settings, Page } from '@wordpress/core-data';
+import type { Settings } from '@wordpress/core-data';
 import { __, sprintf } from '@wordpress/i18n';
 import {
 	Button,
@@ -18,7 +18,11 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { getItemTitle } from './utils';
-import type { CoreDataError, PostWithPermissionsAndContext } from '../types';
+import type {
+	CoreDataError,
+	PostWithPermissionsAndContext,
+	Post,
+} from '../types';
 
 const PAGE_POST_TYPE = 'page';
 
@@ -42,7 +46,7 @@ const SetAsHomepageModal: ActionModal< PostWithPermissionsAndContext >[ 'RenderM
 				showOnFront: siteSettings?.show_on_front,
 			};
 		} );
-		const currentHomePageTitle = getItemTitle( currentHomePage as Page );
+		const currentHomePageTitle = getItemTitle( currentHomePage as Post );
 
 		const { saveEditedEntityRecord, saveEntityRecord } =
 			useDispatch( coreStore );
