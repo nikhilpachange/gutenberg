@@ -87,7 +87,6 @@ export const registerPostTypeActions =
 				kind: 'postType',
 				name: postType,
 			} );
-
 		const currentTheme = await registry
 			.resolveSelect( coreStore )
 			.getCurrentTheme();

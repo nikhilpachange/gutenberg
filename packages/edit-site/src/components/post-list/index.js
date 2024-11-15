@@ -305,7 +305,7 @@ export default function PostList( { postType } ) {
 		}
 
 		return records;
-	}, [ isLoadingFields, view.sort, records, fields ] );
+	}, [ records, fields, isLoadingFields, view?.sort ] );
 
 	const ids = data?.map( ( record ) => getItemId( record ) ) ?? [];
 	const prevIds = usePrevious( ids ) ?? [];
