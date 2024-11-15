@@ -22,28 +22,16 @@ const { Menu, kebabCase } = unlock( componentsPrivateApis );
 
 export default function PostActions( { postType, postId, onActionPerformed } ) {
 	const [ isActionsMenuOpen, setIsActionsMenuOpen ] = useState( false );
-	const { item, permissions, additionalContext } = useSelect(
+	const { item, permissions, siteSettings } = useSelect(
 		( select ) => {
 			const {
 				getEditedEntityRecord,
 				getEntityRecordPermissions,
 				getEntityRecord,
-				getEntityRecords,
 			} = unlock( select( coreStore ) );
 			const site = getEntityRecord( 'root', 'site' );
 			const pageOnFront = site?.page_on_front;
 			const pageForPosts = site?.page_for_posts;
-			const themeTemplates = getEntityRecords(
-				'postType',
-				'wp_template',
-				{
-					per_page: -1,
-				}
-			);
-			const hasFrontPageTemplate = !! themeTemplates?.find(
-				( template ) =>
-					'slug' in template && template.slug === 'front-page'
-			);
 			return {
 				item: getEditedEntityRecord( 'postType', postType, postId ),
 				permissions: getEntityRecordPermissions(
@@ -51,10 +39,9 @@ export default function PostActions( { postType, postId, onActionPerformed } ) {
 					postType,
 					postId
 				),
-				additionalContext: {
+				siteSettings: {
 					pageOnFront,
 					pageForPosts,
-					hasFrontPageTemplate,
 				},
 			};
 		},
@@ -64,9 +51,9 @@ export default function PostActions( { postType, postId, onActionPerformed } ) {
 		return {
 			...item,
 			permissions,
-			additionalContext,
+			siteSettings,
 		};
-	}, [ item, permissions, additionalContext ] );
+	}, [ item, permissions, siteSettings ] );
 	const allActions = usePostActions( { postType, onActionPerformed } );
 
 	const actions = useMemo( () => {

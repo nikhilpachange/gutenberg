@@ -350,30 +350,19 @@ export default function PostList( { postType } ) {
 		[ postTypeActions, editAction ]
 	);
 
-	const additionalContext = useSelect( ( select ) => {
+	const siteSettings = useSelect( ( select ) => {
 		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
-		const themeTemplates = select( coreStore ).getEntityRecords(
-			'postType',
-			'wp_template',
-			{
-				per_page: -1,
-			}
-		);
-		const hasFrontPageTemplate = !! themeTemplates?.find(
-			( template ) => 'slug' in template && template.slug === 'front-page'
-		);
 		return {
 			pageOnFront: site?.page_on_front,
 			pageForPosts: site?.page_for_posts,
-			hasFrontPageTemplate,
 		};
 	} );
 
-	if ( additionalContext ) {
+	if ( siteSettings ) {
 		data = data.map( ( item ) => {
 			return {
 				...item,
-				additionalContext,
+				siteSettings,
 			};
 		} );
 	}

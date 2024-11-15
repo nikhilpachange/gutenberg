@@ -161,19 +161,13 @@ const setAsHomepage: Action< PostWithPermissionsAndContext > = {
 	id: 'set-as-homepage',
 	label: __( 'Set as homepage' ),
 	isEligible( post ) {
-		const { pageOnFront, pageForPosts, hasFrontPageTemplate } =
-			post.additionalContext;
+		const { pageOnFront, pageForPosts } = post.siteSettings;
 
 		if ( post.status === 'trash' ) {
 			return false;
 		}
 
 		if ( post.type !== PAGE_POST_TYPE ) {
-			return false;
-		}
-
-		// A front-page template overrides homepage settings, so don't show the action if it's present.
-		if ( hasFrontPageTemplate ) {
 			return false;
 		}
 

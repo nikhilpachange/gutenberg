@@ -100,6 +100,16 @@ export const registerPostTypeActions =
 			.resolveSelect( coreStore )
 			.getCurrentTheme();
 
+		// A front-page template overrides homepage settings,
+		// so don't show the setAsHomepage action if it's present.
+		const templates = await registry
+			.resolveSelect( coreStore )
+			.getEntityRecords( 'postType', 'wp_template', { per_page: -1 } );
+		const hasFrontPageTemplate = !! templates?.find(
+			( template: { slug: string } ) =>
+				'slug' in template && template.slug === 'front-page'
+		);
+
 		const actions = [
 			postTypeConfig.viewable ? viewPost : undefined,
 			!! postTypeConfig?.supports?.revisions
@@ -122,7 +132,9 @@ export const registerPostTypeActions =
 				? duplicatePattern
 				: undefined,
 			postTypeConfig.supports?.title ? renamePost : undefined,
-			canManageOptions && postTypeConfig.slug === 'page'
+			canManageOptions &&
+			! hasFrontPageTemplate &&
+			postTypeConfig.slug === 'page'
 				? setAsHomepage
 				: undefined,
 			postTypeConfig?.supports?.[ 'page-attributes' ]
