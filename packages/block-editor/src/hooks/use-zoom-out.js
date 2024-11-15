@@ -13,31 +13,24 @@ import { unlock } from '../lock-unlock';
 /**
  * A hook used to set the editor mode to zoomed out mode, invoking the hook sets the mode.
  *
- * @param {boolean} zoomOut If we should enter into zoomOut mode or not
+ * @param {boolean} enabled If we should enter into zoomOut mode or not
  */
-export function useZoomOut( zoomOut = true ) {
+export function useZoomOut( enabled = true ) {
 	const { setZoomLevel, resetZoomLevel } = unlock(
 		useDispatch( blockEditorStore )
 	);
 	const { isZoomOut } = unlock( useSelect( blockEditorStore ) );
 
 	useEffect( () => {
-		const isZoomOutOnMount = isZoomOut();
-
-		return () => {
-			if ( isZoomOutOnMount ) {
-				setZoomLevel( 'auto-scaled' );
-			} else {
-				resetZoomLevel();
-			}
-		};
-	}, [] );
-
-	useEffect( () => {
-		if ( zoomOut ) {
-			setZoomLevel( 'auto-scaled' );
-		} else {
-			resetZoomLevel();
+		if ( ! enabled ) {
+			return;
 		}
-	}, [ zoomOut, setZoomLevel, resetZoomLevel ] );
+
+		const isAlreadyInZoomOut = isZoomOut();
+		if ( ! isAlreadyInZoomOut ) {
+			setZoomLevel( 'auto-scaled' );
+		}
+
+		return () => ! isAlreadyInZoomOut && resetZoomLevel();
+	}, [ enabled, isZoomOut, resetZoomLevel, setZoomLevel ] );
 }
