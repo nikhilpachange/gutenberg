@@ -350,27 +350,8 @@ export default function PostList( { postType } ) {
 		[ postTypeActions, editAction ]
 	);
 
-	const siteSettings = useSelect( ( select ) => {
+	const additionalContext = useSelect( ( select ) => {
 		const site = select( coreStore ).getEntityRecord( 'root', 'site' );
-		return {
-			pageOnFront: site?.page_on_front,
-			pageForPosts: site?.page_for_posts,
-		};
-	} );
-
-	if ( siteSettings ) {
-		data = data.map( ( item ) => {
-			return {
-				...item,
-				additionalContext: {
-					...item.additionalContext,
-					siteSettings,
-				},
-			};
-		} );
-	}
-
-	const themeInfo = useSelect( ( select ) => {
 		const themeTemplates = select( coreStore ).getEntityRecords(
 			'postType',
 			'wp_template',
@@ -382,18 +363,17 @@ export default function PostList( { postType } ) {
 			( template ) => 'slug' in template && template.slug === 'front-page'
 		);
 		return {
+			pageOnFront: site?.page_on_front,
+			pageForPosts: site?.page_for_posts,
 			hasFrontPageTemplate,
 		};
 	} );
 
-	if ( themeInfo ) {
+	if ( additionalContext ) {
 		data = data.map( ( item ) => {
 			return {
 				...item,
-				additionalContext: {
-					...item.additionalContext,
-					themeInfo,
-				},
+				additionalContext,
 			};
 		} );
 	}

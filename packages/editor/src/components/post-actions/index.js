@@ -52,8 +52,9 @@ export default function PostActions( { postType, postId, onActionPerformed } ) {
 					postId
 				),
 				additionalContext: {
-					siteSettings: { pageOnFront, pageForPosts },
-					themeInfo: { hasFrontPageTemplate },
+					pageOnFront,
+					pageForPosts,
+					hasFrontPageTemplate,
 				},
 			};
 		},

@@ -92,13 +92,9 @@ export type PostWithPermissions = Post & {
 
 export type PostWithPermissionsAndContext = PostWithPermissions & {
 	additionalContext: {
-		siteSettings: {
-			pageOnFront?: number;
-			pageForPosts?: number;
-		};
-		themeInfo: {
-			hasFrontPageTemplate: boolean;
-		};
+		pageOnFront?: number;
+		pageForPosts?: number;
+		hasFrontPageTemplate: boolean;
 	};
 };
 

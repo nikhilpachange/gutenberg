@@ -161,9 +161,8 @@ const setAsHomepage: Action< PostWithPermissionsAndContext > = {
 	id: 'set-as-homepage',
 	label: __( 'Set as homepage' ),
 	isEligible( post ) {
-		const { pageOnFront, pageForPosts } =
-			post.additionalContext?.siteSettings;
-		const { hasFrontPageTemplate } = post.additionalContext?.themeInfo;
+		const { pageOnFront, pageForPosts, hasFrontPageTemplate } =
+			post.additionalContext;
 
 		if ( post.status === 'trash' ) {
 			return false;
