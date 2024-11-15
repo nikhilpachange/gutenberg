@@ -92,7 +92,7 @@ Undocumented declaration.
 
 ### setAsHomepage
 
-Undocumented declaration.
+This action is used to set a page as the homepage.
 
 ### slugField
 

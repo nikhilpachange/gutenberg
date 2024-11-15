@@ -186,4 +186,7 @@ const setAsHomepage: Action< PostWithPermissionsAndContext > = {
 	RenderModal: SetAsHomepageModal,
 };
 
+/**
+ * This action is used to set a page as the homepage.
+ */
 export default setAsHomepage;
