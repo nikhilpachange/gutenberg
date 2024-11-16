@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 30.5.0 (2024-11-16)
+
 ### Bug Fix
 
 -   Make `start` script more resilient for developer errors ([#66752](https://github.com/WordPress/gutenberg/pull/66752)).

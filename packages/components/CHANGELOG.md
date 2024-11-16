@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 28.12.0 (2024-11-16)
+
 ### Deprecations
 
 -   `Radio`: Deprecate 36px default size ([#66572](https://github.com/WordPress/gutenberg/pull/66572)).
