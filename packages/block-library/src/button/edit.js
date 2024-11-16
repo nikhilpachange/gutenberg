@@ -175,6 +175,9 @@ function ButtonEdit( props ) {
 	function onKeyDown( event ) {
 		if ( isKeyboardEvent.primary( event, 'k' ) ) {
 			startEditing( event );
+		} else if ( isKeyboardEvent.primaryShift( event, 'k' ) ) {
+			unlink();
+			richTextRef.current?.focus();
 		}
 	}
 
@@ -314,6 +317,7 @@ function ButtonEdit( props ) {
 						title={ __( 'Link' ) }
 						shortcut={ displayShortcut.primary( 'k' ) }
 						onClick={ () => setIsEditingURL( ! isEditingURL ) }
+						isActive={ isURLSet }
 					/>
 				) }
 			</BlockControls>
