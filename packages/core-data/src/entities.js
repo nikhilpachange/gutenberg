@@ -20,6 +20,8 @@ export const rootEntitiesConfig = [
 		name: '__unstableBase',
 		baseURL: '/',
 		baseURLParams: {
+			// Please also change the preload path when changing this.
+			// @see lib/compat/wordpress-6.8/preload.php
 			_fields: [
 				'description',
 				'gmt_offset',

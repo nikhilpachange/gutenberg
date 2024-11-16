@@ -426,7 +426,7 @@ function Layout( {
 				isDistractionFree: get( 'core', 'distractionFree' ),
 				showMetaBoxes:
 					! DESIGN_POST_TYPES.includes( currentPostType ) &&
-					isRenderingPostOnly,
+					! isZoomOut(),
 				isWelcomeGuideVisible: isFeatureActive( 'welcomeGuide' ),
 				templateId:
 					supportsTemplateMode &&

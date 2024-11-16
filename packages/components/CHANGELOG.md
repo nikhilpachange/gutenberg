@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Deprecations
+
+-   `Radio`: Deprecate 36px default size ([#66572](https://github.com/WordPress/gutenberg/pull/66572)).
+
+### Bug Fixes
+
+-   `Popover`: Fix missing label of the headerTitle Close button ([#66813](https://github.com/WordPress/gutenberg/pull/66813)).
+-   `ToggleGroupControl`: Fix active background for `0` value ([#66855](https://github.com/WordPress/gutenberg/pull/66855)).
+
+### Enhancements
+
+-   `MenuItem`: Add 40px size prop on Button ([#66596](https://github.com/WordPress/gutenberg/pull/66596)).
+-   `Guide`: Use small size button for page controls ([#66607](https://github.com/WordPress/gutenberg/pull/66607)).
+-   `PaletteEdit`: Add appropriate size props to Buttons ([#66590](https://github.com/WordPress/gutenberg/pull/66590)).
+-   `Notice`: Add appropriate size props to Buttons ([#66593](https://github.com/WordPress/gutenberg/pull/66593)).
+-   `FormTokenField`: Fix token styles ([#66640](https://github.com/WordPress/gutenberg/pull/66640)).
+
+### Internal
+
+-   `Snackbar`: Use link variant for action Button ([#66560](https://github.com/WordPress/gutenberg/pull/66560)).
+-   `BorderControl`: Remove unnecessary boolean assignments ([#66857](https://github.com/WordPress/gutenberg/pull/66857)).
+
 ## 28.11.0 (2024-10-30)
 
 ### Deprecations
@@ -18,6 +40,7 @@
 ### Enhancements
 
 -   `PaletteEdit`: use `Item` internally instead of custom styles ([#66164](https://github.com/WordPress/gutenberg/pull/66164)).
+-   `Popover`: Use small size variant for close button when `expandOnMobile` prop is enabled ([#66587](https://github.com/WordPress/gutenberg/pull/66587)).
 
 ### Experimental
 
@@ -34,6 +57,7 @@
 
 -   ESLint: Stop disabling `react-hooks/exhaustive-deps` rule ([#66324](https://github.com/WordPress/gutenberg/pull/66324)).
 -   `TabPanel`: Add 40px size prop to tab Button ([#66557](https://github.com/WordPress/gutenberg/pull/66557)).
+-   `Panel`: Add 40px size prop to Button ([#66589](https://github.com/WordPress/gutenberg/pull/66589)).
 
 ## 28.10.0 (2024-10-16)
 
