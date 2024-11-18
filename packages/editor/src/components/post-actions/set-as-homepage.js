@@ -2,14 +2,14 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { useMemo } from '@wordpress/element';
+import { useEffect, useMemo, useState } from '@wordpress/element';
 import {
 	Button,
 	__experimentalText as Text,
 	__experimentalHStack as HStack,
 	__experimentalVStack as VStack,
 } from '@wordpress/components';
-import { useDispatch, useSelect } from '@wordpress/data';
+import { useDispatch, useSelect, resolveSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { store as noticesStore } from '@wordpress/notices';
 
@@ -21,21 +21,37 @@ import { getItemTitle } from '../../utils/get-item-title';
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
-	const { currentHomePage, showOnFront } = useSelect( ( select ) => {
+	const { showOnFront, pageOnFront } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
 		const siteSettings = getEntityRecord( 'root', 'site', undefined );
-		const pageOnFront = siteSettings?.page_on_front;
 		return {
-			currentHomePage: getEntityRecord( 'postType', 'page', pageOnFront ),
 			showOnFront: siteSettings?.show_on_front,
+			pageOnFront: siteSettings?.page_on_front,
 		};
 	} );
+	const [ currentHomePageTitle, setCurrentHomePageTitle ] = useState( null );
+	const isPageDraft = item.status === 'draft';
 
+	const { getEntityRecord } = resolveSelect( coreStore );
 	const { saveEditedEntityRecord, saveEntityRecord } =
 		useDispatch( coreStore );
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
-	const isPageDraft = item.status === 'draft';
+
+	useEffect( () => {
+		const handleGetCurrentHomepage = async () => {
+			const currentHomePage = await getEntityRecord(
+				'postType',
+				'page',
+				pageOnFront
+			);
+
+			if ( currentHomePage ) {
+				setCurrentHomePageTitle( getItemTitle( currentHomePage ) );
+			}
+		};
+		handleGetCurrentHomepage();
+	}, [ getEntityRecord, pageOnFront ] );
 
 	async function onSetPageAsHomepage( event ) {
 		event.preventDefault();
@@ -121,7 +137,7 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 				{ sprintf(
 					modalTranslatedString,
 					pageTitle,
-					getItemTitle( currentHomePage )
+					currentHomePageTitle
 				) }{ ' ' }
 			</Text>
 		);
