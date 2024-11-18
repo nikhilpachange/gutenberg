@@ -9,6 +9,7 @@ import { useMemo, useEffect } from '@wordpress/element';
  */
 import { store as editorStore } from '../../store';
 import { unlock } from '../../lock-unlock';
+import { useSetAsHomepageAction } from './set-as-homepage';
 
 export function usePostActions( { postType, onActionPerformed, context } ) {
 	const { defaultActions } = useSelect(
@@ -19,6 +20,13 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 			};
 		},
 		[ postType ]
+	);
+
+	const setAsHomepageAction = useSetAsHomepageAction();
+
+	const allActions = useMemo(
+		() => [ setAsHomepageAction, ...defaultActions ],
+		[ defaultActions, setAsHomepageAction ]
 	);
 
 	const { registerPostTypeActions } = unlock( useDispatch( editorStore ) );
@@ -33,7 +41,7 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 		// Actions should also provide the `context` they support, if it's specific, to
 		// compare with the provided context to get all the actions.
 		// Right now the only supported context is `list`.
-		const actions = defaultActions.filter( ( action ) => {
+		const actions = allActions.filter( ( action ) => {
 			if ( ! action.context ) {
 				return true;
 			}
@@ -88,5 +96,5 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 		}
 
 		return actions;
-	}, [ defaultActions, onActionPerformed, context ] );
+	}, [ allActions, onActionPerformed, context ] );
 }
