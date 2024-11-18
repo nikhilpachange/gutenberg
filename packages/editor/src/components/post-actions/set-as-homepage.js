@@ -16,9 +16,7 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Internal dependencies
  */
-import { getItemTitle } from '../../../../../packages/edit-site/src/utils/get-item-title';
-
-// This action is duplicated and copied from packages/edit-site/src/components/dataviews-actions/set-as-homepage.js
+import { getItemTitle } from '../../utils/get-item-title';
 
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;

@@ -30,10 +30,7 @@ import {
 
 import AddNewPostModal from '../add-new-post';
 import { unlock } from '../../lock-unlock';
-import {
-	useEditPostAction,
-	useSetAsHomepageAction,
-} from '../dataviews-actions';
+import { useEditPostAction } from '../dataviews-actions';
 import { usePrevious } from '@wordpress/compose';
 
 const { usePostActions, usePostFields } = unlock( editorPrivateApis );
@@ -348,11 +345,10 @@ export default function PostList( { postType } ) {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
-	const setAsHomepageAction = useSetAsHomepageAction();
 
 	const actions = useMemo(
-		() => [ editAction, setAsHomepageAction, ...postTypeActions ],
-		[ postTypeActions, editAction, setAsHomepageAction ]
+		() => [ editAction, ...postTypeActions ],
+		[ postTypeActions, editAction ]
 	);
 
 	const [ showAddPostModal, setShowAddPostModal ] = useState( false );

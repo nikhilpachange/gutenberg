@@ -3,8 +3,7 @@
  */
 import { decodeEntities } from '@wordpress/html-entities';
 
-// TODO: This function is duplicated in packages/editor/src/dataviews/actions/utils.ts,
-// so they should be consolidated.
+// This function is copied from packages/editor/src/dataviews/actions/utils.ts.
 
 export function getItemTitle( item ) {
 	if ( typeof item.title === 'string' ) {
