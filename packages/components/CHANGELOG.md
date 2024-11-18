@@ -4,12 +4,26 @@
 
 ### Deprecations
 
+-   `DimensionControl`: Deprecate 36px default size ([#66705](https://github.com/WordPress/gutenberg/pull/66705)).
+
+### Bug Fixes
+
+-   `ToggleGroupControl`: Fix active background for `0` value ([#66855](https://github.com/WordPress/gutenberg/pull/66855)).
+-   `SlotFill`: Fix a bug where a stale value of `fillProps` could be used ([#67000](https://github.com/WordPress/gutenberg/pull/67000)).
+
+### Experimental
+
+-   `SlotFill`: Remove registration API methods from return value of `__experimentalUseSlot` ([#67070](https://github.com/WordPress/gutenberg/pull/67070)).
+
+## 28.12.0 (2024-11-16)
+
+### Deprecations
+
 -   `Radio`: Deprecate 36px default size ([#66572](https://github.com/WordPress/gutenberg/pull/66572)).
 
 ### Bug Fixes
 
 -   `Popover`: Fix missing label of the headerTitle Close button ([#66813](https://github.com/WordPress/gutenberg/pull/66813)).
--   `ToggleGroupControl`: Fix active background for `0` value ([#66855](https://github.com/WordPress/gutenberg/pull/66855)).
 
 ### Enhancements
 
