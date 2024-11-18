@@ -55,9 +55,11 @@ import {
 	useSyncDeprecatedEntityIntoState,
 } from './use-resolve-edited-entity';
 
-const { Editor, BackButton } = unlock( editorPrivateApis );
+const { Editor: PostTypeEditor, BackButton } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
 const { BlockKeyboardShortcuts } = unlock( blockLibraryPrivateApis );
+
+const POST_TYPES_WITH_TEMPLATE_SUPPORT = [ 'page', 'post' ];
 
 const toggleHomeIconVariants = {
 	edit: {
@@ -84,44 +86,71 @@ const siteIconVariants = {
 };
 
 export default function EditSiteEditor( { isPostsList = false } ) {
-	const disableMotion = useReducedMotion();
 	const { params } = useLocation();
 	const { canvas = 'view' } = params;
-	const isLoading = useIsSiteEditorLoading();
 	useAdaptEditorToCanvas( canvas );
 	const entity = useResolveEditedEntity();
 	// deprecated sync state with url
 	useSyncDeprecatedEntityIntoState( entity );
 	const { postType, postId, context } = entity;
+	const postWithTemplate = !! context?.postId;
+
+	return (
+		<Editor
+			postType={ postWithTemplate ? context?.postType : postType }
+			postId={ postWithTemplate ? context?.postId : postId }
+			isPostsList={ isPostsList }
+		/>
+	);
+}
+
+export function Editor( { postType, postId, isPostsList = false } ) {
+	const disableMotion = useReducedMotion();
+	const { params } = useLocation();
+	const { canvas = 'view' } = params;
+	const isLoading = useIsSiteEditorLoading();
+	useAdaptEditorToCanvas( canvas );
 	const {
 		supportsGlobalStyles,
 		showIconLabels,
 		editorCanvasView,
 		currentPostIsTrashed,
 		hasSiteIcon,
-	} = useSelect( ( select ) => {
-		const { getEditorCanvasContainerView } = unlock(
-			select( editSiteStore )
-		);
-		const { get } = select( preferencesStore );
-		const { getCurrentTheme, getEntityRecord } = select( coreDataStore );
-		const siteData = getEntityRecord( 'root', '__unstableBase', undefined );
+		templateId,
+	} = useSelect(
+		( select ) => {
+			const { getEditorCanvasContainerView } = unlock(
+				select( editSiteStore )
+			);
+			const { get } = select( preferencesStore );
+			const { getCurrentTheme, getEntityRecord, getTemplateId } = unlock(
+				select( coreDataStore )
+			);
+			const siteData = getEntityRecord(
+				'root',
+				'__unstableBase',
+				undefined
+			);
 
-		return {
-			supportsGlobalStyles: getCurrentTheme()?.is_block_theme,
-			showIconLabels: get( 'core', 'showIconLabels' ),
-			editorCanvasView: getEditorCanvasContainerView(),
-			currentPostIsTrashed:
-				select( editorStore ).getCurrentPostAttribute( 'status' ) ===
-				'trash',
-			hasSiteIcon: !! siteData?.site_icon_url,
-		};
-	}, [] );
-	const postWithTemplate = !! context?.postId;
-	useEditorTitle(
-		postWithTemplate ? context.postType : postType,
-		postWithTemplate ? context.postId : postId
+			return {
+				supportsGlobalStyles: getCurrentTheme()?.is_block_theme,
+				showIconLabels: get( 'core', 'showIconLabels' ),
+				editorCanvasView: getEditorCanvasContainerView(),
+				currentPostIsTrashed:
+					select( editorStore ).getCurrentPostAttribute(
+						'status'
+					) === 'trash',
+				hasSiteIcon: !! siteData?.site_icon_url,
+				templateId: POST_TYPES_WITH_TEMPLATE_SUPPORT.includes(
+					postType
+				)
+					? getTemplateId( postType, postId )
+					: undefined,
+			};
+		},
+		[ postId, postType ]
 	);
+	useEditorTitle( postType, postId );
 	const _isPreviewingTheme = isPreviewingTheme();
 	const hasDefaultEditorCanvasView = ! useHasEditorCanvasContainer();
 	const iframeProps = useEditorIframeProps();
@@ -130,10 +159,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 		CanvasLoader,
 		'edit-site-editor__loading-progress'
 	);
-
-	const settings = useSpecificEditorSettings(
-		!! context?.postId && context?.postType !== 'post'
-	);
+	const settings = useSpecificEditorSettings( postType === 'page' );
 	const styles = useMemo(
 		() => [
 			...settings.styles,
@@ -217,16 +243,12 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 			<EditorKeyboardShortcutsRegister />
 			{ isEditMode && <BlockKeyboardShortcuts /> }
 			{ ! isReady ? <CanvasLoader id={ loadingProgressId } /> : null }
-			{ isEditMode && (
-				<WelcomeGuide
-					postType={ postWithTemplate ? context.postType : postType }
-				/>
-			) }
+			{ isEditMode && <WelcomeGuide postType={ postType } /> }
 			{ isReady && (
-				<Editor
-					postType={ postWithTemplate ? context.postType : postType }
-					postId={ postWithTemplate ? context.postId : postId }
-					templateId={ postWithTemplate ? postId : undefined }
+				<PostTypeEditor
+					postType={ postType }
+					postId={ postId }
+					templateId={ templateId }
 					settings={ settings }
 					className={ clsx( 'edit-site-editor__editor-interface', {
 						'show-icon-labels': showIconLabels,
@@ -241,9 +263,9 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					iframeProps={ iframeProps }
 					onActionPerformed={ onActionPerformed }
 					extraSidebarPanels={
-						! postWithTemplate && (
-							<PluginTemplateSettingPanel.Slot />
-						)
+						! POST_TYPES_WITH_TEMPLATE_SUPPORT.includes(
+							postType
+						) && <PluginTemplateSettingPanel.Slot />
 					}
 				>
 					{ isEditMode && (
@@ -323,7 +345,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					) }
 					<SiteEditorMoreMenu />
 					{ supportsGlobalStyles && <GlobalStylesSidebar /> }
-				</Editor>
+				</PostTypeEditor>
 			) }
 		</>
 	);

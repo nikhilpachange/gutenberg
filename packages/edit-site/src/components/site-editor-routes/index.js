@@ -9,8 +9,7 @@ import { useEffect } from '@wordpress/element';
  */
 import { unlock } from '../../lock-unlock';
 import { store as siteEditorStore } from '../../store';
-import { homeViewRoute } from './home-view';
-import { homeEditRoute } from './home-edit';
+import { homeRoute } from './home';
 import { navigationViewRoute } from './navigation-view';
 import { navigationEditRoute } from './navigation-edit';
 import { navigationItemEditRoute } from './navigation-item-edit';
@@ -43,8 +42,7 @@ const routes = [
 	navigationItemEditRoute,
 	navigationViewRoute,
 	navigationEditRoute,
-	homeViewRoute,
-	homeEditRoute,
+	homeRoute,
 ];
 
 export function useRegisterSiteEditorRoutes() {
