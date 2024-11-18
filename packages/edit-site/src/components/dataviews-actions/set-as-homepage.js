@@ -16,7 +16,6 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Internal dependencies
  */
-import { PAGE_POST_TYPE } from '../../utils/constants';
 import { getItemTitle } from '../../utils/get-item-title';
 
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
@@ -196,7 +195,7 @@ export const useSetAsHomepageAction = () => {
 					return false;
 				}
 
-				if ( post.type !== PAGE_POST_TYPE ) {
+				if ( post.type !== 'page' ) {
 					return false;
 				}
 

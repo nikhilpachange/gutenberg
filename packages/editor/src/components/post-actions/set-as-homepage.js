@@ -16,7 +16,6 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Internal dependencies
  */
-import { PAGE_POST_TYPE } from '../../../../../packages/edit-site/src/utils/constants';
 import { getItemTitle } from '../../../../../packages/edit-site/src/utils/get-item-title';
 
 // This action is duplicated and copied from packages/edit-site/src/components/dataviews-actions/set-as-homepage.js
@@ -198,7 +197,7 @@ export const useSetAsHomepageAction = () => {
 					return false;
 				}
 
-				if ( post.type !== PAGE_POST_TYPE ) {
+				if ( post.type !== 'page' ) {
 					return false;
 				}
 
