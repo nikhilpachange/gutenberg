@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Bug Fix
+
+-   Revert changes from [#61121](https://github.com/WordPress/gutenberg/pull/61121) that inlined CSS files imported from other CSS files before optimization in the `build` command.
+
 ## 30.5.0 (2024-11-16)
 
 ### Bug Fix
