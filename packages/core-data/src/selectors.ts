@@ -350,7 +350,7 @@ export const getEntityRecord = createSelector(
 		state: State,
 		kind: string,
 		name: string,
-		key: EntityRecordKey,
+		key?: EntityRecordKey,
 		query?: GetRecordsHttpQuery
 	): EntityRecord | undefined => {
 		const queriedState =
