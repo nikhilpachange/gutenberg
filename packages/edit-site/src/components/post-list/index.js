@@ -345,7 +345,6 @@ export default function PostList( { postType } ) {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
-
 	const actions = useMemo(
 		() => [ editAction, ...postTypeActions ],
 		[ postTypeActions, editAction ]
