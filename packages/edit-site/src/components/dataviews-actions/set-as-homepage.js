@@ -36,14 +36,14 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 		useDispatch( coreStore );
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
-	const pageIsDraft = item.status === 'draft';
+	const isPageDraft = item.status === 'draft';
 
 	async function onSetPageAsHomepage( event ) {
 		event.preventDefault();
 
 		try {
 			// If selected page is set to draft, publish the page.
-			if ( pageIsDraft ) {
+			if ( isPageDraft ) {
 				await saveEntityRecord( 'postType', 'page', {
 					...item,
 					status: 'publish',
@@ -95,14 +95,14 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 			);
 		}
 
-		if ( pageIsDraft ) {
+		if ( isPageDraft ) {
 			return (
 				<>
 					<Text>
 						{ sprintf(
 							// translators: %s: title of the page to be set as the homepage.
 							__(
-								'"%s" is a draft and will be published automatically if set as the homepage. Set as the site homepage and publish?'
+								'"%s" is a draft and will be published automatically if set as the homepage. Publish page and set as the site homepage?'
 							),
 							pageTitle
 						) }
@@ -149,7 +149,7 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 					>
 						{
 							// translators: Button to confirm setting the specified page as the homepage.
-							pageIsDraft
+							isPageDraft
 								? __( 'Publish and set homepage' )
 								: __( 'Set homepage' )
 						}
