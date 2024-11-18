@@ -94,9 +94,6 @@ export default {
 		onChange,
 		layoutBlockSupport,
 	} ) {
-		if ( layoutBlockSupport?.allowSwitching ) {
-			return null;
-		}
 		const { allowVerticalAlignment = true } = layoutBlockSupport;
 		return (
 			<BlockControls group="block" __experimentalShareWithChildBlocks>
