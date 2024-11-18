@@ -17,19 +17,22 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { getItemTitle } from '../../utils/get-item-title';
+import { unlock } from '../../lock-unlock';
 
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
-	const { showOnFront, pageOnFront } = useSelect( ( select ) => {
+	const { showOnFront, currentHomePage } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
+		const { getHomePage } = unlock( select( coreStore ) );
 		const siteSettings = getEntityRecord( 'root', 'site', undefined );
+		const homePage = getHomePage();
 		return {
 			showOnFront: siteSettings?.show_on_front,
-			pageOnFront: siteSettings?.page_on_front,
+			currentHomePage: homePage.postId,
 		};
 	} );
-	const [ currentHomePageTitle, setCurrentHomePageTitle ] = useState( null );
+	const [ currentHomePageTitle, setCurrentHomePageTitle ] = useState( '' );
 	const isPageDraft = item.status === 'draft';
 
 	const { getEntityRecord } = resolveSelect( coreStore );
@@ -40,18 +43,15 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 
 	useEffect( () => {
 		const handleGetCurrentHomepage = async () => {
-			const currentHomePage = await getEntityRecord(
+			const currentHomePageItem = await getEntityRecord(
 				'postType',
 				'page',
-				pageOnFront
+				currentHomePage
 			);
-
-			if ( currentHomePage ) {
-				setCurrentHomePageTitle( getItemTitle( currentHomePage ) );
-			}
+			setCurrentHomePageTitle( getItemTitle( currentHomePageItem ) );
 		};
 		handleGetCurrentHomepage();
-	}, [ getEntityRecord, pageOnFront ] );
+	}, [ currentHomePage, getEntityRecord ] );
 
 	async function onSetPageAsHomepage( event ) {
 		event.preventDefault();
