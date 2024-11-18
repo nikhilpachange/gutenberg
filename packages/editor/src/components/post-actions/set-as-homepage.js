@@ -176,29 +176,12 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 };
 
 export const useSetAsHomepageAction = () => {
-	const {
-		canManageOptions,
-		hasFrontPageTemplate,
-		pageOnFront,
-		pageForPosts,
-	} = useSelect( ( select ) => {
-		const { getEntityRecord, getEntityRecords } = select( coreStore );
+	const { pageOnFront, pageForPosts } = useSelect( ( select ) => {
+		const { getEntityRecord } = select( coreStore );
 		const siteSettings = getEntityRecord( 'root', 'site', undefined );
-		const templates = getEntityRecords( 'postType', 'wp_template', {
-			per_page: -1,
-		} );
-
 		return {
 			pageOnFront: siteSettings?.page_on_front,
 			pageForPosts: siteSettings?.page_for_posts,
-			canManageOptions: select( coreStore ).canUser( 'update', {
-				kind: 'root',
-				name: 'site',
-			} ),
-			hasFrontPageTemplate: !! templates?.find(
-				( template ) =>
-					'slug' in template && template.slug === 'front-page'
-			),
 		};
 	} );
 
@@ -225,21 +208,10 @@ export const useSetAsHomepageAction = () => {
 					return false;
 				}
 
-				// Don't show the action if the user can't manage site options.
-				if ( ! canManageOptions ) {
-					return false;
-				}
-
-				// A front-page template overrides homepage settings,
-				// so don't show the setAsHomepage action if it's present.
-				if ( hasFrontPageTemplate ) {
-					return false;
-				}
-
 				return true;
 			},
 			RenderModal: SetAsHomepageModal,
 		} ),
-		[ canManageOptions, hasFrontPageTemplate, pageForPosts, pageOnFront ]
+		[ pageForPosts, pageOnFront ]
 	);
 };

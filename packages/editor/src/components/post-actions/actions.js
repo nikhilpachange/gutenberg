@@ -3,6 +3,7 @@
  */
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useMemo, useEffect } from '@wordpress/element';
+import { store as coreStore } from '@wordpress/core-data';
 
 /**
  * Internal dependencies
@@ -22,12 +23,29 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 		[ postType ]
 	);
 
-	const setAsHomepageAction = useSetAsHomepageAction();
+	const { canManageOptions, hasFrontPageTemplate } = useSelect(
+		( select ) => {
+			const { getEntityRecords } = select( coreStore );
+			const templates = getEntityRecords( 'postType', 'wp_template', {
+				per_page: -1,
+			} );
 
-	const allActions = useMemo(
-		() => [ setAsHomepageAction, ...defaultActions ],
-		[ defaultActions, setAsHomepageAction ]
+			return {
+				canManageOptions: select( coreStore ).canUser( 'update', {
+					kind: 'root',
+					name: 'site',
+				} ),
+				hasFrontPageTemplate: !! templates?.find(
+					( template ) =>
+						'slug' in template && template.slug === 'front-page'
+				),
+			};
+		}
 	);
+
+	const setAsHomepageAction = useSetAsHomepageAction();
+	const shouldShowSetAsHomepageAction =
+		canManageOptions || ! hasFrontPageTemplate;
 
 	const { registerPostTypeActions } = unlock( useDispatch( editorStore ) );
 	useEffect( () => {
@@ -35,13 +53,17 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 	}, [ registerPostTypeActions, postType ] );
 
 	return useMemo( () => {
+		let actions = [
+			shouldShowSetAsHomepageAction ? setAsHomepageAction : [],
+			...defaultActions,
+		];
 		// Filter actions based on provided context. If not provided
 		// all actions are returned. We'll have a single entry for getting the actions
 		// and the consumer should provide the context to filter the actions, if needed.
 		// Actions should also provide the `context` they support, if it's specific, to
 		// compare with the provided context to get all the actions.
 		// Right now the only supported context is `list`.
-		const actions = allActions.filter( ( action ) => {
+		actions = actions.filter( ( action ) => {
 			if ( ! action.context ) {
 				return true;
 			}
@@ -96,5 +118,11 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 		}
 
 		return actions;
-	}, [ allActions, onActionPerformed, context ] );
+	}, [
+		context,
+		defaultActions,
+		onActionPerformed,
+		setAsHomepageAction,
+		shouldShowSetAsHomepageAction,
+	] );
 }
