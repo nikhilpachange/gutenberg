@@ -25,7 +25,7 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const { showOnFront, currentHomePage } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
 		const { getHomePage } = unlock( select( coreStore ) );
-		const siteSettings = getEntityRecord( 'root', 'site', undefined );
+		const siteSettings = getEntityRecord( 'root', 'site' );
 		const homePage = getHomePage();
 		return {
 			showOnFront: siteSettings?.show_on_front,
@@ -178,7 +178,7 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 export const useSetAsHomepageAction = () => {
 	const { pageOnFront, pageForPosts } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
-		const siteSettings = getEntityRecord( 'root', 'site', undefined );
+		const siteSettings = getEntityRecord( 'root', 'site' );
 		return {
 			pageOnFront: siteSettings?.page_on_front,
 			pageForPosts: siteSettings?.page_for_posts,
