@@ -108,6 +108,11 @@ export const STYLE_BOOK_THEME_SUBCATEGORIES: Omit<
 
 export const STYLE_BOOK_CATEGORIES: StyleBookCategory[] = [
 	{
+		slug: 'overview',
+		title: __( 'Overview' ),
+		blocks: [],
+	},
+	{
 		slug: 'text',
 		title: __( 'Text' ),
 		blocks: [
@@ -248,6 +253,10 @@ export const STYLE_BOOK_IFRAME_STYLES = `
 
 	.edit-site-style-book__example-preview {
 		width: 100%;
+	}
+	
+	.is-wide .edit-site-style-book__example-preview {
+		width: calc(100% - 120px);
 	}
 
 	.edit-site-style-book__example-preview .block-editor-block-list__insertion-point,

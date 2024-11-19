@@ -13,24 +13,18 @@ import {
 	__experimentalConfirmDialog as ConfirmDialog,
 	Button,
 	DropdownMenu,
-	TextareaControl,
 	Tooltip,
 } from '@wordpress/components';
-import {
-	dateI18n,
-	format,
-	getSettings as getDateSettings,
-} from '@wordpress/date';
 import { Icon, check, published, moreVertical } from '@wordpress/icons';
 import { __, _x } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
-import { useEntityProp } from '@wordpress/core-data';
 import { store as blockEditorStore } from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
  */
-import { sanitizeCommentString } from './utils';
+import CommentAuthorInfo from './comment-author-info';
+import CommentForm from './comment-form';
 
 /**
  * Renders the Comments component.
@@ -131,6 +125,7 @@ export function Comments( {
 									} }
 									onCancel={ () => setActionState( false ) }
 									thread={ thread }
+									submitButtonText={ _x( 'Update', 'verb' ) }
 								/>
 							) }
 						{ ( ! actionState ||
@@ -213,16 +208,35 @@ export function Comments( {
 						spacing="3"
 					>
 						<CommentBoard thread={ thread } />
+						{ 0 < thread?.reply?.length &&
+							thread.reply.map( ( reply ) => (
+								<VStack
+									key={ reply.id }
+									className="editor-collab-sidebar-panel__child-thread"
+									id={ reply.id }
+									spacing="2"
+								>
+									<CommentBoard
+										thread={ reply }
+										parentThread={ thread }
+									/>
+								</VStack>
+							) ) }
 						{ ( ( showCommentBoard &&
 							blockCommentId === thread.id ) ||
 							( 'reply' === actionState?.action &&
 								thread.id === actionState?.id ) ) && (
-							<HStack
-								alignment="left"
-								spacing="3"
-								justify="flex-start"
-								className="editor-collab-sidebar-panel__user-comment"
+							<VStack
+								className="editor-collab-sidebar-panel__child-thread"
+								spacing="2"
 							>
+								<HStack
+									alignment="left"
+									spacing="3"
+									justify="flex-start"
+								>
+									<CommentAuthorInfo />
+								</HStack>
 								<VStack
 									spacing="3"
 									className="editor-collab-sidebar-panel__comment-field"
@@ -239,71 +253,16 @@ export function Comments( {
 											setActionState( false );
 											setShowCommentBoard( false );
 										} }
+										submitButtonText={ _x(
+											'Reply',
+											'Add reply comment'
+										) }
 									/>
 								</VStack>
-							</HStack>
+							</VStack>
 						) }
-						{ 0 < thread?.reply?.length &&
-							thread.reply.map( ( reply ) => (
-								<VStack
-									key={ reply.id }
-									className="editor-collab-sidebar-panel__child-thread"
-									id={ reply.id }
-									spacing="2"
-								>
-									<CommentBoard
-										thread={ reply }
-										parentThread={ thread }
-									/>
-								</VStack>
-							) ) }
 					</VStack>
 				) ) }
-		</>
-	);
-}
-
-/**
- * EditComment component.
- *
- * @param {Object}   props          - The component props.
- * @param {Function} props.onSubmit - The function to call when updating the comment.
- * @param {Function} props.onCancel - The function to call when canceling the comment update.
- * @param {Object}   props.thread   - The comment thread object.
- * @return {JSX.Element} The CommentForm component.
- */
-function CommentForm( { onSubmit, onCancel, thread } ) {
-	const [ inputComment, setInputComment ] = useState(
-		thread?.content?.raw ?? ''
-	);
-
-	return (
-		<>
-			<TextareaControl
-				__nextHasNoMarginBottom
-				value={ inputComment ?? '' }
-				onChange={ setInputComment }
-			/>
-			<VStack alignment="left" spacing="3" justify="flex-start">
-				<HStack alignment="left" spacing="3" justify="flex-start">
-					<Button
-						__next40pxDefaultSize
-						accessibleWhenDisabled
-						variant="primary"
-						onClick={ () => onSubmit( inputComment ) }
-						disabled={
-							0 === sanitizeCommentString( inputComment ).length
-						}
-					>
-						{ thread
-							? _x( 'Update', 'verb' )
-							: _x( 'Reply', 'Add reply comment' ) }
-					</Button>
-					<Button __next40pxDefaultSize onClick={ onCancel }>
-						{ _x( 'Cancel', 'Cancel comment edit' ) }
-					</Button>
-				</HStack>
-			</VStack>
 		</>
 	);
 }
@@ -328,13 +287,6 @@ function CommentHeader( {
 	onReply,
 	status,
 } ) {
-	const dateSettings = getDateSettings();
-	const [ dateTimeFormat = dateSettings.formats.time ] = useEntityProp(
-		'root',
-		'site',
-		'time_format'
-	);
-
 	const actions = [
 		{
 			title: _x( 'Edit', 'Edit comment' ),
@@ -354,29 +306,15 @@ function CommentHeader( {
 
 	return (
 		<HStack alignment="left" spacing="3" justify="flex-start">
-			<img
-				src={ thread?.author_avatar_urls?.[ 48 ] }
-				className="editor-collab-sidebar-panel__user-avatar"
-				// translators: alt text for user avatar image
-				alt={ __( 'User avatar' ) }
-				width={ 32 }
-				height={ 32 }
+			<CommentAuthorInfo
+				avatar={ thread?.author_avatar_urls?.[ 48 ] }
+				name={ thread?.author_name }
+				date={ thread?.date }
 			/>
-			<VStack spacing="0">
-				<span className="editor-collab-sidebar-panel__user-name">
-					{ thread.author_name }
-				</span>
-				<time
-					dateTime={ format( 'h:i A', thread.date ) }
-					className="editor-collab-sidebar-panel__user-time"
-				>
-					{ dateI18n( dateTimeFormat, thread.date ) }
-				</time>
-			</VStack>
 			<span className="editor-collab-sidebar-panel__comment-status">
 				{ status !== 'approved' && (
 					<HStack alignment="right" justify="flex-end" spacing="0">
-						{ 0 === thread.parent && onResolve && (
+						{ 0 === thread?.parent && onResolve && (
 							<Button
 								label={ _x(
 									'Resolve',
