@@ -49,6 +49,11 @@ import useEditorIframeProps from '../block-editor/use-editor-iframe-props';
 import useEditorTitle from './use-editor-title';
 import { useIsSiteEditorLoading } from '../layout/hooks';
 import { useAdaptEditorToCanvas } from './use-adapt-editor-to-canvas';
+import { TEMPLATE_POST_TYPE } from '../../utils/constants';
+import {
+	useResolveEditedEntity,
+	useSyncDeprecatedEntityIntoState,
+} from './use-resolve-edited-entity';
 
 const { Editor, BackButton } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
@@ -84,38 +89,25 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 	const { canvas = 'view' } = params;
 	const isLoading = useIsSiteEditorLoading();
 	useAdaptEditorToCanvas( canvas );
+	const entity = useResolveEditedEntity();
+	// deprecated sync state with url
+	useSyncDeprecatedEntityIntoState( entity );
+	const { postType, postId, context } = entity;
 	const {
-		editedPostType,
-		editedPostId,
-		contextPostType,
-		contextPostId,
-		isEditingPage,
 		supportsGlobalStyles,
 		showIconLabels,
 		editorCanvasView,
 		currentPostIsTrashed,
 		hasSiteIcon,
 	} = useSelect( ( select ) => {
-		const {
-			getEditorCanvasContainerView,
-			getEditedPostContext,
-			isPage,
-			getEditedPostType,
-			getEditedPostId,
-		} = unlock( select( editSiteStore ) );
+		const { getEditorCanvasContainerView } = unlock(
+			select( editSiteStore )
+		);
 		const { get } = select( preferencesStore );
 		const { getCurrentTheme, getEntityRecord } = select( coreDataStore );
-		const _context = getEditedPostContext();
 		const siteData = getEntityRecord( 'root', '__unstableBase', undefined );
 
-		// The currently selected entity to display.
-		// Typically template or template part in the site editor.
 		return {
-			editedPostType: getEditedPostType(),
-			editedPostId: getEditedPostId(),
-			contextPostType: _context?.postId ? _context.postType : undefined,
-			contextPostId: _context?.postId ? _context.postId : undefined,
-			isEditingPage: isPage(),
 			supportsGlobalStyles: getCurrentTheme()?.is_block_theme,
 			showIconLabels: get( 'core', 'showIconLabels' ),
 			editorCanvasView: getEditorCanvasContainerView(),
@@ -125,18 +117,23 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 			hasSiteIcon: !! siteData?.site_icon_url,
 		};
 	}, [] );
-	useEditorTitle();
+	const postWithTemplate = !! context?.postId;
+	useEditorTitle(
+		postWithTemplate ? context.postType : postType,
+		postWithTemplate ? context.postId : postId
+	);
 	const _isPreviewingTheme = isPreviewingTheme();
 	const hasDefaultEditorCanvasView = ! useHasEditorCanvasContainer();
 	const iframeProps = useEditorIframeProps();
 	const isEditMode = canvas === 'edit';
-	const postWithTemplate = !! contextPostId;
 	const loadingProgressId = useInstanceId(
 		CanvasLoader,
 		'edit-site-editor__loading-progress'
 	);
 
-	const settings = useSpecificEditorSettings();
+	const settings = useSpecificEditorSettings(
+		!! context?.postId && context?.postType !== 'post'
+	);
 	const styles = useMemo(
 		() => [
 			...settings.styles,
@@ -153,9 +150,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 		],
 		[ settings.styles, canvas, currentPostIsTrashed ]
 	);
-	const { __unstableSetEditorMode, resetZoomLevel } = unlock(
-		useDispatch( blockEditorStore )
-	);
+	const { resetZoomLevel } = unlock( useDispatch( blockEditorStore ) );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const history = useHistory();
 	const onActionPerformed = useCallback(
@@ -178,7 +173,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 								: newItem.title?.rendered;
 						createSuccessNotice(
 							sprintf(
-								// translators: %s: Title of the created post e.g: "Post 1".
+								// translators: %s: Title of the created post or template, e.g: "Hello world".
 								__( '"%s" successfully created.' ),
 								decodeEntities( _title )
 							),
@@ -216,18 +211,22 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 
 	return (
 		<>
-			<GlobalStylesRenderer />
+			<GlobalStylesRenderer
+				disableRootPadding={ postType !== TEMPLATE_POST_TYPE }
+			/>
 			<EditorKeyboardShortcutsRegister />
 			{ isEditMode && <BlockKeyboardShortcuts /> }
 			{ ! isReady ? <CanvasLoader id={ loadingProgressId } /> : null }
-			{ isEditMode && <WelcomeGuide /> }
+			{ isEditMode && (
+				<WelcomeGuide
+					postType={ postWithTemplate ? context.postType : postType }
+				/>
+			) }
 			{ isReady && (
 				<Editor
-					postType={
-						postWithTemplate ? contextPostType : editedPostType
-					}
-					postId={ postWithTemplate ? contextPostId : editedPostId }
-					templateId={ postWithTemplate ? editedPostId : undefined }
+					postType={ postWithTemplate ? context.postType : postType }
+					postId={ postWithTemplate ? context.postId : postId }
+					templateId={ postWithTemplate ? postId : undefined }
 					settings={ settings }
 					className={ clsx( 'edit-site-editor__editor-interface', {
 						'show-icon-labels': showIconLabels,
@@ -242,7 +241,9 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 					iframeProps={ iframeProps }
 					onActionPerformed={ onActionPerformed }
 					extraSidebarPanels={
-						! isEditingPage && <PluginTemplateSettingPanel.Slot />
+						! postWithTemplate && (
+							<PluginTemplateSettingPanel.Slot />
+						)
 					}
 				>
 					{ isEditMode && (
@@ -263,9 +264,6 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 											showTooltip
 											tooltipPosition="middle right"
 											onClick={ () => {
-												__unstableSetEditorMode(
-													'edit'
-												);
 												resetZoomLevel();
 
 												// TODO: this is a temporary solution to navigate to the posts list if we are

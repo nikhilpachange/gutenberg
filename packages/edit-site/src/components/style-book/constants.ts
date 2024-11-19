@@ -108,6 +108,11 @@ export const STYLE_BOOK_THEME_SUBCATEGORIES: Omit<
 
 export const STYLE_BOOK_CATEGORIES: StyleBookCategory[] = [
 	{
+		slug: 'overview',
+		title: __( 'Overview' ),
+		blocks: [],
+	},
+	{
 		slug: 'text',
 		title: __( 'Text' ),
 		blocks: [
@@ -143,6 +148,13 @@ export const STYLE_BOOK_CATEGORIES: StyleBookCategory[] = [
 	},
 ];
 
+// Forming a "block formatting context" to prevent margin collapsing.
+// @see https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context
+const ROOT_CONTAINER = `
+	.is-root-container {
+		display: flow-root;
+	}
+`;
 // The content area of the Style Book is rendered within an iframe so that global styles
 // are applied to elements within the entire content area. To support elements that are
 // not part of the block previews, such as headings and layout for the block previews,
@@ -151,16 +163,12 @@ export const STYLE_BOOK_CATEGORIES: StyleBookCategory[] = [
 // applied to the `button` element, targeted via `.edit-site-style-book__example`.
 // This is to ensure that browser default styles for buttons are not applied to the previews.
 export const STYLE_BOOK_IFRAME_STYLES = `
-	// Forming a "block formatting context" to prevent margin collapsing.
-	// @see https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Block_formatting_context
-	.is-root-container {
-		display: flow-root;
-	}
-
 	body {
 		position: relative;
 		padding: 32px !important;
 	}
+
+	${ ROOT_CONTAINER }
 
 	.edit-site-style-book__examples {
 		max-width: 1200px;
@@ -246,16 +254,19 @@ export const STYLE_BOOK_IFRAME_STYLES = `
 	.edit-site-style-book__example-preview {
 		width: 100%;
 	}
+	
+	.is-wide .edit-site-style-book__example-preview {
+		width: calc(100% - 120px);
+	}
 
 	.edit-site-style-book__example-preview .block-editor-block-list__insertion-point,
 	.edit-site-style-book__example-preview .block-list-appender {
 		display: none;
 	}
-
-	.edit-site-style-book__example-preview .is-root-container > .wp-block:first-child {
+	:where(.is-root-container > .wp-block:first-child) {
 		margin-top: 0;
 	}
-	.edit-site-style-book__example-preview .is-root-container > .wp-block:last-child {
+	:where(.is-root-container > .wp-block:last-child) {
 		margin-bottom: 0;
 	}
 `;

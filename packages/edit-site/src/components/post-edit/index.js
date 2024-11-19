@@ -18,10 +18,17 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
  * Internal dependencies
  */
 import Page from '../page';
-import usePostFields from '../post-fields';
 import { unlock } from '../../lock-unlock';
 
-const { PostCardPanel } = unlock( editorPrivateApis );
+const { PostCardPanel, usePostFields } = unlock( editorPrivateApis );
+
+const fieldsWithBulkEditSupport = [
+	'title',
+	'status',
+	'date',
+	'author',
+	'comment_status',
+];
 
 function PostEditForm( { postType, postId } ) {
 	const ids = useMemo( () => postId.split( ',' ), [ postId ] );
@@ -58,26 +65,36 @@ function PostEditForm( { postType, postId } ) {
 			} ),
 		[ _fields ]
 	);
-	const form = {
-		type: 'panel',
-		fields: [
-			'featured_media',
-			'title',
-			'author',
-			'date',
-			'slug',
-			'comment_status',
-		],
-	};
 
-	const fieldsWithBulkEditSupport = [
-		'title',
-		'status',
-		'date',
-		'author',
-		'comment_status',
-	];
-
+	const form = useMemo(
+		() => ( {
+			type: 'panel',
+			fields: [
+				'featured_media',
+				'title',
+				'status_and_visibility',
+				'author',
+				'date',
+				'slug',
+				'parent',
+				'comment_status',
+			].filter(
+				( field ) =>
+					ids.length === 1 ||
+					fieldsWithBulkEditSupport.includes( field )
+			),
+			combinedFields: [
+				{
+					id: 'status_and_visibility',
+					label: __( 'Status & Visibility' ),
+					children: [ 'status', 'password' ],
+					direction: 'vertical',
+					render: ( { item } ) => item.status,
+				},
+			],
+		} ),
+		[ ids ]
+	);
 	const onChange = ( edits ) => {
 		for ( const id of ids ) {
 			if (
@@ -116,16 +133,7 @@ function PostEditForm( { postType, postId } ) {
 			<DataForm
 				data={ ids.length === 1 ? record : multiEdits }
 				fields={ fields }
-				form={
-					ids.length === 1
-						? form
-						: {
-								...form,
-								fields: form.fields.filter( ( field ) =>
-									fieldsWithBulkEditSupport.includes( field )
-								),
-						  }
-				}
+				form={ form }
 				onChange={ onChange }
 			/>
 		</VStack>

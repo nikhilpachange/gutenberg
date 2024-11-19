@@ -124,6 +124,11 @@ export type Field< Item > = {
 	isValid?: ( item: Item, context?: ValidationContext ) => boolean;
 
 	/**
+	 * Callback used to decide if a field should be displayed.
+	 */
+	isVisible?: ( item: Item ) => boolean;
+
+	/**
 	 * Whether the field is sortable.
 	 */
 	enableSorting?: boolean;
@@ -493,6 +498,8 @@ export interface ViewBaseProps< Item > {
 	onChangeSelection: SetSelection;
 	selection: string[];
 	setOpenedFilter: ( fieldId: string ) => void;
+	onClickItem: ( item: Item ) => void;
+	isItemClickable: ( item: Item ) => boolean;
 	view: View;
 	density: number;
 }

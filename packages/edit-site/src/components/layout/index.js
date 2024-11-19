@@ -35,8 +35,7 @@ import ErrorBoundary from '../error-boundary';
 import { default as SiteHub, SiteHubMobile } from '../site-hub';
 import ResizableFrame from '../resizable-frame';
 import { unlock } from '../../lock-unlock';
-import KeyboardShortcutsRegister from '../keyboard-shortcuts/register';
-import KeyboardShortcutsGlobal from '../keyboard-shortcuts/global';
+import SaveKeyboardShortcut from '../save-keyboard-shortcut';
 import { useIsSiteEditorLoading } from './hooks';
 import useMovingAnimation from './animation';
 import SidebarContent from '../sidebar';
@@ -75,14 +74,12 @@ export default function Layout( { route } ) {
 			toggleRef.current?.focus();
 		}
 		// Should not depend on the previous canvas mode value but the next.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ canvas ] );
 
 	return (
 		<>
 			<CommandMenu />
-			<KeyboardShortcutsRegister />
-			<KeyboardShortcutsGlobal />
+			{ canvas === 'view' && <SaveKeyboardShortcut /> }
 			<div
 				{ ...navigateRegionsProps }
 				ref={ navigateRegionsProps.ref }
@@ -128,7 +125,12 @@ export default function Layout( { route } ) {
 												isResizableFrameOversized
 											}
 										/>
-										<SidebarContent routeKey={ routeKey }>
+										<SidebarContent
+											shouldAnimate={
+												routeKey !== 'styles-view'
+											}
+											routeKey={ routeKey }
+										>
 											{ areas.sidebar }
 										</SidebarContent>
 										<SaveHub />

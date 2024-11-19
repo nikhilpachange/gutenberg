@@ -29,34 +29,28 @@ function useNavigateToPreviousEntityRecord() {
 			previousLocation?.params.canvas === 'edit';
 		const showBackButton = isFocusMode && didComeFromEditorCanvas;
 		return showBackButton ? () => history.back() : undefined;
-		// Disable reason: previousLocation changes when the component updates for any reason, not
+		// `previousLocation` changes when the component updates for any reason, not
 		// just when location changes. Until this is fixed we can't add it to deps. See
 		// https://github.com/WordPress/gutenberg/pull/58710#discussion_r1479219465.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ location, history ] );
 	return goBack;
 }
 
-export function useSpecificEditorSettings() {
+export function useSpecificEditorSettings(
+	shouldUseTemplateAsDefaultRenderingMode
+) {
 	const { params } = useLocation();
 	const { canvas = 'view' } = params;
 	const onNavigateToEntityRecord = useNavigateToEntityRecord();
-	const { settings, shouldUseTemplateAsDefaultRenderingMode } = useSelect(
-		( select ) => {
-			const { getEditedPostContext, getSettings } = unlock(
-				select( editSiteStore )
-			);
-			const _context = getEditedPostContext();
-			return {
-				settings: getSettings(),
-				// TODO: The `postType` check should be removed when the default rendering mode per post type is merged.
-				// @see https://github.com/WordPress/gutenberg/pull/62304/
-				shouldUseTemplateAsDefaultRenderingMode:
-					_context?.postId && _context?.postType !== 'post',
-			};
-		},
-		[]
-	);
+	const { settings } = useSelect( ( select ) => {
+		const { getSettings } = select( editSiteStore );
+		return {
+			settings: getSettings(),
+		};
+	}, [] );
+
+	// TODO: The `shouldUseTemplateAsDefaultRenderingMode` check should be removed when the default rendering mode per post type is merged.
+	// @see https://github.com/WordPress/gutenberg/pull/62304/
 	const defaultRenderingMode = shouldUseTemplateAsDefaultRenderingMode
 		? 'template-locked'
 		: 'post-only';
