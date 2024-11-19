@@ -30,6 +30,7 @@ import { useColorsPerOrigin, useGradientsPerOrigin } from './hooks';
 import { getValueFromVariable, useToolsPanelDropdownMenuProps } from './utils';
 import { setImmutably } from '../../utils/object';
 import { unlock } from '../../lock-unlock';
+import { reset as resetIcon } from '@wordpress/icons';
 
 export function useHasColorPanel( settings ) {
 	const hasTextPanel = useHasTextPanel( settings );
@@ -231,12 +232,27 @@ function ColorPanelDropdown( {
 					};
 
 					return (
-						<Button __next40pxDefaultSize { ...toggleProps }>
-							<LabeledColorIndicators
-								indicators={ indicators }
-								label={ label }
-							/>
-						</Button>
+						<>
+							<Button { ...toggleProps } __next40pxDefaultSize>
+								<LabeledColorIndicators
+									indicators={ indicators }
+									label={ label }
+								/>
+							</Button>
+							{ hasValue() && (
+								<Button
+									__next40pxDefaultSize
+									label={ __( 'Reset' ) }
+									aria-label={
+										/* translators: %s is the type of color property, e.g., "background" */
+										__( 'Reset %s color' )
+									}
+									className="block-editor-panel-color-gradient-settings__reset"
+									icon={ resetIcon }
+									onClick={ resetValue }
+								/>
+							) }
+						</>
 					);
 				} }
 				renderContent={ () => (
