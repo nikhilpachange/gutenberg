@@ -103,8 +103,7 @@ function FileEdit( { attributes, isSelected, setAttributes, clientId } ) {
 				downloadButtonText: _x( 'Download', 'button label' ),
 			} );
 		}
-		// Reason: This effect should only run on mount.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// This effect should only run on mount.
 	}, [] );
 
 	function onSelectFile( newMedia ) {
@@ -202,7 +201,7 @@ function FileEdit( { attributes, isSelected, setAttributes, clientId } ) {
 					labels={ {
 						title: __( 'File' ),
 						instructions: __(
-							'Upload a file or pick one from your media library.'
+							'Drag and drop a file, upload, or choose from your library.'
 						),
 					} }
 					onSelect={ onSelectFile }

@@ -51,7 +51,7 @@ const { BlockInfo } = unlock( blockEditorPrivateApis );
 const TIMEZONELESS_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
 export default function QueryInspectorControls( props ) {
-	const { attributes, setQuery, setDisplayLayout, isTemplate } = props;
+	const { attributes, setQuery, setDisplayLayout, isSingular } = props;
 	const { query, displayLayout } = attributes;
 	const {
 		order,
@@ -146,7 +146,7 @@ export default function QueryInspectorControls( props ) {
 	}, [ querySearch, onChangeDebounced ] );
 
 	const showInheritControl =
-		isTemplate && isControlAllowed( allowedControls, 'inherit' );
+		! isSingular && isControlAllowed( allowedControls, 'inherit' );
 	const showPostTypeControl =
 		! inherit && isControlAllowed( allowedControls, 'postType' );
 	const postTypeControlLabel = __( 'Post type' );

@@ -279,8 +279,7 @@ Renders a document outline component.
 _Parameters_
 
 -   _props_ `Object`: Props.
--   _props.onSelect_ `Function`: Function to be called when an outline item is selected.
--   _props.isTitleSupported_ `boolean`: Indicates whether the title is supported.
+-   _props.onSelect_ `Function`: Function to be called when an outline item is selected
 -   _props.hasOutlineItemsDisabled_ `boolean`: Indicates whether the outline items are disabled.
 
 _Returns_
@@ -878,9 +877,9 @@ function onPreviewClick() {
 }
 
 const ExternalPreviewMenuItem = () => (
-	<PreviewDropdownMenuItem icon={ external } onClick={ onPreviewClick }>
+	<PluginPreviewMenuItem icon={ external } onClick={ onPreviewClick }>
 		{ __( 'Preview in new tab' ) }
-	</PreviewDropdownMenuItem>
+	</PluginPreviewMenuItem>
 );
 registerPlugin( 'external-preview-menu-item', {
 	render: ExternalPreviewMenuItem,
@@ -1631,10 +1630,6 @@ _Related_
 
 -   <https://github.com/WordPress/gutenberg/blob/HEAD/packages/data/README.md#createReduxStore>
 
-_Type_
-
--   `Object`
-
 ### storeConfig
 
 Post editor data store configuration.
@@ -1642,10 +1637,6 @@ Post editor data store configuration.
 _Related_
 
 -   <https://github.com/WordPress/gutenberg/blob/HEAD/packages/data/README.md#registerStore>
-
-_Type_
-
--   `Object`
 
 ### TableOfContents
 

@@ -318,7 +318,7 @@ function MetaBoxesMain( { isLegacy } ) {
 						</Tooltip>
 						<VisuallyHidden id={ separatorHelpId }>
 							{ __(
-								'Use up and down arrow keys to resize the metabox pane.'
+								'Use up and down arrow keys to resize the meta box panel.'
 							) }
 						</VisuallyHidden>
 					</>
@@ -399,10 +399,10 @@ function Layout( {
 	} = useSelect(
 		( select ) => {
 			const { get } = select( preferencesStore );
-			const { isFeatureActive, getEditedPostTemplateId } = unlock(
-				select( editPostStore )
+			const { isFeatureActive } = select( editPostStore );
+			const { canUser, getPostType, getTemplateId } = unlock(
+				select( coreStore )
 			);
-			const { canUser, getPostType } = select( coreStore );
 
 			const supportsTemplateMode = settings.supportsTemplateMode;
 			const isViewable =
@@ -426,14 +426,14 @@ function Layout( {
 				isDistractionFree: get( 'core', 'distractionFree' ),
 				showMetaBoxes:
 					! DESIGN_POST_TYPES.includes( currentPostType ) &&
-					isRenderingPostOnly,
+					! isZoomOut(),
 				isWelcomeGuideVisible: isFeatureActive( 'welcomeGuide' ),
 				templateId:
 					supportsTemplateMode &&
 					isViewable &&
 					canViewTemplate &&
 					! isEditingTemplate
-						? getEditedPostTemplateId()
+						? getTemplateId( currentPostType, currentPostId )
 						: null,
 				enablePaddingAppender:
 					! isZoomOut() &&
@@ -441,7 +441,12 @@ function Layout( {
 					! DESIGN_POST_TYPES.includes( currentPostType ),
 			};
 		},
-		[ currentPostType, isEditingTemplate, settings.supportsTemplateMode ]
+		[
+			currentPostType,
+			currentPostId,
+			isEditingTemplate,
+			settings.supportsTemplateMode,
+		]
 	);
 	const [ paddingAppenderRef, paddingStyle ] = usePaddingAppender(
 		enablePaddingAppender
@@ -511,7 +516,7 @@ function Layout( {
 								: newItem.title?.rendered;
 						createSuccessNotice(
 							sprintf(
-								// translators: %s: Title of the created post e.g: "Post 1".
+								// translators: %s: Title of the created post or template, e.g: "Hello world".
 								__( '"%s" successfully created.' ),
 								decodeEntities( title )
 							),

@@ -31,6 +31,7 @@ import {
 	isPatternFiltered,
 	allPatternsCategory,
 	myPatternsCategory,
+	starterPatternsCategory,
 	INSERTER_PATTERN_TYPES,
 } from './utils';
 import { store as blockEditorStore } from '../../../store';
@@ -86,6 +87,13 @@ export function PatternCategoryPreviews( {
 					return true;
 				}
 
+				if (
+					category.name === starterPatternsCategory.name &&
+					pattern.blockTypes?.includes( 'core/post-content' )
+				) {
+					return true;
+				}
+
 				if ( category.name === 'uncategorized' ) {
 					// The uncategorized category should show all the patterns without any category...
 					if ( ! pattern.categories ) {
@@ -117,7 +125,6 @@ export function PatternCategoryPreviews( {
 	const { changePage } = pagingProps;
 
 	// Hide block pattern preview on unmount.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => () => onHover( null ), [] );
 
 	const onSetPatternSyncFilter = useCallback(
@@ -183,7 +190,6 @@ export function PatternCategoryPreviews( {
 					) }
 					<BlockPatternsList
 						ref={ scrollContainerRef }
-						shownPatterns={ pagingProps.categoryPatternsAsyncList }
 						blockPatterns={ pagingProps.categoryPatterns }
 						onClickPattern={ onClickPattern }
 						onHover={ onHover }

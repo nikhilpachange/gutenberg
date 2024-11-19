@@ -32,9 +32,8 @@ import AddNewPostModal from '../add-new-post';
 import { unlock } from '../../lock-unlock';
 import { useEditPostAction } from '../dataviews-actions';
 import { usePrevious } from '@wordpress/compose';
-import usePostFields from '../post-fields';
 
-const { usePostActions } = unlock( editorPrivateApis );
+const { usePostActions, usePostFields } = unlock( editorPrivateApis );
 const { useLocation, useHistory } = unlock( routerPrivateApis );
 const { useEntityRecordsWithPermissions } = unlock( coreDataPrivateApis );
 const EMPTY_ARRAY = [];
@@ -208,9 +207,7 @@ export default function PostList( { postType } ) {
 		return found?.filters ?? [];
 	};
 
-	const { isLoading: isLoadingFields, fields: _fields } = usePostFields(
-		view.type
-	);
+	const { isLoading: isLoadingFields, fields: _fields } = usePostFields();
 	const fields = useMemo( () => {
 		const activeViewFilters = getActiveViewFilters(
 			defaultViews,
@@ -402,6 +399,14 @@ export default function PostList( { postType } ) {
 				onChangeView={ setView }
 				selection={ selection }
 				onChangeSelection={ onChangeSelection }
+				isItemClickable={ ( item ) => item.status !== 'trash' }
+				onClickItem={ ( { id } ) => {
+					history.push( {
+						postId: id,
+						postType,
+						canvas: 'edit',
+					} );
+				} }
 				getItemId={ getItemId }
 				defaultLayouts={ defaultLayouts }
 				header={
@@ -412,7 +417,7 @@ export default function PostList( { postType } ) {
 							size="compact"
 							isPressed={ quickEdit }
 							icon={ drawerRight }
-							label={ __( 'Toggle details panel' ) }
+							label={ __( 'Details' ) }
 							onClick={ () => {
 								history.push( {
 									...location.params,

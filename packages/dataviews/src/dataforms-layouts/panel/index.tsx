@@ -10,7 +10,7 @@ import {
 	Button,
 } from '@wordpress/components';
 import { useState, useMemo } from '@wordpress/element';
-import { sprintf, __ } from '@wordpress/i18n';
+import { sprintf, __, _x } from '@wordpress/i18n';
 import { closeSmall } from '@wordpress/icons';
 
 /**
@@ -19,6 +19,7 @@ import { closeSmall } from '@wordpress/icons';
 import { normalizeFields } from '../../normalize-fields';
 import { getVisibleFields } from '../get-visible-fields';
 import type { DataFormProps, NormalizedField } from '../../types';
+import FormFieldVisibility from '../../components/form-field-visibility';
 
 interface FormFieldProps< Item > {
 	data: Item;
@@ -105,7 +106,7 @@ function FormField< Item >( {
 							aria-expanded={ isOpen }
 							aria-label={ sprintf(
 								// translators: %s: Field name.
-								__( 'Edit %s' ),
+								_x( 'Edit %s', 'field' ),
 								field.label
 							) }
 							onClick={ onToggle }
@@ -156,12 +157,17 @@ export default function FormPanel< Item >( {
 		<VStack spacing={ 2 }>
 			{ visibleFields.map( ( field ) => {
 				return (
-					<FormField
+					<FormFieldVisibility
 						key={ field.id }
 						data={ data }
 						field={ field }
-						onChange={ onChange }
-					/>
+					>
+						<FormField
+							data={ data }
+							field={ field }
+							onChange={ onChange }
+						/>
+					</FormFieldVisibility>
 				);
 			} ) }
 		</VStack>

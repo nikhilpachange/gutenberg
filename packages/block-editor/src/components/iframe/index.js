@@ -117,12 +117,12 @@ function Iframe( {
 		const settings = getSettings();
 		return {
 			resolvedAssets: settings.__unstableResolvedAssets,
-			isPreviewMode: settings.__unstableIsPreviewMode,
+			isPreviewMode: settings.isPreviewMode,
 		};
 	}, [] );
 	const { styles = '', scripts = '' } = resolvedAssets;
 	const [ iframeDocument, setIframeDocument ] = useState();
-	const initialContainerWidth = useRef( 0 );
+	const initialContainerWidthRef = useRef( 0 );
 	const [ bodyClasses, setBodyClasses ] = useState( [] );
 	const clearerRef = useBlockSelectionClearer();
 	const [ before, writingFlowRef, after ] = useWritingFlow();
@@ -191,6 +191,22 @@ function Iframe( {
 				preventFileDropDefault,
 				false
 			);
+			// Prevent clicks on links from navigating away. Note that links
+			// inside `contenteditable` are already disabled by the browser, so
+			// this is for links in blocks outside of `contenteditable`.
+			iFrameDocument.addEventListener( 'click', ( event ) => {
+				if ( event.target.tagName === 'A' ) {
+					event.preventDefault();
+
+					// Appending a hash to the current URL will not reload the
+					// page. This is useful for e.g. footnotes.
+					const href = event.target.getAttribute( 'href' );
+					if ( href.startsWith( '#' ) ) {
+						iFrameDocument.defaultView.location.hash =
+							href.slice( 1 );
+					}
+				}
+			} );
 		}
 
 		node.addEventListener( 'load', onLoad );
@@ -243,12 +259,12 @@ function Iframe( {
 
 	useEffect( () => {
 		if ( ! isZoomedOut ) {
-			initialContainerWidth.current = containerWidth;
+			initialContainerWidthRef.current = containerWidth;
 		}
 	}, [ containerWidth, isZoomedOut ] );
 
 	const scaleContainerWidth = Math.max(
-		initialContainerWidth.current,
+		initialContainerWidthRef.current,
 		containerWidth
 	);
 
@@ -272,6 +288,7 @@ function Iframe( {
 <html>
 	<head>
 		<meta charset="utf-8">
+		<base href="${ window.location.origin }">
 		<script>window.frameElement._load()</script>
 		<style>
 			html{
@@ -345,7 +362,7 @@ function Iframe( {
 
 		const maxWidth = 750;
 		// Note: When we initialize the zoom out when the canvas is smaller (sidebars open),
-		// initialContainerWidth will be smaller than the full page, and reflow will happen
+		// initialContainerWidthRef will be smaller than the full page, and reflow will happen
 		// when the canvas area becomes larger due to sidebars closing. This is a known but
 		// minor divergence for now.
 
@@ -354,7 +371,7 @@ function Iframe( {
 		// but calc( 100px / 2px ) is not.
 		iframeDocument.documentElement.style.setProperty(
 			'--wp-block-editor-iframe-zoom-out-scale',
-			scale === 'default'
+			scale === 'auto-scaled'
 				? ( Math.min( containerWidth, maxWidth ) -
 						parseInt( frameSize ) * 2 ) /
 						scaleContainerWidth
