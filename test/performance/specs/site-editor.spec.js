@@ -217,6 +217,7 @@ test.describe( 'Site Editor Performance', () => {
 				await admin.visitSiteEditor( {
 					// The old URL is supported in both previous versions and new versions.
 					path: '/wp_template',
+					activeView: 'Twenty Twenty-Four',
 				} );
 
 				// The Templates index page has changed, so we need to know which UI is in use in the branch.
@@ -287,11 +288,7 @@ test.describe( 'Site Editor Performance', () => {
 			for ( let i = 1; i <= samples; i++ ) {
 				// We want to start from a fresh state each time, without
 				// queries or patterns already cached.
-				await admin.visitSiteEditor( {
-					postId: 'twentytwentyfour//home',
-					postType: 'wp_template',
-					canvas: 'edit',
-				} );
+				await admin.visitSiteEditor( { canvas: 'edit' } );
 				await editor.openDocumentSettingsSidebar();
 
 				/*

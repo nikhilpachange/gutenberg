@@ -22,6 +22,7 @@ import { EditorProvider } from '@wordpress/editor';
  */
 import { default as Link, useLink } from '../routes/link';
 import { useAddedBy } from './hooks';
+import { useDefaultTemplateTypes } from '../add-new-template/utils';
 
 import usePatternSettings from '../page-patterns/use-pattern-settings';
 import { unlock } from '../../lock-unlock';
@@ -153,4 +154,31 @@ export const authorField = {
 	id: 'author',
 	getValue: ( { item } ) => item.author_text,
 	render: AuthorField,
+};
+
+export const activeField = {
+	label: __( 'Active' ),
+	id: 'active',
+	getValue: ( { item } ) => item._isActive,
+	render: function Render( { item } ) {
+		const isActive = item._isActive;
+		return (
+			<span className={ `is-${ isActive ? 'active' : 'inactive' }` }>
+				{ isActive ? __( 'Active' ) : __( 'Inactive' ) }
+			</span>
+		);
+	},
+};
+
+export const slugField = {
+	label: __( 'Template Type' ),
+	id: 'slug',
+	getValue: ( { item } ) => item.slug,
+	render: function Render( { item } ) {
+		const defaultTemplateTypes = useDefaultTemplateTypes();
+		const defaultTemplateType = defaultTemplateTypes.find(
+			( type ) => type.slug === item.slug
+		);
+		return defaultTemplateType?.title || item.slug;
+	},
 };

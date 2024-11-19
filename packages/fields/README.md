@@ -82,10 +82,6 @@ Undocumented declaration.
 
 Undocumented declaration.
 
-### resetPost
-
-Undocumented declaration.
-
 ### restorePost
 
 Undocumented declaration.

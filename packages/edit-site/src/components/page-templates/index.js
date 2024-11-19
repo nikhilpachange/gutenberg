@@ -3,10 +3,14 @@
  */
 import { __ } from '@wordpress/i18n';
 import { useState, useMemo, useCallback, useEffect } from '@wordpress/element';
-import { privateApis as corePrivateApis } from '@wordpress/core-data';
+import {
+	privateApis as corePrivateApis,
+	store as coreStore,
+} from '@wordpress/core-data';
 import { DataViews, filterSortAndPaginate } from '@wordpress/dataviews';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
 import { privateApis as editorPrivateApis } from '@wordpress/editor';
+import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies
@@ -21,13 +25,19 @@ import {
 	LAYOUT_LIST,
 } from '../../utils/constants';
 import { unlock } from '../../lock-unlock';
-import { useEditPostAction } from '../dataviews-actions';
+import {
+	useEditPostAction,
+	useSetActiveTemplateAction,
+} from '../dataviews-actions';
 import {
 	authorField,
 	descriptionField,
 	previewField,
 	titleField,
+	activeField,
+	slugField,
 } from './fields';
+import { useDefaultTemplateTypes } from '../add-new-template/utils';
 
 const { usePostActions } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
@@ -37,7 +47,7 @@ const EMPTY_ARRAY = [];
 
 const defaultLayouts = {
 	[ LAYOUT_TABLE ]: {
-		fields: [ 'template', 'author' ],
+		fields: [ 'template', 'author', 'active', 'slug' ],
 		layout: {
 			primaryField: 'title',
 			combinedFields: [
@@ -63,15 +73,16 @@ const defaultLayouts = {
 		},
 	},
 	[ LAYOUT_GRID ]: {
-		fields: [ 'title', 'description', 'author' ],
+		fields: [ 'title', 'description', 'author', 'active', 'slug' ],
 		layout: {
 			mediaField: 'preview',
 			primaryField: 'title',
 			columnFields: [ 'description' ],
+			badgeFields: [ 'active', 'slug' ],
 		},
 	},
 	[ LAYOUT_LIST ]: {
-		fields: [ 'title', 'description', 'author' ],
+		fields: [ 'title', 'description', 'author', 'active', 'slug' ],
 		layout: {
 			primaryField: 'title',
 		},
@@ -94,9 +105,8 @@ const DEFAULT_VIEW = {
 
 export default function PageTemplates() {
 	const { params } = useLocation();
-	const { activeView = 'all', layout, postId } = params;
+	const { activeView = 'active', layout, postId } = params;
 	const [ selection, setSelection ] = useState( [ postId ] );
-
 	const defaultView = useMemo( () => {
 		const usedType = layout ?? DEFAULT_VIEW.type;
 		return {
@@ -104,39 +114,136 @@ export default function PageTemplates() {
 			type: usedType,
 			layout: defaultLayouts[ usedType ].layout,
 			fields: defaultLayouts[ usedType ].fields,
-			filters:
-				activeView !== 'all'
-					? [
-							{
-								field: 'author',
-								operator: 'isAny',
-								value: [ activeView ],
-							},
-					  ]
-					: [],
+			filters: ! [ 'active', 'user' ].includes( activeView )
+				? [
+						{
+							field: 'author',
+							operator: 'isAny',
+							value: [ activeView ],
+						},
+				  ]
+				: [],
 		};
 	}, [ layout, activeView ] );
 	const [ view, setView ] = useState( defaultView );
 	useEffect( () => {
 		setView( ( currentView ) => ( {
 			...currentView,
-			filters:
-				activeView !== 'all'
-					? [
-							{
-								field: 'author',
-								operator: OPERATOR_IS_ANY,
-								value: [ activeView ],
-							},
-					  ]
-					: [],
+			filters: ! [ 'active', 'user' ].includes( activeView )
+				? [
+						{
+							field: 'author',
+							operator: OPERATOR_IS_ANY,
+							value: [ activeView ],
+						},
+				  ]
+				: [],
 		} ) );
 	}, [ activeView ] );
 
-	const { records, isResolving: isLoadingData } =
+	const activeTemplatesOption = useSelect(
+		( select ) =>
+			select( coreStore ).getEntityRecord( 'root', 'site' )
+				?.active_templates
+	);
+	const defaultTemplateTypes = useDefaultTemplateTypes();
+	// Todo: this will have to be better so that we're not fetching all the
+	// records all the time. Active templates query will need to move server
+	// side.
+	const { records: userRecords, isResolving: isLoadingUserRecords } =
 		useEntityRecordsWithPermissions( 'postType', TEMPLATE_POST_TYPE, {
 			per_page: -1,
 		} );
+	const { records: staticRecords, isResolving: isLoadingStaticData } =
+		useEntityRecordsWithPermissions( 'postType', '_wp_static_template', {
+			per_page: -1,
+		} );
+
+	const activeTemplates = useMemo( () => {
+		const _active = [ ...staticRecords ];
+		if ( activeTemplatesOption ) {
+			for ( const activeSlug in activeTemplatesOption ) {
+				const activeId = activeTemplatesOption[ activeSlug ];
+				if ( activeId === false ) {
+					// Remove the template from the array.
+					const index = _active.findIndex(
+						( template ) => template.slug === activeSlug
+					);
+					if ( index !== -1 ) {
+						_active.splice( index, 1 );
+					}
+				} else {
+					// Replace the template in the array.
+					const template = userRecords.find(
+						( { id } ) => id === activeId
+					);
+					if ( template ) {
+						const index = _active.findIndex(
+							( { slug } ) => slug === template.slug
+						);
+						if ( index !== -1 ) {
+							_active[ index ] = template;
+						} else {
+							_active.push( template );
+						}
+					}
+				}
+			}
+
+			// for ( const template of userRecords ) {
+			// 	if ( activeTemplatesOption[ template.slug ] === template.id ) {
+			// 		// replace the static template with the user template in the array
+			// 		const index = _active.findIndex(
+			// 			( record ) => record.slug === template.slug
+			// 		);
+			// 		if ( index !== -1 ) {
+			// 			_active[ index ] = template;
+			// 		} else {
+			// 			_active.push( template );
+			// 		}
+			// 	}
+			// }
+		}
+		const defaultSlugs = defaultTemplateTypes.map( ( type ) => type.slug );
+		return _active.filter( ( template ) =>
+			defaultSlugs.includes( template.slug )
+		);
+	}, [
+		defaultTemplateTypes,
+		userRecords,
+		staticRecords,
+		activeTemplatesOption,
+	] );
+
+	let _records;
+	let isLoadingData;
+	if ( activeView === 'active' ) {
+		_records = activeTemplates;
+		isLoadingData = isLoadingUserRecords || isLoadingStaticData;
+	} else if ( activeView === 'user' ) {
+		_records = userRecords;
+		isLoadingData = isLoadingUserRecords;
+	} else {
+		_records = staticRecords;
+		isLoadingData = isLoadingStaticData;
+	}
+
+	const records = useMemo( () => {
+		return _records.map( ( record ) => ( {
+			...record,
+			_isActive:
+				typeof record.id === 'string'
+					? activeTemplatesOption[ record.slug ] === record.id ||
+					  ( activeTemplatesOption[ record.slug ] === undefined &&
+							defaultTemplateTypes.find(
+								( { slug } ) => slug === record.slug
+							) )
+					: Object.values( activeTemplatesOption ).includes(
+							record.id
+					  ),
+		} ) );
+	}, [ _records, activeTemplatesOption, defaultTemplateTypes ] );
+
 	const history = useHistory();
 	const onChangeSelection = useCallback(
 		( items ) => {
@@ -165,8 +272,8 @@ export default function PageTemplates() {
 		} ) );
 	}, [ records ] );
 
-	const fields = useMemo(
-		() => [
+	const fields = useMemo( () => {
+		const _fields = [
 			previewField,
 			titleField,
 			descriptionField,
@@ -174,9 +281,11 @@ export default function PageTemplates() {
 				...authorField,
 				elements: authors,
 			},
-		],
-		[ authors ]
-	);
+			activeField,
+			slugField,
+		];
+		return _fields;
+	}, [ authors ] );
 
 	const { data, paginationInfo } = useMemo( () => {
 		return filterSortAndPaginate( records, view, fields );
@@ -187,9 +296,13 @@ export default function PageTemplates() {
 		context: 'list',
 	} );
 	const editAction = useEditPostAction();
+	const setActiveTemplateAction = useSetActiveTemplateAction();
 	const actions = useMemo(
-		() => [ editAction, ...postTypeActions ],
-		[ postTypeActions, editAction ]
+		() =>
+			activeView === 'user'
+				? [ setActiveTemplateAction, editAction, ...postTypeActions ]
+				: [ setActiveTemplateAction, ...postTypeActions ],
+		[ postTypeActions, setActiveTemplateAction, editAction, activeView ]
 	);
 
 	const onChangeView = useCallback(

@@ -4,6 +4,7 @@
 import { useEntityRecords } from '@wordpress/core-data';
 import { useMemo } from '@wordpress/element';
 import { __experimentalItemGroup as ItemGroup } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -11,7 +12,6 @@ import { __experimentalItemGroup as ItemGroup } from '@wordpress/components';
 import DataViewItem from '../sidebar-dataviews/dataview-item';
 import { useAddedBy } from '../page-templates/hooks';
 import { layout } from '@wordpress/icons';
-import { TEMPLATE_POST_TYPE } from '../../utils/constants';
 
 const EMPTY_ARRAY = [];
 
@@ -29,11 +29,8 @@ function TemplateDataviewItem( { template, isActive } ) {
 	);
 }
 
-export default function DataviewsTemplatesSidebarContent( {
-	activeView,
-	title,
-} ) {
-	const { records } = useEntityRecords( 'postType', TEMPLATE_POST_TYPE, {
+export default function DataviewsTemplatesSidebarContent( { activeView } ) {
+	const { records } = useEntityRecords( 'postType', '_wp_static_template', {
 		per_page: -1,
 	} );
 	const firstItemPerAuthorText = useMemo( () => {
@@ -53,10 +50,17 @@ export default function DataviewsTemplatesSidebarContent( {
 	return (
 		<ItemGroup>
 			<DataViewItem
-				slug="all"
-				title={ title }
+				slug="active"
+				title={ __( 'Active templates' ) }
 				icon={ layout }
-				isActive={ activeView === 'all' }
+				isActive={ activeView === 'active' }
+				isCustom={ false }
+			/>
+			<DataViewItem
+				slug="user"
+				title={ __( 'Custom templates' ) }
+				icon={ layout }
+				isActive={ activeView === 'user' }
 				isCustom={ false }
 			/>
 			{ firstItemPerAuthorText.map( ( template ) => {

@@ -253,3 +253,7 @@ export const getTemplateId = createRegistrySelector(
 		} );
 	}
 );
+
+export function getTemplateAutoDraftId( state: State, target: string ) {
+	return state.templateAutoDraftId[ target ];
+}

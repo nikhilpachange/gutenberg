@@ -369,6 +369,9 @@ export const editEntityRecord =
 				`The entity being edited (${ kind }, ${ name }) does not have a loaded config.`
 			);
 		}
+		if ( ! select.canUser( 'update', { kind, name, id: recordId } ) ) {
+			return;
+		}
 		const { mergedEdits = {} } = entityConfig;
 		const record = select.getRawEntityRecord( kind, name, recordId );
 		const editedRecord = select.getEditedEntityRecord(
@@ -672,6 +675,13 @@ export const saveEntityRecord =
 								edits
 							),
 						};
+					}
+					if (
+						! edits.status &&
+						persistedRecord?.status === 'auto-draft'
+					) {
+						edits.status =
+							name === 'wp_template' ? 'publish' : 'draft';
 					}
 					updatedRecord = await __unstableFetch( {
 						path,
