@@ -123,14 +123,6 @@
 	}
 }
 
-.dataviews-all-actions-button.has-icon:not(.has-text) {
-	.dataviews-view-grid & {
-		height: 24px;
-		width: 24px;
-		min-width: 24px;
-	}
-}
-
 .edit-site-page-patterns-dataviews {
 	.dataviews-view-grid__badge-fields {
 		.dataviews-view-grid__field-value:has(.edit-site-patterns__field-sync-status-fully) {
