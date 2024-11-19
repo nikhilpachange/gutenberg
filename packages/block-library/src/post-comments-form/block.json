@@ -11,7 +11,7 @@
 			"type": "string"
 		}
 	},
-	"usesContext": [ "postId", "postType" ],
+	"usesContext": [ "postId", "postType", "enhancedSubmission" ],
 	"supports": {
 		"html": false,
 		"color": {
