@@ -30,6 +30,9 @@ export const useSetActiveTemplateAction = () => {
 			},
 			isPrimary: true,
 			icon: edit,
+			isEligible( item ) {
+				return ! ( item.slug === 'index' && item.source === 'theme' );
+			},
 			async callback( items ) {
 				const deactivate = items.some( ( item ) => item._isActive );
 				// current active templates
@@ -39,7 +42,11 @@ export const useSetActiveTemplateAction = () => {
 				};
 				for ( const item of items ) {
 					if ( deactivate ) {
-						activeTemplates[ item.slug ] = false;
+						if ( item.source === 'theme' ) {
+							activeTemplates[ item.slug ] = false;
+						} else {
+							delete activeTemplates[ item.slug ];
+						}
 					} else {
 						activeTemplates[ item.slug ] = item.id;
 					}
