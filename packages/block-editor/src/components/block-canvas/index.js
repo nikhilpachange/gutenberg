@@ -1,9 +1,4 @@
 /**
- * External dependencies
- */
-import clsx from 'clsx';
-
-/**
  * WordPress dependencies
  */
 import { useMergeRefs, useViewportMatch } from '@wordpress/compose';
@@ -38,7 +33,6 @@ export function ExperimentalBlockCanvas( {
 	styles,
 	contentRef: contentRefProp,
 	iframeProps,
-	enableScroll,
 } ) {
 	useBlockCommands();
 	const isTabletViewport = useViewportMatch( 'medium', '<' );
@@ -57,16 +51,12 @@ export function ExperimentalBlockCanvas( {
 					frameSize: '40px',
 			  }
 			: {};
-	const className = clsx(
-		'block-editor-block-canvas',
-		enableScroll && 'is-scrollable'
-	);
 
 	if ( ! shouldIframe ) {
 		return (
 			<BlockTools
 				__unstableContentRef={ localRef }
-				className={ className }
+				className="block-editor-block-canvas"
 				style={ { height } }
 			>
 				<EditorStyles
@@ -88,7 +78,7 @@ export function ExperimentalBlockCanvas( {
 	return (
 		<BlockTools
 			__unstableContentRef={ localRef }
-			className={ className }
+			className="block-editor-block-canvas"
 			style={ { height, display: 'flex' } }
 		>
 			<Iframe

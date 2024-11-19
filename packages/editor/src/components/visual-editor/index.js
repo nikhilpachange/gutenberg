@@ -385,6 +385,7 @@ function VisualEditor( {
 					'has-padding': isFocusedEntity || enableResizing,
 					'is-resizable': enableResizing,
 					'is-iframed': ! disableIframe,
+					'is-scrollable': disableIframe || deviceType !== 'Desktop',
 				}
 			) }
 		>
@@ -406,9 +407,6 @@ function VisualEditor( {
 							...deviceStyles,
 						},
 					} }
-					// When there’s no iframe the canvas is the scrolling context and with the
-					// iframe, device previews may overflow vertically.
-					enableScroll={ disableIframe || deviceType !== 'Desktop' }
 				>
 					{ themeSupportsLayout &&
 						! themeHasDisabledLayoutStyles &&

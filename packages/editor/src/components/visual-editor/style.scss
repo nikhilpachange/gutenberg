@@ -30,4 +30,30 @@
 			padding: 6px;
 		}
 	}
+
+	// The cases for this are non-iframed editor canvas or previewing devices. The block canvas is
+	// made the scrolling context.
+	&.is-scrollable .block-editor-block-canvas {
+		overflow: auto;
+
+		// Applicable only when legacy (non-iframed).
+		> .block-editor-writing-flow {
+			display: flow-root;
+			min-height: 100%;
+			box-sizing: border-box; // Ensures that 100% min-height doesn’t create overflow.
+		}
+
+		// Applicable only when iframed. These styles ensure that if the the iframe is
+		// given a fixed height and it’s taller than the viewport then scrolling is
+		// allowed. This is needed for device previews.
+		> .block-editor-iframe__container {
+			display: flex;
+			flex-direction: column;
+
+			> .block-editor-iframe__scale-container {
+				flex: 1 0 fit-content;
+				display: flow-root;
+			}
+		}
+	}
 }
