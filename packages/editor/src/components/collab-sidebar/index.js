@@ -7,7 +7,7 @@ import { useState, useMemo } from '@wordpress/element';
 import { comment as commentIcon } from '@wordpress/icons';
 import { addFilter } from '@wordpress/hooks';
 import { store as noticesStore } from '@wordpress/notices';
-import { store as coreStore } from '@wordpress/core-data';
+import { store as coreStore, useEntityBlockEditor } from '@wordpress/core-data';
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { store as interfaceStore } from '@wordpress/interface';
 
@@ -49,8 +49,8 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 	const { saveEntityRecord, deleteEntityRecord } = useDispatch( coreStore );
 	const { getEntityRecord } = resolveSelect( coreStore );
 
-	const { postId, threads } = useSelect( ( select ) => {
-		const { getCurrentPostId } = select( editorStore );
+	const { postId, postType, threads } = useSelect( ( select ) => {
+		const { getCurrentPostId, getCurrentPostType } = select( editorStore );
 		const _postId = getCurrentPostId();
 		const data = !! _postId
 			? select( coreStore ).getEntityRecords( 'root', 'comment', {
@@ -63,13 +63,42 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 
 		return {
 			postId: _postId,
+			postType: getCurrentPostType(),
 			threads: data,
 		};
 	}, [] );
 
-	const { getSelectedBlockClientId, getBlocks } =
-		useSelect( blockEditorStore );
+	const { getSelectedBlockClientId } = useSelect( blockEditorStore );
 	const { updateBlockAttributes } = useDispatch( blockEditorStore );
+
+	const [ blocks ] = useEntityBlockEditor( 'postType', postType, {
+		id: postId,
+	} );
+
+	const getCommentIdsFromBlocks = () => {
+		// Recursive function to extract comment IDs from blocks
+		const extractCommentIds = ( items ) => {
+			return items.reduce( ( commentIds, block ) => {
+				// Check for comment IDs in the current block's attributes
+				if ( block.attributes && block.attributes.blockCommentId ) {
+					commentIds.push( block.attributes.blockCommentId );
+				}
+
+				// Recursively check inner blocks
+				if ( block.innerBlocks && block.innerBlocks.length > 0 ) {
+					const innerCommentIds = extractCommentIds(
+						block.innerBlocks
+					);
+					commentIds.push( ...innerCommentIds );
+				}
+
+				return commentIds;
+			}, [] );
+		};
+
+		// Extract all comment IDs recursively
+		return extractCommentIds( blocks );
+	};
 
 	// Process comments to build the tree structure
 	const resultComments = useMemo( () => {
@@ -97,14 +126,12 @@ function CollabSidebarContent( { showCommentBoard, setShowCommentBoard } ) {
 			}
 		} );
 
-		const blockCommentIds = getBlocks()
-			?.filter( ( block ) => !! block?.attributes?.blockCommentId )
-			?.map( ( block ) => block.attributes.blockCommentId );
+		const blockCommentIds = getCommentIdsFromBlocks();
 
 		const uniqueIds = [ ...new Set( blockCommentIds.values() ) ];
 
 		const threadIdMap = new Map(
-			filteredComments?.map( ( thread ) => [ thread.id, thread ] )
+			result?.map( ( thread ) => [ thread.id, thread ] )
 		);
 		const sortedThreads = uniqueIds
 			.map( ( id ) => threadIdMap.get( id ) )
