@@ -115,11 +115,9 @@ function GridItem< Item >( {
 				className="dataviews-view-grid__title-actions"
 				alignment="top"
 			>
-				<HStack>
-					<div { ...clickablePrimaryItemProps }>
-						{ renderedPrimaryField }
-					</div>
-				</HStack>
+				<div { ...clickablePrimaryItemProps }>
+					{ renderedPrimaryField }
+				</div>
 				<ItemActions item={ item } actions={ actions } isCompact />
 			</HStack>
 			{ !! badgeFields?.length && (
