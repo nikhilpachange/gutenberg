@@ -35,8 +35,8 @@ import CommentForm from './comment-form';
  * @param {Function} props.onAddReply          - The function to add a reply to a comment.
  * @param {Function} props.onCommentDelete     - The function to delete a comment.
  * @param {Function} props.onCommentResolve    - The function to mark a comment as resolved.
- * @param {boolean}  props.showCommentBoard    - The function to edit the comment.
- * @param {Function} props.setShowCommentBoard - The function to delete the comment.
+ * @param {boolean}  props.showCommentBoard    - Whether to show the comment board.
+ * @param {Function} props.setShowCommentBoard - The function to set the comment board visibility.
  * @return {JSX.Element} The rendered Comments component.
  */
 export function Comments( {
@@ -248,6 +248,7 @@ export function Comments( {
 												thread.id
 											);
 											setActionState( false );
+											setShowCommentBoard( false );
 										} }
 										onCancel={ () => {
 											setActionState( false );
