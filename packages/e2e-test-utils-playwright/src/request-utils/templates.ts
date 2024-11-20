@@ -38,7 +38,7 @@ async function deleteAllTemplates( this: RequestUtils, type: TemplateType ) {
 	const templates = await this.rest< Template[] >( { path } );
 
 	for ( const template of templates ) {
-		if ( ! template?.id || ! template?.wp_id ) {
+		if ( ! template.id ) {
 			continue;
 		}
 
