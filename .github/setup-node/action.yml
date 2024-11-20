@@ -15,20 +15,12 @@ runs:
               node-version-file: '.nvmrc'
               node-version: ${{ inputs.node-version }}
               check-latest: true
-              cache: npm
 
         - name: Get Node.js and npm version
           id: node-version
           run: |
               echo "NODE_VERSION=$(node -v)" >> $GITHUB_OUTPUT
           shell: bash
-
-        - name: Cache node_modules
-          id: cache-node_modules
-          uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-          with:
-              path: '**/node_modules'
-              key: node_modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node-version.outputs.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
         - name: Install npm dependencies
           if: ${{ steps.cache-node_modules.outputs.cache-hit != 'true' }}
