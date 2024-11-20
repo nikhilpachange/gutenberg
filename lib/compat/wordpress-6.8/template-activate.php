@@ -26,7 +26,7 @@ function gutenberg_maintain_templates_routes() {
 	// WP_REST_Templates_Controller with a post type.
 	global $wp_post_types;
 	$wp_post_types['wp_template']->rest_base = 'templates';
-	$controller                              = new WP_REST_Templates_Controller( 'wp_template' );
+	$controller                              = new Gutenberg_REST_Templates_Controller_6_7( 'wp_template' );
 	$wp_post_types['wp_template']->rest_base = 'wp_template';
 	$controller->register_routes();
 }
