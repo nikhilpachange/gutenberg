@@ -41,6 +41,7 @@ test.describe( 'Block template registration', () => {
 		// Verify template is listed in the Site Editor.
 		await admin.visitSiteEditor( {
 			postType: 'wp_template',
+			activeView: 'Gutenberg',
 		} );
 		await blockTemplateRegistrationUtils.searchForTemplate(
 			'Plugin Template'
@@ -49,7 +50,6 @@ test.describe( 'Block template registration', () => {
 		await expect(
 			page.getByText( 'A template registered by a plugin.' )
 		).toBeVisible();
-		await expect( page.getByText( 'AuthorGutenberg' ) ).toBeVisible();
 
 		// Verify the template contents are rendered in the editor.
 		await page.getByText( 'Plugin Template' ).click();
