@@ -46,6 +46,7 @@ function ScreenRoot() {
 		hasRevisions,
 		isRevisionsOpened,
 		isRevisionsStyleBookOpened,
+		isEditCanvasMode,
 	} = useSelect(
 		( select ) => {
 			const {
@@ -87,6 +88,7 @@ function ScreenRoot() {
 					canvasContainerView,
 				isRevisionsOpened:
 					'global-styles-revisions' === canvasContainerView,
+				isEditCanvasMode: _isEditCanvasMode,
 			};
 		},
 		[ canvas ]
@@ -187,7 +189,7 @@ function ScreenRoot() {
 							</HStack>
 						</NavigationButtonAsItem>
 					) }
-					{ hasRevisions && (
+					{ hasRevisions && isEditCanvasMode && (
 						<NavigationButtonAsItem
 							path="/revisions"
 							onClick={ loadRevisionsView }
