@@ -19,11 +19,11 @@
 	},
 	"android": {
 		"local": {
-			"deviceName": "Pixel_3_XL_API_30",
+			"deviceName": "Pixel_5_XL_API_30",
 			"platformVersion": "11.0"
 		},
 		"saucelabs": {
-			"deviceName": "Google Pixel 3 XL GoogleAPI Emulator"
+			"deviceName": "Google Pixel 5 XL GoogleAPI Emulator"
 		}
 	}
 }
