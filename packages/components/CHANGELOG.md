@@ -18,7 +18,7 @@
 -   `PaletteEdit`: Add appropriate size props to Buttons ([#66590](https://github.com/WordPress/gutenberg/pull/66590)).
 -   `Notice`: Add appropriate size props to Buttons ([#66593](https://github.com/WordPress/gutenberg/pull/66593)).
 -   `FormTokenField`: Fix token styles ([#66640](https://github.com/WordPress/gutenberg/pull/66640)).
--   `BorderBoxControl`: Reduce input field width when unlinked ([#67049](https://github.com/WordPress/gutenberg/pull/67049)).
+-   `BorderBoxControl`: Reduce gap value when unlinked ([#67049](https://github.com/WordPress/gutenberg/pull/67049)).
 
 ### Internal
 
