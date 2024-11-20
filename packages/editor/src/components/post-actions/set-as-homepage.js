@@ -18,7 +18,7 @@ import { store as noticesStore } from '@wordpress/notices';
  */
 import { getItemTitle } from '../../utils/get-item-title';
 
-const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
+const SetAsHomepageModal = ( { items, closeModal } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
 	const { showOnFront, currentHomePage, isSavingSiteSettings } = useSelect(
@@ -77,8 +77,6 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 			createSuccessNotice( __( 'Homepage updated' ), {
 				type: 'snackbar',
 			} );
-
-			onActionPerformed?.( items );
 		} catch ( error ) {
 			const typedError = error;
 			const errorMessage =
