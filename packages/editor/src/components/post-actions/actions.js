@@ -36,8 +36,7 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 					name: 'site',
 				} ),
 				hasFrontPageTemplate: !! templates?.find(
-					( template ) =>
-						template?.slug === 'front-page'
+					( template ) => template?.slug === 'front-page'
 				),
 			};
 		}
