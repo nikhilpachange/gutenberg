@@ -21,7 +21,7 @@ test.describe( 'Site editor browser history', () => {
 		await page.click( 'role=button[name="Templates"]' );
 		await page.getByRole( 'link', { name: 'Index' } ).click();
 		await expect( page ).toHaveURL(
-			'/wp-admin/site-editor.php?postId=emptytheme%2F%2Findex&postType=wp_template&canvas=edit'
+			'/wp-admin/site-editor.php?postId=emptytheme%2F%2Findex&postType=_wp_static_template&canvas=edit'
 		);
 
 		// Navigate back to the template list
