@@ -43,8 +43,6 @@ const { usePostActions } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
 const { useEntityRecordsWithPermissions } = unlock( corePrivateApis );
 
-const EMPTY_ARRAY = [];
-
 const defaultLayouts = {
 	[ LAYOUT_TABLE ]: {
 		fields: [ 'template', 'author', 'active', 'slug' ],
@@ -230,6 +228,25 @@ export default function PageTemplates() {
 		} ) );
 	}, [ _records, activeTemplatesOption, defaultTemplateTypes ] );
 
+	const users = useSelect(
+		( select ) => {
+			const { getUser } = select( coreStore );
+			return records.reduce( ( acc, record ) => {
+				if ( record.author_text ) {
+					if ( ! acc[ record.author_text ] ) {
+						acc[ record.author_text ] = record.author_text;
+					}
+				} else if ( record.author ) {
+					if ( ! acc[ record.author ] ) {
+						acc[ record.author ] = getUser( record.author );
+					}
+				}
+				return acc;
+			}, {} );
+		},
+		[ records ]
+	);
+
 	const history = useHistory();
 	const onChangeSelection = useCallback(
 		( items ) => {
@@ -244,20 +261,6 @@ export default function PageTemplates() {
 		[ history, params, view?.type ]
 	);
 
-	const authors = useMemo( () => {
-		if ( ! records ) {
-			return EMPTY_ARRAY;
-		}
-		const authorsSet = new Set();
-		records.forEach( ( template ) => {
-			authorsSet.add( template.author_text );
-		} );
-		return Array.from( authorsSet ).map( ( author ) => ( {
-			value: author,
-			label: author,
-		} ) );
-	}, [ records ] );
-
 	const fields = useMemo( () => {
 		const _fields = [
 			previewField,
@@ -267,13 +270,20 @@ export default function PageTemplates() {
 			slugField,
 		];
 		if ( [ 'active', 'user' ].includes( activeView ) ) {
+			const elements = [];
+			for ( const author in users ) {
+				elements.push( {
+					value: users[ author ]?.id ?? author,
+					label: users[ author ]?.name ?? author,
+				} );
+			}
 			_fields.push( {
 				...authorField,
-				elements: authors,
+				elements,
 			} );
 		}
 		return _fields;
-	}, [ authors, activeField, activeView ] );
+	}, [ users, activeView ] );
 
 	const { data, paginationInfo } = useMemo( () => {
 		return filterSortAndPaginate( records, view, fields );

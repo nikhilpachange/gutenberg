@@ -152,7 +152,7 @@ function AuthorField( { item } ) {
 export const authorField = {
 	label: __( 'Author' ),
 	id: 'author',
-	getValue: ( { item } ) => item.author_text,
+	getValue: ( { item } ) => item.author_text ?? item.author,
 	render: AuthorField,
 };
 
