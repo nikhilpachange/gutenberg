@@ -359,7 +359,8 @@ export const getEntityRecord = createSelector(
 		if (
 			kind === 'postType' &&
 			name === 'wp_template' &&
-			typeof key === 'string'
+			typeof key === 'string' &&
+			! /^\d+$/.test( key )
 		) {
 			name = '_wp_static_template';
 		}
