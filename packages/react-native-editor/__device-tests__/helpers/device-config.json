@@ -1,12 +1,12 @@
 {
 	"ios": {
 		"local": {
-			"deviceName": "iPhone 14",
+			"deviceName": "iPhone 15",
 			"deviceTabletName": "iPad (10th generation)",
-			"platformVersion": "14.0"
+			"platformVersion": "17.5"
 		},
 		"saucelabs": {
-			"deviceName": "iPhone 14 Simulator",
+			"deviceName": "iPhone 15 Simulator",
 			"deviceTabletName": "iPad (10th generation) Simulator"
 		},
 		"buildkite": {
