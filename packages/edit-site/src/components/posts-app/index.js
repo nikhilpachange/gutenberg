@@ -1,10 +1,6 @@
 /**
  * WordPress dependencies
  */
-import {
-	UnsavedChangesWarning,
-	privateApis as editorPrivateApis,
-} from '@wordpress/editor';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
 
 /**
@@ -15,7 +11,6 @@ import useActiveRoute from './router';
 import { unlock } from '../../lock-unlock';
 
 const { RouterProvider } = unlock( routerPrivateApis );
-const { GlobalStylesProvider } = unlock( editorPrivateApis );
 
 function PostsLayout() {
 	const route = useActiveRoute();
@@ -24,11 +19,8 @@ function PostsLayout() {
 
 export default function PostsApp() {
 	return (
-		<GlobalStylesProvider>
-			<UnsavedChangesWarning />
-			<RouterProvider>
-				<PostsLayout />
-			</RouterProvider>
-		</GlobalStylesProvider>
+		<RouterProvider>
+			<PostsLayout />
+		</RouterProvider>
 	);
 }

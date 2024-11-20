@@ -23,6 +23,7 @@ import { CommandMenu } from '@wordpress/commands';
 import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 import {
 	EditorSnackbars,
+	UnsavedChangesWarning,
 	privateApis as editorPrivateApis,
 } from '@wordpress/editor';
 import { privateApis as coreCommandsPrivateApis } from '@wordpress/core-commands';
@@ -44,12 +45,12 @@ import SavePanel from '../save-panel';
 
 const { useCommands } = unlock( coreCommandsPrivateApis );
 const { useGlobalStyle } = unlock( blockEditorPrivateApis );
-const { NavigableRegion } = unlock( editorPrivateApis );
+const { NavigableRegion, GlobalStylesProvider } = unlock( editorPrivateApis );
 const { useLocation } = unlock( routerPrivateApis );
 
 const ANIMATION_DURATION = 0.3;
 
-export default function Layout( { route } ) {
+function Layout( { route } ) {
 	const { params } = useLocation();
 	const { canvas = 'view' } = params;
 	useCommands();
@@ -78,6 +79,7 @@ export default function Layout( { route } ) {
 
 	return (
 		<>
+			<UnsavedChangesWarning />
 			<CommandMenu />
 			{ canvas === 'view' && <SaveKeyboardShortcut /> }
 			<div
@@ -229,5 +231,13 @@ export default function Layout( { route } ) {
 				</div>
 			</div>
 		</>
+	);
+}
+
+export default function LayoutWithGlobalStylesProvider( props ) {
+	return (
+		<GlobalStylesProvider>
+			<Layout { ...props } />
+		</GlobalStylesProvider>
 	);
 }
