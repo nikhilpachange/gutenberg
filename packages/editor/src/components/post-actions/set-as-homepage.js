@@ -21,19 +21,23 @@ import { getItemTitle } from '../../utils/get-item-title';
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
-	const { showOnFront, currentHomePage } = useSelect( ( select ) => {
-		const { getEntityRecord } = select( coreStore );
-		const siteSettings = getEntityRecord( 'root', 'site' );
-		const currentHomePageItem = getEntityRecord(
-			'postType',
-			'page',
-			siteSettings?.page_on_front
-		);
-		return {
-			showOnFront: siteSettings?.show_on_front,
-			currentHomePage: currentHomePageItem,
-		};
-	} );
+	const { showOnFront, currentHomePage, isSavingSiteSettings } = useSelect(
+		( select ) => {
+			const { getEntityRecord, isSavingEntityRecord } =
+				select( coreStore );
+			const siteSettings = getEntityRecord( 'root', 'site' );
+			const currentHomePageItem = getEntityRecord(
+				'postType',
+				'page',
+				siteSettings?.page_on_front
+			);
+			return {
+				showOnFront: siteSettings?.show_on_front,
+				currentHomePage: currentHomePageItem,
+				isSavingSiteSettings: isSavingEntityRecord( 'root', 'site' ),
+			};
+		}
+	);
 	const isPageDraft = item.status === 'draft';
 	const currentHomePageTitle = currentHomePage
 		? getItemTitle( currentHomePage )
@@ -134,6 +138,12 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 		);
 	};
 
+	// translators: Button label to confirm setting the specified page as the homepage.
+	let modalButtonLabel = __( 'Set homepage' );
+	if ( isPageDraft ) {
+		modalButtonLabel = __( 'Publish and set homepage' );
+	}
+
 	return (
 		<form onSubmit={ onSetPageAsHomepage }>
 			<VStack spacing="5">
@@ -145,6 +155,8 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 						onClick={ () => {
 							closeModal?.();
 						} }
+						disabled={ isSavingSiteSettings }
+						accessibleWhenDisabled
 					>
 						{ __( 'Cancel' ) }
 					</Button>
@@ -152,13 +164,10 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 						__next40pxDefaultSize
 						variant="primary"
 						type="submit"
+						disabled={ isSavingSiteSettings }
+						accessibleWhenDisabled
 					>
-						{
-							// translators: Button to confirm setting the specified page as the homepage.
-							isPageDraft
-								? __( 'Publish and set homepage' )
-								: __( 'Set homepage' )
-						}
+						{ modalButtonLabel }
 					</Button>
 				</HStack>
 			</VStack>
