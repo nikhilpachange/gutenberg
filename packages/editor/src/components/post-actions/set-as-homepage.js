@@ -2,14 +2,14 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { useEffect, useMemo, useState } from '@wordpress/element';
+import { useMemo } from '@wordpress/element';
 import {
 	Button,
 	__experimentalText as Text,
 	__experimentalHStack as HStack,
 	__experimentalVStack as VStack,
 } from '@wordpress/components';
-import { useDispatch, useSelect, resolveSelect } from '@wordpress/data';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { store as noticesStore } from '@wordpress/notices';
 
@@ -17,41 +17,32 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { getItemTitle } from '../../utils/get-item-title';
-import { unlock } from '../../lock-unlock';
 
 const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
 	const { showOnFront, currentHomePage } = useSelect( ( select ) => {
 		const { getEntityRecord } = select( coreStore );
-		const { getHomePage } = unlock( select( coreStore ) );
 		const siteSettings = getEntityRecord( 'root', 'site' );
-		const homePage = getHomePage();
+		const currentHomePageItem = getEntityRecord(
+			'postType',
+			'page',
+			siteSettings?.page_on_front
+		);
 		return {
 			showOnFront: siteSettings?.show_on_front,
-			currentHomePage: homePage.postId,
+			currentHomePage: currentHomePageItem,
 		};
 	} );
-	const [ currentHomePageTitle, setCurrentHomePageTitle ] = useState( '' );
 	const isPageDraft = item.status === 'draft';
+	const currentHomePageTitle = currentHomePage
+		? getItemTitle( currentHomePage )
+		: '';
 
-	const { getEntityRecord } = resolveSelect( coreStore );
 	const { saveEditedEntityRecord, saveEntityRecord } =
 		useDispatch( coreStore );
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
-
-	useEffect( () => {
-		const handleGetCurrentHomepage = async () => {
-			const currentHomePageItem = await getEntityRecord(
-				'postType',
-				'page',
-				currentHomePage
-			);
-			setCurrentHomePageTitle( getItemTitle( currentHomePageItem ) );
-		};
-		handleGetCurrentHomepage();
-	}, [ currentHomePage, getEntityRecord ] );
 
 	async function onSetPageAsHomepage( event ) {
 		event.preventDefault();
