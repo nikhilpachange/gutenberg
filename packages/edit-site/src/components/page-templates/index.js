@@ -189,20 +189,6 @@ export default function PageTemplates() {
 					}
 				}
 			}
-
-			// for ( const template of userRecords ) {
-			// 	if ( activeTemplatesOption[ template.slug ] === template.id ) {
-			// 		// replace the static template with the user template in the array
-			// 		const index = _active.findIndex(
-			// 			( record ) => record.slug === template.slug
-			// 		);
-			// 		if ( index !== -1 ) {
-			// 			_active[ index ] = template;
-			// 		} else {
-			// 			_active.push( template );
-			// 		}
-			// 	}
-			// }
 		}
 		const defaultSlugs = defaultTemplateTypes.map( ( type ) => type.slug );
 		return _active.filter( ( template ) =>
@@ -277,15 +263,17 @@ export default function PageTemplates() {
 			previewField,
 			titleField,
 			descriptionField,
-			{
-				...authorField,
-				elements: authors,
-			},
 			activeField,
 			slugField,
 		];
+		if ( [ 'active', 'user' ].includes( activeView ) ) {
+			_fields.push( {
+				...authorField,
+				elements: authors,
+			} );
+		}
 		return _fields;
-	}, [ authors ] );
+	}, [ authors, activeField, activeView ] );
 
 	const { data, paginationInfo } = useMemo( () => {
 		return filterSortAndPaginate( records, view, fields );
