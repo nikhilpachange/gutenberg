@@ -335,7 +335,7 @@ export interface GetEntityRecord {
  * @param state State tree
  * @param kind  Entity kind.
  * @param name  Entity name.
- * @param key   Record's key
+ * @param key   Optional record's key. If requesting a global record (e.g. site settings), the key can be omitted. If requesting a specific item, the key must always be included.
  * @param query Optional query. If requesting specific
  *              fields, fields must always include the ID. For valid query parameters see the [Reference](https://developer.wordpress.org/rest-api/reference/) in the REST API Handbook and select the entity kind. Then see the arguments available "Retrieve a [Entity kind]".
  *
