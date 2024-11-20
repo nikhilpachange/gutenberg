@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { useMemo } from '@wordpress/element';
+import { useMemo, useRef } from '@wordpress/element';
 import {
 	Button,
 	__experimentalText as Text,
@@ -38,7 +38,8 @@ const SetAsHomepageModal = ( { items, closeModal, onActionPerformed } ) => {
 			};
 		}
 	);
-	const isPageDraft = item.status === 'draft';
+	const isPageDraftRef = useRef( item.status === 'draft' );
+	const isPageDraft = isPageDraftRef.current;
 	const currentHomePageTitle = currentHomePage
 		? getItemTitle( currentHomePage )
 		: '';
