@@ -32,7 +32,7 @@ import usePageTypeBadge from '../../utils/pageTypeBadge';
 
 /** @typedef {import("@wordpress/components").IconType} IconType */
 
-const MotionButton = motion( Button );
+const MotionButton = motion.create( Button );
 
 /**
  * This component renders a navigation bar at the top of the editor. It displays the title of the current document,
