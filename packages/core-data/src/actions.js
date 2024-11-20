@@ -683,12 +683,10 @@ export const saveEntityRecord =
 							),
 						};
 					}
-					if (
-						! edits.status &&
-						persistedRecord?.status === 'auto-draft'
-					) {
-						edits.status =
-							name === 'wp_template' ? 'publish' : 'draft';
+					// Unless there is no persisted record, set the status to
+					// publish.
+					if ( name === 'wp_template' && persistedRecord ) {
+						edits.status = 'publish';
 					}
 					updatedRecord = await __unstableFetch( {
 						path,
