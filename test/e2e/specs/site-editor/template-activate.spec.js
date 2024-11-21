@@ -68,12 +68,16 @@ test.describe( 'Template Activate', () => {
 
 		await page.getByRole( 'button', { name: 'Index (Copy)' } ).click();
 
+		await expect( editor.canvas.getByText( 'gutenberg' ) ).toBeVisible();
+
 		await editor.insertBlock( {
 			name: 'core/paragraph',
 			attributes: { content: 'Copied from Index.' },
 		} );
 
-		await page.getByRole( 'button', { name: 'Save', exact: true } ).click();
+		await editor.saveSiteEditorEntities( {
+			isOnlyCurrentEntityDirty: true,
+		} );
 
 		// Visit the front end.
 		const previewButton = page.getByRole( 'button', {
@@ -106,6 +110,12 @@ test.describe( 'Template Activate', () => {
 			name: 'Deactivate',
 		} );
 		await deactivateButton.click();
+
+		await expect(
+			page.locator(
+				'.dataviews-view-grid__card:has-text("Index (Copy)") .is-active'
+			)
+		).toBeHidden();
 
 		await previewPage.bringToFront();
 		await previewPage.reload();
