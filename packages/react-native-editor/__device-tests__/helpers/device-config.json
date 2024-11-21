@@ -3,7 +3,7 @@
 		"local": {
 			"deviceName": "iPhone 15",
 			"deviceTabletName": "iPad (10th generation)",
-			"platformVersion": "17.5"
+			"platformVersion": "17.0"
 		},
 		"saucelabs": {
 			"deviceName": "iPhone 15 Simulator",
