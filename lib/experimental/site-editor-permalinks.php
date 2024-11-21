@@ -17,3 +17,12 @@ add_action(
 		return $settings;
 	}
 );
+
+function gutenberg_redirect_site_editor_to_design() {
+	global $pagenow;
+	if ( 'site-editor.php' === $pagenow && strpos( $_SERVER['REQUEST_URI'], 'wp-admin/site-editor.php' ) ) {
+		wp_redirect( admin_url( '/design' ), 301 );
+		exit;
+	}
+}
+add_action( 'admin_init', 'gutenberg_redirect_site_editor_to_design' );
