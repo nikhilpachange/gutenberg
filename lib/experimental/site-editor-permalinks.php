@@ -8,7 +8,7 @@ function gutenberg_rewrite_wp_admin_permalinks() {
 	);
 
 	add_rewrite_rule(
-		'^wp-admin/post/?(.*)?',
+		'^wp-admin/posts/?(.*)?',
 		'wp-admin/admin.php?page=gutenberg-posts-dashboard&p=$1',
 		'top'
 	);
@@ -138,7 +138,7 @@ function gutenberg_redirect_posts_dataviews_to_post() {
 		return;
 	}
 
-	wp_redirect( admin_url( '/post' ), 301 );
+	wp_redirect( admin_url( '/posts' ), 301 );
 	exit;
 }
 
