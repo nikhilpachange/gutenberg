@@ -1,22 +1,5 @@
 <?php
 
-function gutenberg_rewrite_wp_admin_permalinks() {
-	add_rewrite_rule(
-		'^wp-admin/design/?(.*)?',
-		'wp-admin/site-editor.php?p=$1',
-		'top'
-	);
-
-	add_rewrite_rule(
-		'^wp-admin/posts/?(.*)?',
-		'wp-admin/admin.php?page=gutenberg-posts-dashboard&p=$1',
-		'top'
-	);
-
-	flush_rewrite_rules();
-}
-add_action( 'init', 'gutenberg_rewrite_wp_admin_permalinks' );
-
 add_action(
 	'block_editor_settings_all',
 	function ( $settings ) {
@@ -31,98 +14,118 @@ function gutenberg_remove_query_args( $args ) {
 	foreach ( $args as $arg_name ) {
 		unset( $query[ $arg_name ] );
 	}
-	return build_query( $query );
+	return $query;
+}
+
+function gutenberg_get_site_editor_url( $path = '', $query = array() ) {
+	$query_string = build_query( array_merge( $query, $path ? array( 'p' => $path ) : array() ) );
+	$base_url     = admin_url( 'site-editor.php' );
+	return $query_string ? $base_url . '?' . $query_string : $base_url;
+}
+
+function gutenberg_get_posts_dataviews_url( $path = '', $query = array() ) {
+	$query_string = build_query(
+		array_merge(
+			$query,
+			$path ? array(
+				'page' => 'gutenberg-posts-dashboard',
+				'p'    => $path,
+			) : array( 'page' => 'gutenberg-posts-dashboard' )
+		)
+	);
+	$base_url     = admin_url( 'admin.php' );
+	return $query_string ? $base_url . '?' . $query_string : $base_url;
 }
 
 function gutenberg_redirect_site_editor_to_design() {
 	global $pagenow;
-	if ( 'site-editor.php' !== $pagenow || ! strpos( $_SERVER['REQUEST_URI'], 'wp-admin/site-editor.php' ) ) {
+	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || ! isset( $_SERVER['querystring'] ) ) {
 		return;
 	}
 
 	// The following redirects are for the new permalinks in the site editor.
 	if ( isset( $_REQUEST['postType'] ) && 'wp_navigation' === $_REQUEST['postType'] && ! empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/wp_navigation/' . $_REQUEST['postId'] . '?' . gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/wp_navigation/' . $_REQUEST['postId'], gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_navigation' === $_REQUEST['postType'] && empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/navigation?' . gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/navigation', gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/wp_global_styles' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/styles?' . gutenberg_remove_query_args( array( 'path' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/styles', gutenberg_remove_query_args( array( 'path' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'page' === $_REQUEST['postType'] && ( empty( $_REQUEST['canvas'] ) || empty( $_REQUEST['postId'] ) ) ) {
-		wp_redirect( admin_url( '/design/page?' . gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/page', gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'page' === $_REQUEST['postType'] && ! empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/page/' . $_REQUEST['postId'] . '?' . gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/page/' . $_REQUEST['postId'], gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_template' === $_REQUEST['postType'] && ( empty( $_REQUEST['canvas'] ) || empty( $_REQUEST['postId'] ) ) ) {
-		wp_redirect( admin_url( '/design/template?' . gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/template', gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_template' === $_REQUEST['postType'] && ! empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/wp_template/' . $_REQUEST['postId'] . '?' . gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/wp_template/' . $_REQUEST['postId'], gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_block' === $_REQUEST['postType'] && ( empty( $_REQUEST['canvas'] ) || empty( $_REQUEST['postId'] ) ) ) {
-		wp_redirect( admin_url( '/design/pattern?' . gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/pattern', gutenberg_remove_query_args( array( 'postType' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_block' === $_REQUEST['postType'] && ! empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/wp_block/' . $_REQUEST['postId'] . '?' . gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/wp_block/' . $_REQUEST['postId'], gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_template_part' === $_REQUEST['postType'] && ( empty( $_REQUEST['canvas'] ) || empty( $_REQUEST['postId'] ) ) ) {
-		wp_redirect( admin_url( '/design/pattern?' . $_SERVER['QUERY_STRING'] ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/pattern', gutenberg_remove_query_args() ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['postType'] ) && 'wp_template_part' === $_REQUEST['postType'] && ! empty( $_REQUEST['postId'] ) ) {
-		wp_redirect( admin_url( '/design/wp_template_part/' . $_REQUEST['postId'] . '?' . gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/wp_template_part/' . $_REQUEST['postId'], gutenberg_remove_query_args( array( 'postType', 'postId' ) ) ), 301 );
 		exit;
 	}
 
 	// The following redirects are for backward compatibility with the old site editor URLs.
 	if ( isset( $_REQUEST['path'] ) && '/wp_template_part/all' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/pattern?postType=wp_template_part' ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/pattern?postType=wp_template_part' ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/page' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/page' ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/page' ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/wp_template' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/template' ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/template' ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/patterns' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/pattern' ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/pattern' ), 301 );
 		exit;
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/navigation' === $_REQUEST['path'] ) {
-		wp_redirect( admin_url( '/design/navigation' ), 301 );
+		wp_redirect( gutenberg_get_site_editor_url( '/navigation' ), 301 );
 		exit;
 	}
 
-	wp_redirect( admin_url( '/design' ), 301 );
+	wp_redirect( gutenberg_get_site_editor_url(), 301 );
 	exit;
 }
 add_action( 'admin_init', 'gutenberg_redirect_site_editor_to_design' );
@@ -133,12 +136,12 @@ function gutenberg_redirect_posts_dataviews_to_post() {
 		'admin.php' !== $pagenow ||
 		! isset( $_REQUEST['page'] ) ||
 		'gutenberg-posts-dashboard' !== $_REQUEST['page'] ||
-		! strpos( $_SERVER['REQUEST_URI'], 'wp-admin/admin.php' )
+		isset( $_REQUEST['p'] )
 	) {
 		return;
 	}
 
-	wp_redirect( admin_url( '/posts' ), 301 );
+	wp_redirect( gutenberg_get_posts_dataviews_url( '/' ), 301 );
 	exit;
 }
 

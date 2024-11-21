@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { useContext } from '@wordpress/element';
+import { getQueryArgs, getPath, buildQueryString } from '@wordpress/url';
 
 /**
  * Internal dependencies
@@ -10,16 +11,21 @@ import { ConfigContext, type NavigationOptions, useHistory } from './router';
 
 export function useLink( to: string, options: NavigationOptions = {} ) {
 	const history = useHistory();
-	const { basePath } = useContext( ConfigContext );
+	const { pathArg } = useContext( ConfigContext );
 	function onClick( event: React.SyntheticEvent< HTMLAnchorElement > ) {
 		event?.preventDefault();
 		history.navigate( to, options );
 	}
+	const queryArgs = getQueryArgs( to );
+	const path = getPath( 'http://domain.com/' + to );
 
-	const [ before ] = window.location.href.split( basePath );
+	const [ before ] = window.location.href.split( '?' );
 
 	return {
-		href: `${ before }${ basePath }${ to }`,
+		href: `${ before }?${ buildQueryString( {
+			[ pathArg ]: path,
+			...queryArgs,
+		} ) }`,
 		onClick,
 	};
 }

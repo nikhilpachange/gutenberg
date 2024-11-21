@@ -54,7 +54,7 @@ export default function App() {
 		<SlotFillProvider>
 			<GlobalStylesProvider>
 				<UnsavedChangesWarning />
-				<RouterProvider routes={ routes } basePath="/wp-admin/design">
+				<RouterProvider routes={ routes } pathArg="p">
 					<AppLayout />
 					<PluginArea onError={ onPluginAreaError } />
 				</RouterProvider>

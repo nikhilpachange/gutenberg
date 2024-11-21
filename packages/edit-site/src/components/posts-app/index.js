@@ -27,7 +27,7 @@ export default function PostsApp() {
 	return (
 		<GlobalStylesProvider>
 			<UnsavedChangesWarning />
-			<RouterProvider routes={ routes } basePath="/wp-admin/posts">
+			<RouterProvider routes={ routes } pathArg="p">
 				<Layout />
 			</RouterProvider>
 		</GlobalStylesProvider>

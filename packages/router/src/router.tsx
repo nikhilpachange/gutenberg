@@ -13,7 +13,12 @@ import {
 	useSyncExternalStore,
 	useMemo,
 } from '@wordpress/element';
-import { addQueryArgs } from '@wordpress/url';
+import {
+	addQueryArgs,
+	getQueryArgs,
+	getPath,
+	buildQueryString,
+} from '@wordpress/url';
 
 /**
  * Internal dependencies
@@ -42,7 +47,7 @@ interface Match {
 }
 
 interface Config {
-	basePath: string;
+	pathArg: string;
 }
 
 export interface NavigationOptions {
@@ -51,7 +56,7 @@ export interface NavigationOptions {
 }
 
 const RoutesContext = createContext< Match | null >( null );
-export const ConfigContext = createContext< Config >( { basePath: '/' } );
+export const ConfigContext = createContext< Config >( { pathArg: 'p' } );
 
 const locationMemo = new WeakMap();
 function getLocationWithQuery() {
@@ -72,13 +77,20 @@ export function useLocation() {
 }
 
 export function useHistory() {
-	const { basePath } = useContext( ConfigContext );
+	const { pathArg } = useContext( ConfigContext );
 	return useMemo(
 		() => ( {
-			navigate( path: string, options: NavigationOptions = {} ) {
+			navigate( rawPath: string, options: NavigationOptions = {} ) {
+				const query = getQueryArgs( rawPath );
+				const path = getPath( 'http://domain.com/' + rawPath );
 				const performPush = () => {
 					return history.push(
-						`${ basePath }${ path }`,
+						{
+							search: buildQueryString( {
+								[ pathArg ]: path,
+								...query,
+							} ),
+						},
 						options.state
 					);
 				};
@@ -109,16 +121,16 @@ export function useHistory() {
 				} );
 			},
 		} ),
-		[ basePath ]
+		[ pathArg ]
 	);
 }
 
 export default function useMatch(
 	location: LocationWithQuery,
 	routes: Route[],
-	basePath: string
+	pathArg: string
 ): Match {
-	const { query = {}, pathname } = location;
+	const { query: rawQuery = {} } = location;
 
 	return useMemo( () => {
 		const matcher = new RouteRecognizer();
@@ -127,9 +139,7 @@ export default function useMatch(
 				as: route.name,
 			} );
 		} );
-		const [ , path ] = basePath
-			? pathname.split( basePath )
-			: [ , pathname ];
+		const { [ pathArg ]: path = '/', ...query } = rawQuery;
 		const result = matcher.recognize( path )?.[ 0 ];
 		if ( ! result ) {
 			return {
@@ -164,16 +174,16 @@ export default function useMatch(
 			query,
 			path: addQueryArgs( path, query ),
 		};
-	}, [ routes, query, basePath, pathname ] );
+	}, [ routes, rawQuery, pathArg ] );
 }
 
 export function RouterProvider( {
 	routes,
-	basePath,
+	pathArg,
 	children,
 }: {
 	routes: Route[];
-	basePath: string;
+	pathArg: string;
 	children: React.ReactNode;
 } ) {
 	const location = useSyncExternalStore(
@@ -181,8 +191,8 @@ export function RouterProvider( {
 		getLocationWithQuery,
 		getLocationWithQuery
 	);
-	const match = useMatch( location, routes, basePath );
-	const config = useMemo( () => ( { basePath } ), [ basePath ] );
+	const match = useMatch( location, routes, pathArg );
+	const config = useMemo( () => ( { pathArg } ), [ pathArg ] );
 
 	return (
 		<ConfigContext.Provider value={ config }>
