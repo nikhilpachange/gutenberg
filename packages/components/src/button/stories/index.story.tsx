@@ -65,6 +65,11 @@ Default.args = {
 	children: 'Code is poetry',
 };
 
+/**
+ * Primary buttons stand out with bold color fills, making them distinct
+ * from the background. Since they naturally draw attention, each layout should contain
+ * only one primary button to guide users toward the most important action.
+ */
 export const Primary = Template.bind( {} );
 Primary.args = {
 	...Default.args,
