@@ -56,6 +56,7 @@ export { default as cloud } from './library/cloud';
 export { default as code } from './library/code';
 export { default as cog } from './library/cog';
 export { default as color } from './library/color';
+export { default as colorFilled } from './library/color-filled';
 export { default as column } from './library/column';
 export { default as columns } from './library/columns';
 export { default as copy } from './library/copy';
