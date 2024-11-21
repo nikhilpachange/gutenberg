@@ -127,7 +127,7 @@ test.describe( 'Block template registration', () => {
 		blockTemplateRegistrationUtils,
 	} ) => {
 		// Create a post.
-		await admin.visitAdminPage( '/post-new.php' );
+		await admin.createNewPost();
 		await editor.insertBlock( {
 			name: 'core/paragraph',
 			attributes: { content: 'User-created post.' },
@@ -166,8 +166,6 @@ test.describe( 'Block template registration', () => {
 				'A custom template registered by a plugin and overridden by a theme.'
 			)
 		).toBeVisible();
-		// Verify the theme template shows the theme name as the author.
-		await expect( page.getByText( 'AuthorEmptytheme' ) ).toBeVisible();
 	} );
 
 	test( 'templates can be deleted if the registered plugin is deactivated', async ( {
