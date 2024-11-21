@@ -312,6 +312,11 @@ test.describe( 'Block template registration', () => {
 		);
 		await expect( page.getByText( 'Plugin Author Template' ) ).toBeHidden();
 
+		await admin.visitSiteEditor( {
+			postType: 'wp_template',
+			activeView: 'user',
+		} );
+
 		// Reset the user-modified template.
 		const resetNotice = page
 			.getByLabel( 'Dismiss this notice' )
@@ -320,22 +325,11 @@ test.describe( 'Block template registration', () => {
 		await page.getByRole( 'link', { name: 'Author: Admin' } ).click();
 		const actions = page.getByLabel( 'Actions' );
 		await actions.first().click();
-		await page.getByRole( 'menuitem', { name: 'Reset' } ).click();
-		await page.getByRole( 'button', { name: 'Reset' } ).click();
+		await page.getByRole( 'menuitem', { name: 'Move to trash' } ).click();
+		await page.getByRole( 'button', { name: 'Trash' } ).click();
 
 		await expect( resetNotice ).toBeVisible();
 
-		// Verify the template registered by the plugin is applied in the editor...
-		await expect(
-			editor.canvas.getByText( 'Author template customized by the user.' )
-		).toBeHidden();
-		await expect(
-			editor.canvas.getByText(
-				'This is a plugin-registered author template.'
-			)
-		).toBeVisible();
-
-		// ... and the frontend.
 		await page.goto( '?author=1' );
 		await expect(
 			page.getByText( 'Author template customized by the user.' )

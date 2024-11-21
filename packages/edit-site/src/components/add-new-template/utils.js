@@ -538,7 +538,11 @@ export function useAuthorMenuItem( onClickMenuItem ) {
 					getSpecificTemplate: ( suggestion ) => {
 						const templateSlug = `author-${ suggestion.slug }`;
 						return {
-							title: templateSlug,
+							title: sprintf(
+								// translators: %s: Name of the author e.g: "Admin".
+								__( 'Author: %s' ),
+								suggestion.name
+							),
 							slug: templateSlug,
 							templatePrefix: 'author',
 						};
