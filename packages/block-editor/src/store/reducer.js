@@ -2563,14 +2563,18 @@ export function withDerivedBlockEditingModes( reducer ) {
 				break;
 			}
 			case 'SET_HAS_CONTROLLED_INNER_BLOCKS': {
-				const newControlledBlock = nextState.blocks.tree.get(
+				const updatedBlock = nextState.blocks.tree.get(
 					action.clientId
 				);
+				// The block might have been removed.
+				if ( ! updatedBlock ) {
+					break;
+				}
 				const nextDerivedBlockEditingModes =
 					getDerivedBlockEditingModesUpdates( {
 						prevState: state,
 						nextState,
-						addedBlocks: [ newControlledBlock ],
+						addedBlocks: [ updatedBlock ],
 					} );
 
 				if ( nextDerivedBlockEditingModes ) {
