@@ -18,7 +18,7 @@ import { isValidIcon, normalizeIconObject, omit } from '../api/utils';
 import {
 	BLOCK_ICON_DEFAULT,
 	DEPRECATED_ENTRY_KEYS,
-	TYPOGRAPHY_SUPPORTS_EXPERIMENTAL_TO_STABLE,
+	EXPERIMENTAL_TO_STABLE_KEYS,
 } from '../api/constants';
 
 /** @typedef {import('../api/registration').WPBlockType} WPBlockType */
@@ -71,17 +71,80 @@ function stabilizeSupports( rawSupports ) {
 		return rawSupports;
 	}
 
-	const supports = { ...rawSupports };
-	if ( supports?.typography && typeof supports.typography === 'object' ) {
-		supports.typography = Object.fromEntries(
-			Object.entries( supports.typography ).map( ( [ key, value ] ) => [
-				TYPOGRAPHY_SUPPORTS_EXPERIMENTAL_TO_STABLE[ key ] || key,
-				value,
-			] )
-		);
+	// Create a new object to avoid mutating the original. This ensures that
+	// custom block plugins that rely on immutable supports are not affected.
+	// See: https://github.com/WordPress/gutenberg/pull/66849#issuecomment-2463614281
+	const newSupports = {};
+
+	for ( const [ support, config ] of Object.entries( rawSupports ) ) {
+		// Add the support's config as is when it's not in need of stabilization.
+		if ( ! EXPERIMENTAL_TO_STABLE_KEYS[ support ] ) {
+			newSupports[ support ] = config;
+			continue;
+		}
+
+		// Stabilize the support's key if needed e.g. __experimentalBorder => border.
+		if ( typeof EXPERIMENTAL_TO_STABLE_KEYS[ support ] === 'string' ) {
+			const stabilizedKey = EXPERIMENTAL_TO_STABLE_KEYS[ support ];
+
+			// If there is no stabilized key present, use the experimental config as is.
+			if ( ! Object.hasOwn( rawSupports, stabilizedKey ) ) {
+				newSupports[ stabilizedKey ] = config;
+				continue;
+			}
+
+			/*
+			 * Determine the order of keys, so the last defined can be preferred.
+			 *
+			 * The reason for preferring the last defined key is that after filters
+			 * are applied, the last inserted key is likely the most up-to-date value.
+			 * We cannot determine with certainty which value was "last modified" so
+			 * the insertion order is the best guess. The extreme edge case of multiple
+			 * filters tweaking the same support property will become less over time as
+			 * extenders migrate existing blocks and plugins to stable keys.
+			 */
+			const entries = Object.entries( rawSupports );
+			const experimentalIndex = entries.findIndex(
+				( [ key ] ) => key === support
+			);
+			const stabilizedIndex = entries.findIndex(
+				( [ key ] ) => key === stabilizedKey
+			);
+
+			// Update support config, prefer the last defined value.
+			if ( typeof config === 'object' && config !== null ) {
+				newSupports[ stabilizedKey ] =
+					experimentalIndex < stabilizedIndex
+						? { ...config, ...rawSupports[ stabilizedKey ] }
+						: { ...rawSupports[ stabilizedKey ], ...config };
+			} else {
+				newSupports[ stabilizedKey ] =
+					experimentalIndex < stabilizedIndex
+						? rawSupports[ stabilizedKey ]
+						: config;
+			}
+			continue;
+		}
+
+		// Stabilize individual support feature keys
+		// e.g. __experimentalFontFamily => fontFamily.
+		const featureStabilizationRequired =
+			typeof EXPERIMENTAL_TO_STABLE_KEYS[ support ] === 'object' &&
+			EXPERIMENTAL_TO_STABLE_KEYS[ support ] !== null;
+		const hasConfig = typeof config === 'object' && config !== null;
+
+		if ( featureStabilizationRequired && hasConfig ) {
+			const stableConfig = {};
+			for ( const [ key, value ] of Object.entries( config ) ) {
+				const stableKey =
+					EXPERIMENTAL_TO_STABLE_KEYS[ support ][ key ] || key;
+				stableConfig[ stableKey ] = value;
+			}
+			newSupports[ support ] = stableConfig;
+		}
 	}
 
-	return supports;
+	return newSupports;
 }
 
 /**
@@ -150,10 +213,12 @@ export const processBlockType =
 		if ( settings.deprecated ) {
 			settings.deprecated = settings.deprecated.map( ( deprecation ) => {
 				// Stabilize any experimental supports before applying filters.
-				deprecation.supports = stabilizeSupports(
-					deprecation.supports
-				);
-				const filteredDeprecation = // Only keep valid deprecation keys.
+				let filteredDeprecation = {
+					...deprecation,
+					supports: stabilizeSupports( deprecation.supports ),
+				};
+
+				filteredDeprecation = // Only keep valid deprecation keys.
 					applyFilters(
 						'blocks.registerBlockType',
 						// Merge deprecation keys with pre-filter settings
@@ -163,10 +228,10 @@ export const processBlockType =
 							// Omit deprecation keys here so that deprecations
 							// can opt out of specific keys like "supports".
 							...omit( blockType, DEPRECATED_ENTRY_KEYS ),
-							...deprecation,
+							...filteredDeprecation,
 						},
 						blockType.name,
-						deprecation
+						filteredDeprecation
 					);
 				// Re-stabilize any experimental supports after applying filters.
 				// This ensures that any supports updated by filters are also stabilized.
