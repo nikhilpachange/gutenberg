@@ -316,7 +316,9 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 													history.navigate(
 														getNavigationPath(
 															location,
-															postType
+															postWithTemplate
+																? context.postType
+																: postType
 														),
 														{
 															transition:
