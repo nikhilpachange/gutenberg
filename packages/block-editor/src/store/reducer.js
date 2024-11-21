@@ -2562,6 +2562,25 @@ export function withDerivedBlockEditingModes( reducer ) {
 				}
 				break;
 			}
+			case 'SET_HAS_CONTROLLED_INNER_BLOCKS': {
+				const newControlledBlock = nextState.blocks.tree.get(
+					action.clientId
+				);
+				const nextDerivedBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks: [ newControlledBlock ],
+					} );
+
+				if ( nextDerivedBlockEditingModes ) {
+					return {
+						...nextState,
+						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+					};
+				}
+				break;
+			}
 			case 'REPLACE_BLOCKS': {
 				const nextDerivedBlockEditingModes =
 					getDerivedBlockEditingModesUpdates( {
@@ -2624,8 +2643,8 @@ export function withDerivedBlockEditingModes( reducer ) {
 			case 'UPDATE_SETTINGS': {
 				// Recompute the entire tree if the section root changes.
 				if (
-					state.settings[ sectionRootClientIdKey ] !==
-					nextState.settings[ sectionRootClientIdKey ]
+					state?.settings?.[ sectionRootClientIdKey ] !==
+					nextState?.settings?.[ sectionRootClientIdKey ]
 				) {
 					return {
 						...nextState,
