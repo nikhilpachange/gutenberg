@@ -94,6 +94,15 @@ function gutenberg_pre_get_block_templates( $output, $query, $template_type ) {
 
 add_filter( 'pre_get_block_templates', 'gutenberg_pre_get_block_templates', 10, 3 );
 
+// Whenever templates are queried, include all templates, not just the ones with
+// a matching theme.
+add_action( 'pre_get_posts', 'gutenberg_remove_tax_query_for_templates' );
+function gutenberg_remove_tax_query_for_templates( $query ) {
+    if ( $query->query['post_type'] === 'wp_template' ) {
+        $query->set( 'tax_query', array() );
+    }
+}
+
 // Bypass the terms check in _build_block_template_result_from_post.
 function gutenberg_get_the_terms( $terms, $object_id, $taxonomy ) {
 	if ( 'wp_theme' === $taxonomy ) {
@@ -112,18 +121,3 @@ function gutenberg_get_the_terms( $terms, $object_id, $taxonomy ) {
 	return $terms;
 }
 add_filter( 'get_the_terms', 'gutenberg_get_the_terms', 10, 3 );
-
-// We need to set the theme for the template when it's created. See:
-// https://github.com/WordPress/wordpress-develop/blob/b2c8d8d2c8754cab5286b06efb4c11e2b6aa92d5/src/wp-includes/rest-api/endpoints/class-wp-rest-templates-controller.php#L571-L578
-function gutenberg_set_active_template_theme( $changes, $request ) {
-	$template = $request['id'] ? get_block_template( $request['id'], 'wp_template' ) : null;
-	if ( $template ) {
-		return $changes;
-	}
-	$changes->tax_input = array(
-		'wp_theme' => isset( $request['theme'] ) ? $request['theme'] : get_stylesheet(),
-	);
-	return $changes;
-}
-
-add_action( 'rest_pre_insert_wp_template', 'gutenberg_set_active_template_theme', 10, 2 );

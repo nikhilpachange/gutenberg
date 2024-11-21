@@ -18,7 +18,7 @@ interface CreateTemplatePayload {
 }
 
 const PATH_MAPPING = {
-	wp_template: '/wp/v2/wp_template',
+	wp_template: '/wp/v2/templates',
 	wp_template_part: '/wp/v2/template-parts',
 };
 
@@ -38,7 +38,7 @@ async function deleteAllTemplates( this: RequestUtils, type: TemplateType ) {
 	const templates = await this.rest< Template[] >( { path } );
 
 	for ( const template of templates ) {
-		if ( ! template.id ) {
+		if ( ! template?.id || ! template?.wp_id ) {
 			continue;
 		}
 

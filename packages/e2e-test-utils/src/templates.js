@@ -4,7 +4,7 @@
 import { rest } from './rest-api';
 
 const PATH_MAPPING = {
-	wp_template: '/wp/v2/wp_template',
+	wp_template: '/wp/v2/templates',
 	wp_template_part: '/wp/v2/template-parts',
 };
 
@@ -27,6 +27,10 @@ export async function deleteAllTemplates( type ) {
 	}
 
 	for ( const template of templates ) {
+		if ( ! template?.wp_id ) {
+			continue;
+		}
+
 		try {
 			await rest( {
 				path: `${ path }/${ template.id }?force=true`,

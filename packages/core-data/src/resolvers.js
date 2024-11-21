@@ -72,6 +72,8 @@ export const getEntityRecord =
 			kind === 'postType' &&
 			name === 'wp_template' &&
 			typeof key === 'string' &&
+			// __experimentalGetDirtyEntityRecords always calls getEntityRecord
+			// with a string key, so we need that it's not a numeric ID.
 			! /^\d+$/.test( key )
 		) {
 			name = '_wp_static_template';
@@ -222,12 +224,12 @@ export const getEntityRecord =
 	};
 
 export const getTemplateAutoDraftId =
-	( target ) =>
+	( staticTemplateId ) =>
 	async ( { resolveSelect, dispatch } ) => {
 		const record = await resolveSelect.getEntityRecord(
 			'postType',
 			'_wp_static_template',
-			target
+			staticTemplateId
 		);
 		const autoDraft = await dispatch.saveEntityRecord(
 			'postType',
@@ -239,7 +241,10 @@ export const getTemplateAutoDraftId =
 				status: 'auto-draft',
 			}
 		);
-		await dispatch.receiveTemplateAutoDraftId( target, autoDraft.id );
+		await dispatch.receiveTemplateAutoDraftId(
+			staticTemplateId,
+			autoDraft.id
+		);
 	};
 
 /**

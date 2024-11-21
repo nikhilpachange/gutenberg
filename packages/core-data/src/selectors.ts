@@ -360,6 +360,8 @@ export const getEntityRecord = createSelector(
 			kind === 'postType' &&
 			name === 'wp_template' &&
 			typeof key === 'string' &&
+			// __experimentalGetDirtyEntityRecords always calls getEntityRecord
+			// with a string key, so we need that it's not a numeric ID.
 			! /^\d+$/.test( key )
 		) {
 			name = '_wp_static_template';
