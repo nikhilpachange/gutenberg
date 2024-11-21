@@ -62,19 +62,18 @@ test.describe( 'Block template registration', () => {
 			name: 'core/paragraph',
 			attributes: { content: 'User-edited template' },
 		} );
-		await editor.saveSiteEditorEntities( {
-			isOnlyCurrentEntityDirty: true,
-		} );
+		await editor.saveSiteEditorEntities();
 		await page.goto( '/?cat=1' );
 		await expect( page.getByText( 'User-edited template' ) ).toBeVisible();
 
 		// Verify template can be reset.
 		await admin.visitSiteEditor( {
 			postType: 'wp_template',
+			activeView: 'user',
 		} );
 		const resetNotice = page
 			.getByLabel( 'Dismiss this notice' )
-			.getByText( `"Plugin Template" reset.` );
+			.getByText( `"Plugin Template" moved to the trash.` );
 		const savedButton = page.getByRole( 'button', {
 			name: 'Saved',
 		} );
@@ -83,8 +82,8 @@ test.describe( 'Block template registration', () => {
 		);
 		const searchResults = page.getByLabel( 'Actions' );
 		await searchResults.first().click();
-		await page.getByRole( 'menuitem', { name: 'Reset' } ).click();
-		await page.getByRole( 'button', { name: 'Reset' } ).click();
+		await page.getByRole( 'menuitem', { name: 'Move to trash' } ).click();
+		await page.getByRole( 'button', { name: 'Trash' } ).click();
 
 		await expect( resetNotice ).toBeVisible();
 		await expect( savedButton ).toBeVisible();
@@ -155,6 +154,7 @@ test.describe( 'Block template registration', () => {
 		// Verify the plugin-registered template doesn't appear in the Site Editor.
 		await admin.visitSiteEditor( {
 			postType: 'wp_template',
+			activeView: 'Emptytheme',
 		} );
 		await blockTemplateRegistrationUtils.searchForTemplate( 'Custom' );
 		await expect(
@@ -193,9 +193,7 @@ test.describe( 'Block template registration', () => {
 			name: 'core/paragraph',
 			attributes: { content: 'User-customized template' },
 		} );
-		await editor.saveSiteEditorEntities( {
-			isOnlyCurrentEntityDirty: true,
-		} );
+		await editor.saveSiteEditorEntities();
 
 		// Deactivate plugin.
 		await requestUtils.deactivatePlugin(
@@ -290,9 +288,7 @@ test.describe( 'Block template registration', () => {
 			name: 'core/paragraph',
 			attributes: { content: 'Author template customized by the user.' },
 		} );
-		await editor.saveSiteEditorEntities( {
-			isOnlyCurrentEntityDirty: true,
-		} );
+		await editor.saveSiteEditorEntities();
 
 		await requestUtils.activatePlugin(
 			'gutenberg-test-block-template-registration'

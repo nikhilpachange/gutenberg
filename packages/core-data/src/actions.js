@@ -457,7 +457,8 @@ export const editEntityRecord =
 								...site.active_templates,
 								[ record.slug ]: record.id,
 							},
-						}
+						},
+						{ isCached: true }
 					);
 				}
 			}
