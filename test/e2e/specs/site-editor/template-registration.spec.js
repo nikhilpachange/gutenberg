@@ -126,7 +126,6 @@ test.describe( 'Block template registration', () => {
 		page,
 		blockTemplateRegistrationUtils,
 	} ) => {
-		// Create a post.
 		await admin.createNewPost();
 		await editor.insertBlock( {
 			name: 'core/paragraph',

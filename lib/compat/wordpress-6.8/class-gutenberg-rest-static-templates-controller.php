@@ -1,10 +1,6 @@
 <?php
 
 class Gutenberg_REST_Static_Templates_Controller extends Gutenberg_REST_Templates_Controller_6_7 {
-	public function __construct( $post_type ) {
-		parent::__construct( $post_type );
-	}
-
 	public function register_routes() {
 		// Lists all templates.
 		register_rest_route(

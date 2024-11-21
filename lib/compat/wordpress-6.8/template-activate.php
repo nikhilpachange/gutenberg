@@ -115,25 +115,6 @@ function gutenberg_tax_get_block_templates( $output, $query, $template_type ) {
 	return $output;
 }
 
-// Bypass the terms check in _build_block_template_result_from_post.
-add_filter( 'get_the_terms', 'gutenberg_get_the_terms', 10, 3 );
-function gutenberg_get_the_terms( $terms, $object_id, $taxonomy ) {
-	if ( 'wp_theme' === $taxonomy ) {
-		$stylesheet = get_stylesheet();
-		return array(
-			new WP_Term(
-				(object) array(
-					'term_id'  => 0,
-					'name'     => $stylesheet,
-					'slug'     => $stylesheet,
-					'taxonomy' => 'wp_theme',
-				)
-			),
-		);
-	}
-	return $terms;
-}
-
 // We need to set the theme for the template when it's created. See:
 // https://github.com/WordPress/wordpress-develop/blob/b2c8d8d2c8754cab5286b06efb4c11e2b6aa92d5/src/wp-includes/rest-api/endpoints/class-wp-rest-templates-controller.php#L571-L578
 add_action( 'rest_pre_insert_wp_template', 'gutenberg_set_active_template_theme', 10, 2 );
