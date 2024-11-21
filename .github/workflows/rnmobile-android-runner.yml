@@ -58,7 +58,7 @@ jobs:
                       ~/.android/adb*
                   key: avd-${{ matrix.api-level }}
 
-            - name: Print devixe list
+            - name: Print device list
               run: avdmanager list device
 
             - name: Create AVD and generate snapshot for caching
