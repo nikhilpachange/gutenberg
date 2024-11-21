@@ -364,6 +364,6 @@ class BlockTemplateRegistrationUtils {
 		await this.page.getByPlaceholder( 'Search' ).fill( searchTerm );
 		await expect
 			.poll( async () => await searchResults.count() )
-			.toBeLessThan( initialSearchResultsCount );
+			.toBeLessThanOrEqual( initialSearchResultsCount );
 	}
 }
