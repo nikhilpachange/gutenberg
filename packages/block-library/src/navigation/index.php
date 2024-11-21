@@ -1437,20 +1437,6 @@ function block_core_navigation_get_most_recently_published_navigation() {
 }
 
 /**
- * Accepts the serialized markup of a block and its inner blocks, and returns serialized markup of the inner blocks.
- *
- * @since 6.5.0
- *
- * @param string $serialized_block The serialized markup of a block and its inner blocks.
- * @return string
- */
-function block_core_navigation_remove_serialized_parent_block( $serialized_block ) {
-	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
-	$end   = strrpos( $serialized_block, '<!--' );
-	return substr( $serialized_block, $start, $end - $start );
-}
-
-/**
  * Mock a parsed block for the Navigation block given its inner blocks and the `wp_navigation` post object.
  * The `wp_navigation` post's `_wp_ignored_hooked_blocks` meta is queried to add the `metadata.ignoredHookedBlocks` attribute.
  *
