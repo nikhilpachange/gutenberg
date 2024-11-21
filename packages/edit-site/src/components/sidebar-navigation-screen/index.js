@@ -97,7 +97,7 @@ export default function SidebarNavigationScreen( {
 							label={
 								dashboardLinkText || __( 'Go to the Dashboard' )
 							}
-							href={ dashboardLink || 'index.php' }
+							href={ dashboardLink }
 						/>
 					) }
 					<Heading
