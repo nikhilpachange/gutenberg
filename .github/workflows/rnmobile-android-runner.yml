@@ -19,7 +19,7 @@ jobs:
         strategy:
             matrix:
                 native-test-name: [gutenberg-editor-rendering]
-                api-level: [35]
+                api-level: [31]
 
         steps:
             - name: checkout
