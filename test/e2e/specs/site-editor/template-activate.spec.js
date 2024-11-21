@@ -62,7 +62,9 @@ test.describe( 'Template Activate', () => {
 		} );
 		await activateButton.click();
 
-		expect( await indexCopy.textContent() ).toContain( 'Active' );
+		await page.waitForSelector(
+			'.dataviews-view-grid__field-value .is-active'
+		);
 
 		await page.getByRole( 'button', { name: 'Index (Copy)' } ).click();
 

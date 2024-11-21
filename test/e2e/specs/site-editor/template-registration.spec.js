@@ -180,6 +180,7 @@ test.describe( 'Block template registration', () => {
 		// Make an edit to the template.
 		await admin.visitSiteEditor( {
 			postType: 'wp_template',
+			activeView: 'Gutenberg',
 		} );
 		await blockTemplateRegistrationUtils.searchForTemplate(
 			'Plugin Template'
@@ -204,10 +205,11 @@ test.describe( 'Block template registration', () => {
 		// Verify template can be deleted.
 		await admin.visitSiteEditor( {
 			postType: 'wp_template',
+			activeView: 'user',
 		} );
 		const deletedNotice = page
 			.getByLabel( 'Dismiss this notice' )
-			.getByText( `"Plugin Template" deleted.` );
+			.getByText( `"Plugin Template" moved to the trash.` );
 		const savedButton = page.getByRole( 'button', {
 			name: 'Saved',
 		} );
@@ -216,8 +218,8 @@ test.describe( 'Block template registration', () => {
 		);
 		const searchResults = page.getByLabel( 'Actions' );
 		await searchResults.first().click();
-		await page.getByRole( 'menuitem', { name: 'Delete' } ).click();
-		await page.getByRole( 'button', { name: 'Delete' } ).click();
+		await page.getByRole( 'menuitem', { name: 'Move to trash' } ).click();
+		await page.getByRole( 'button', { name: 'Trash' } ).click();
 
 		await expect( deletedNotice ).toBeVisible();
 		await expect( savedButton ).toBeVisible();

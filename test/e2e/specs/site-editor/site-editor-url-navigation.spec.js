@@ -44,7 +44,7 @@ test.describe( 'Site editor url navigation', () => {
 			.click();
 		await page.getByRole( 'option', { name: 'Demo' } ).click();
 		await expect( page ).toHaveURL(
-			'/wp-admin/site-editor.php?postId=emptytheme%2F%2Fsingle-post-demo&postType=wp_template&canvas=edit'
+			/wp-admin\/site-editor\.php\?postId=\d+&postType=wp_template&canvas=edit/
 		);
 	} );
 

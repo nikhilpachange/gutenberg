@@ -52,7 +52,7 @@ test.describe( 'Templates', () => {
 			content: 'hi',
 		} );
 		await requestUtils.updateSiteSettings( {
-			active_templates: { date: template.id },
+			active_templates: { date: template.wp_id },
 		} );
 		await admin.visitSiteEditor( { postType: 'wp_template' } );
 		// Global search.
