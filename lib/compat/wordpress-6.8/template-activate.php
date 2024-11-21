@@ -97,17 +97,19 @@ function gutenberg_remove_tax_query_for_templates( $query ) {
 }
 
 add_filter( 'pre_get_block_templates', 'gutenberg_tax_pre_get_block_templates', 10, 3 );
+add_action( 'pre_get_block_template', 'gutenberg_tax_pre_get_block_templates', 10, 3 );
 function gutenberg_tax_pre_get_block_templates( $output, $query, $template_type ) {
-    // Do not remove the tax query when querying for a specific slug.
-	if ( 'wp_template' === $template_type && empty( $query['slug__in'] ) ) {
+	// Do not remove the tax query when querying for a specific slug.
+	if ( 'wp_template' === $template_type && ( is_numeric( $query ) || empty( $query['slug__in'] ) ) ) {
 		add_action( 'pre_get_posts', 'gutenberg_remove_tax_query_for_templates' );
 	}
 	return $output;
 }
 
 add_filter( 'get_block_templates', 'gutenberg_tax_get_block_templates', 10, 3 );
+add_action( 'get_block_template', 'gutenberg_tax_get_block_templates', 10, 3 );
 function gutenberg_tax_get_block_templates( $output, $query, $template_type ) {
-	if ( 'wp_template' === $template_type && empty( $query['slug__in'] ) ) {
+	if ( 'wp_template' === $template_type && ( is_numeric( $query ) || empty( $query['slug__in'] ) ) ) {
 		remove_action( 'pre_get_posts', 'gutenberg_remove_tax_query_for_templates' );
 	}
 	return $output;
