@@ -318,7 +318,7 @@ test.describe( 'Block template registration', () => {
 		// Reset the user-modified template.
 		const resetNotice = page
 			.getByLabel( 'Dismiss this notice' )
-			.getByText( `"Author: Admin" reset.` );
+			.getByText( `"Author: Admin" moved to the trash.` );
 		await page.getByPlaceholder( 'Search' ).fill( 'Author: admin' );
 		await page.getByRole( 'link', { name: 'Author: Admin' } ).click();
 		const actions = page.getByLabel( 'Actions' );

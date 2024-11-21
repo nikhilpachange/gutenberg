@@ -72,7 +72,7 @@ function gutenberg_pre_get_block_templates( $output, $query, $template_type ) {
 			if ( isset( $active_templates[ $slug ] ) ) {
 				if ( false !== $active_templates[ $slug ] ) {
 					$post = get_post( $active_templates[ $slug ] );
-					if ( $post ) {
+					if ( $post && 'publish' === $post->post_status ) {
 						$output[] = _build_block_template_result_from_post( $post );
 					}
 				} else {
