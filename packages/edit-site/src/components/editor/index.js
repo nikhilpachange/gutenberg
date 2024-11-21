@@ -96,6 +96,8 @@ function getListPathForPostType( postType ) {
 			return '/template';
 		case 'page':
 			return '/page';
+		case 'post':
+			return '/';
 	}
 	throw 'Unknown post type';
 }
@@ -108,6 +110,7 @@ function getNavigationPath( location, postType ) {
 			'template-part-item',
 			'page-item',
 			'template-item',
+			'post-item',
 		].includes( name )
 	) {
 		return getListPathForPostType( postType );

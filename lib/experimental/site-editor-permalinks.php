@@ -3,9 +3,16 @@
 function gutenberg_rewrite_wp_admin_permalinks() {
 	add_rewrite_rule(
 		'^wp-admin/design/?(.*)?',
-		'wp-admin/site-editor.php?path=$1',
+		'wp-admin/site-editor.php?p=$1',
 		'top'
 	);
+
+	add_rewrite_rule(
+		'^wp-admin/post/?(.*)?',
+		'wp-admin/admin.php?page=gutenberg-posts-dashboard&p=$1',
+		'top'
+	);
+
 	flush_rewrite_rules();
 }
 add_action( 'init', 'gutenberg_rewrite_wp_admin_permalinks' );
@@ -119,3 +126,20 @@ function gutenberg_redirect_site_editor_to_design() {
 	exit;
 }
 add_action( 'admin_init', 'gutenberg_redirect_site_editor_to_design' );
+
+function gutenberg_redirect_posts_dataviews_to_post() {
+	global $pagenow;
+	if (
+		'admin.php' !== $pagenow ||
+		! isset( $_REQUEST['page'] ) ||
+		'gutenberg-posts-dashboard' !== $_REQUEST['page'] ||
+		! strpos( $_SERVER['REQUEST_URI'], 'wp-admin/admin.php' )
+	) {
+		return;
+	}
+
+	wp_redirect( admin_url( '/post' ), 301 );
+	exit;
+}
+
+add_action( 'admin_init', 'gutenberg_redirect_posts_dataviews_to_post' );
