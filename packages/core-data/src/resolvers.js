@@ -21,6 +21,7 @@ import {
 	getUserPermissionCacheKey,
 	getUserPermissionsFromAllowHeader,
 	ALLOWED_RESOURCE_ACTIONS,
+	RECEIVE_INTERMEDIATE_RESULTS,
 } from './utils';
 import { getSyncProvider } from './sync';
 import { fetchBlockPatterns } from './fetch';
@@ -245,6 +246,14 @@ export const getEntityRecords =
 			{ exclusive: false }
 		);
 
+		const key = entityConfig.key || DEFAULT_ENTITY_KEY;
+
+		function getResolutionsArgs( records ) {
+			return records
+				.filter( ( record ) => record?.[ key ] )
+				.map( ( record ) => [ kind, name, record[ key ] ] );
+		}
+
 		try {
 			if ( query._fields ) {
 				// If requesting specific fields, items and query association to said
@@ -267,7 +276,8 @@ export const getEntityRecords =
 				...query,
 			} );
 
-			let records, meta;
+			let records = [],
+				meta;
 			if ( entityConfig.supportsPagination && query.per_page !== -1 ) {
 				const response = await apiFetch( { path, parse: false } );
 				records = Object.values( await response.json() );
@@ -278,6 +288,44 @@ export const getEntityRecords =
 					totalPages: parseInt(
 						response.headers.get( 'X-WP-TotalPages' )
 					),
+				};
+			} else if (
+				query.per_page === -1 &&
+				query[ RECEIVE_INTERMEDIATE_RESULTS ] === true
+			) {
+				let page = 1;
+				let totalPages;
+
+				do {
+					const response = await apiFetch( {
+						path: addQueryArgs( path, { page, per_page: 100 } ),
+						parse: false,
+					} );
+					const pageRecords = Object.values( await response.json() );
+
+					totalPages = parseInt(
+						response.headers.get( 'X-WP-TotalPages' )
+					);
+
+					records.push( ...pageRecords );
+					registry.batch( () => {
+						dispatch.receiveEntityRecords(
+							kind,
+							name,
+							records,
+							query
+						);
+						dispatch.finishResolutions(
+							'getEntityRecord',
+							getResolutionsArgs( pageRecords )
+						);
+					} );
+					page++;
+				} while ( page <= totalPages );
+
+				meta = {
+					totalItems: records.length,
+					totalPages: 1,
 				};
 			} else {
 				records = Object.values( await apiFetch( { path } ) );
@@ -318,11 +366,6 @@ export const getEntityRecords =
 				// See https://github.com/WordPress/gutenberg/pull/26575
 				// See https://github.com/WordPress/gutenberg/pull/64504
 				if ( ! query?._fields && ! query.context ) {
-					const key = entityConfig.key || DEFAULT_ENTITY_KEY;
-					const resolutionsArgs = records
-						.filter( ( record ) => record?.[ key ] )
-						.map( ( record ) => [ kind, name, record[ key ] ] );
-
 					const targetHints = records
 						.filter( ( record ) => record?.[ key ] )
 						.map( ( record ) => ( {
@@ -356,7 +399,7 @@ export const getEntityRecords =
 					);
 					dispatch.finishResolutions(
 						'getEntityRecord',
-						resolutionsArgs
+						getResolutionsArgs( records )
 					);
 					dispatch.finishResolutions(
 						'canUser',
@@ -563,58 +606,6 @@ export const getAutosave =
 		await resolveSelect.getAutosaves( postType, postId );
 	};
 
-/**
- * Retrieve the frontend template used for a given link.
- *
- * @param {string} link Link.
- */
-export const __experimentalGetTemplateForLink =
-	( link ) =>
-	async ( { dispatch, resolveSelect } ) => {
-		let template;
-		try {
-			// This is NOT calling a REST endpoint but rather ends up with a response from
-			// an Ajax function which has a different shape from a WP_REST_Response.
-			template = await apiFetch( {
-				url: addQueryArgs( link, {
-					'_wp-find-template': true,
-				} ),
-			} ).then( ( { data } ) => data );
-		} catch ( e ) {
-			// For non-FSE themes, it is possible that this request returns an error.
-		}
-
-		if ( ! template ) {
-			return;
-		}
-
-		const record = await resolveSelect.getEntityRecord(
-			'postType',
-			'wp_template',
-			template.id
-		);
-
-		if ( record ) {
-			dispatch.receiveEntityRecords(
-				'postType',
-				'wp_template',
-				[ record ],
-				{
-					'find-template': link,
-				}
-			);
-		}
-	};
-
-__experimentalGetTemplateForLink.shouldInvalidate = ( action ) => {
-	return (
-		( action.type === 'RECEIVE_ITEMS' || action.type === 'REMOVE_ITEMS' ) &&
-		action.invalidateCache &&
-		action.kind === 'postType' &&
-		action.name === 'wp_template'
-	);
-};
-
 export const __experimentalGetCurrentGlobalStylesId =
 	() =>
 	async ( { dispatch, resolveSelect } ) => {
@@ -801,13 +792,27 @@ export const getNavigationFallbackId =
 
 export const getDefaultTemplateId =
 	( query ) =>
-	async ( { dispatch } ) => {
+	async ( { dispatch, registry, resolveSelect } ) => {
 		const template = await apiFetch( {
 			path: addQueryArgs( '/wp/v2/templates/lookup', query ),
 		} );
+		// Wait for the the entities config to be loaded, otherwise receiving
+		// the template as an entity will not work.
+		await resolveSelect.getEntitiesConfig( 'postType' );
 		// Endpoint may return an empty object if no template is found.
 		if ( template?.id ) {
-			dispatch.receiveDefaultTemplateId( query, template.id );
+			registry.batch( () => {
+				dispatch.receiveDefaultTemplateId( query, template.id );
+				dispatch.receiveEntityRecords( 'postType', 'wp_template', [
+					template,
+				] );
+				// Avoid further network requests.
+				dispatch.finishResolution( 'getEntityRecord', [
+					'postType',
+					'wp_template',
+					template.id,
+				] );
+			} );
 		}
 	};
 

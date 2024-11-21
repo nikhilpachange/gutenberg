@@ -124,6 +124,11 @@ export type Field< Item > = {
 	isValid?: ( item: Item, context?: ValidationContext ) => boolean;
 
 	/**
+	 * Callback used to decide if a field should be displayed.
+	 */
+	isVisible?: ( item: Item ) => boolean;
+
+	/**
 	 * Whether the field is sortable.
 	 */
 	enableSorting?: boolean;
@@ -493,6 +498,8 @@ export interface ViewBaseProps< Item > {
 	onChangeSelection: SetSelection;
 	selection: string[];
 	setOpenedFilter: ( fieldId: string ) => void;
+	onClickItem: ( item: Item ) => void;
+	isItemClickable: ( item: Item ) => boolean;
 	view: View;
 	density: number;
 }
@@ -520,37 +527,41 @@ export interface SupportedLayouts {
 	table?: Omit< ViewTable, 'type' >;
 }
 
-export interface CombinedFormField< Item > extends CombinedField {
-	render?: ComponentType< { item: Item } >;
-}
-
-export interface DataFormCombinedEditProps< Item > {
-	field: NormalizedCombinedFormField< Item >;
-	data: Item;
-	onChange: ( value: Record< string, any > ) => void;
-	hideLabelFromVision?: boolean;
-}
-
-export type NormalizedCombinedFormField< Item > = CombinedFormField< Item > & {
-	fields: NormalizedField< Item >[];
-	Edit?: ComponentType< DataFormCombinedEditProps< Item > >;
+export type SimpleFormField = {
+	id: string;
+	layout?: 'regular' | 'panel';
+	labelPosition?: 'side' | 'top' | 'none';
 };
+
+export type CombinedFormField = {
+	id: string;
+	label?: string;
+	layout?: 'regular' | 'panel';
+	labelPosition?: 'side' | 'top' | 'none';
+	children: Array< FormField | string >;
+};
+
+export type FormField = SimpleFormField | CombinedFormField;
 
 /**
  * The form configuration.
  */
-export type Form< Item > = {
+export type Form = {
 	type?: 'regular' | 'panel';
-	fields?: string[];
-	/**
-	 * The fields to combine.
-	 */
-	combinedFields?: CombinedFormField< Item >[];
+	fields?: Array< FormField | string >;
+	labelPosition?: 'side' | 'top' | 'none';
 };
 
 export interface DataFormProps< Item > {
 	data: Item;
 	fields: Field< Item >[];
-	form: Form< Item >;
+	form: Form;
 	onChange: ( value: Record< string, any > ) => void;
+}
+
+export interface FieldLayoutProps< Item > {
+	data: Item;
+	field: FormField;
+	onChange: ( value: any ) => void;
+	hideLabelFromVision?: boolean;
 }

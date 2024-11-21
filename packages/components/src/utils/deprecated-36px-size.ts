@@ -7,12 +7,18 @@ export function maybeWarnDeprecated36pxSize( {
 	componentName,
 	__next40pxDefaultSize,
 	size,
+	__shouldNotWarnDeprecated36pxSize,
 }: {
 	componentName: string;
 	__next40pxDefaultSize: boolean | undefined;
-	size: string;
+	size: string | undefined;
+	__shouldNotWarnDeprecated36pxSize?: boolean;
 } ) {
-	if ( __next40pxDefaultSize || size !== 'default' ) {
+	if (
+		__shouldNotWarnDeprecated36pxSize ||
+		__next40pxDefaultSize ||
+		( size !== undefined && size !== 'default' )
+	) {
 		return;
 	}
 

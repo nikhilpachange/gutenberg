@@ -16,7 +16,7 @@ import DataViewsContext from '../dataviews-context';
 import {
 	default as DataViewsFilters,
 	useFilters,
-	FilterVisibilityToggle,
+	FiltersToggle,
 } from '../dataviews-filters';
 import DataViewsLayout from '../dataviews-layout';
 import DataViewsFooter from '../dataviews-footer';
@@ -44,12 +44,17 @@ type DataViewsProps< Item > = {
 	defaultLayouts: SupportedLayouts;
 	selection?: string[];
 	onChangeSelection?: ( items: string[] ) => void;
+	onClickItem?: ( item: Item ) => void;
+	isItemClickable?: ( item: Item ) => boolean;
 	header?: ReactNode;
 } & ( Item extends ItemWithId
 	? { getItemId?: ( item: Item ) => string }
 	: { getItemId: ( item: Item ) => string } );
 
 const defaultGetItemId = ( item: ItemWithId ) => item.id;
+const defaultIsItemClickable = () => false;
+const defaultOnClickItem = () => {};
+const EMPTY_ARRAY: any[] = [];
 
 export default function DataViews< Item >( {
 	view,
@@ -57,7 +62,7 @@ export default function DataViews< Item >( {
 	fields,
 	search = true,
 	searchLabel = undefined,
-	actions = [],
+	actions = EMPTY_ARRAY,
 	data,
 	getItemId = defaultGetItemId,
 	isLoading = false,
@@ -65,6 +70,8 @@ export default function DataViews< Item >( {
 	defaultLayouts,
 	selection: selectionProperty,
 	onChangeSelection,
+	onClickItem = defaultOnClickItem,
+	isItemClickable = defaultIsItemClickable,
 	header,
 }: DataViewsProps< Item > ) {
 	const [ selectionState, setSelectionState ] = useState< string[] >( [] );
@@ -110,6 +117,8 @@ export default function DataViews< Item >( {
 				openedFilter,
 				setOpenedFilter,
 				getItemId,
+				isItemClickable,
+				onClickItem,
 				density,
 			} }
 		>
@@ -126,7 +135,7 @@ export default function DataViews< Item >( {
 						className="dataviews__search"
 					>
 						{ search && <DataViewsSearch label={ searchLabel } /> }
-						<FilterVisibilityToggle
+						<FiltersToggle
 							filters={ filters }
 							view={ view }
 							onChangeView={ onChangeView }
