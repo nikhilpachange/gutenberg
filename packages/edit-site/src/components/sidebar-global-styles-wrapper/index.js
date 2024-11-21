@@ -72,7 +72,7 @@ export default function GlobalStylesUIWrapper() {
 		return [
 			query.section ?? '/',
 			( updatedSection ) => {
-				history.navigation(
+				history.navigate(
 					addQueryArgs( path, {
 						section: updatedSection,
 					} )

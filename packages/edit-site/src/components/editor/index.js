@@ -54,6 +54,7 @@ import {
 	useResolveEditedEntity,
 	useSyncDeprecatedEntityIntoState,
 } from './use-resolve-edited-entity';
+import { addQueryArgs } from '@wordpress/url';
 
 const { Editor, BackButton } = unlock( editorPrivateApis );
 const { useHistory, useLocation } = unlock( routerPrivateApis );
@@ -99,10 +100,25 @@ function getListPathForPostType( postType ) {
 	throw 'Unknown post type';
 }
 
+function getNavigationPath( location, postType ) {
+	const { path, name } = location;
+	if (
+		[
+			'pattern-item',
+			'template-part-item',
+			'page-item',
+			'template-item',
+		].includes( name )
+	) {
+		return getListPathForPostType( postType );
+	}
+	return addQueryArgs( path, { canvas: undefined } );
+}
+
 export default function EditSiteEditor( { isPostsList = false } ) {
 	const disableMotion = useReducedMotion();
-	const { query } = useLocation();
-	const { canvas = 'view' } = query;
+	const location = useLocation();
+	const { canvas = 'view' } = location.query;
 	const isLoading = useIsSiteEditorLoading();
 	useAdaptEditorToCanvas( canvas );
 	const entity = useResolveEditedEntity();
@@ -290,7 +306,7 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 												// come here through `posts list` and are in focus mode editing a template, template part etc..
 												if (
 													isPostsList &&
-													query?.focusMode
+													location.query?.focusMode
 												) {
 													history.navigate( '/', {
 														transition:
@@ -298,10 +314,9 @@ export default function EditSiteEditor( { isPostsList = false } ) {
 													} );
 												} else {
 													history.navigate(
-														getListPathForPostType(
-															postWithTemplate
-																? context.postType
-																: postType
+														getNavigationPath(
+															location,
+															postType
 														),
 														{
 															transition:

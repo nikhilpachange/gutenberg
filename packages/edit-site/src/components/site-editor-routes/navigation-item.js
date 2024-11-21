@@ -29,14 +29,11 @@ function MobileNavigationItemView() {
 export const navigationItemRoute = {
 	name: 'navigation-item',
 	path: '/wp_navigation/:postId',
-	match: ( params ) => {
-		return params.postType === NAVIGATION_POST_TYPE && !! params.postId;
-	},
 	areas: {
 		sidebar: (
 			<SidebarNavigationScreenNavigationMenu backPath="/navigation" />
 		),
 		preview: <Editor />,
-		mobile: MobileNavigationItemView,
+		mobile: <MobileNavigationItemView />,
 	},
 };
