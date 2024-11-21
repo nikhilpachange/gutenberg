@@ -49,9 +49,9 @@ const { useLocation } = unlock( routerPrivateApis );
 
 const ANIMATION_DURATION = 0.3;
 
-export default function Layout( { route } ) {
-	const { params } = useLocation();
-	const { canvas = 'view' } = params;
+export default function Layout() {
+	const { query, name: routeKey, areas, widths } = useLocation();
+	const { canvas = 'view' } = query;
 	useCommands();
 	const isMobileViewport = useViewportMatch( 'medium', '<' );
 	const toggleRef = useRef();
@@ -61,7 +61,6 @@ export default function Layout( { route } ) {
 	const isEditorLoading = useIsSiteEditorLoading();
 	const [ isResizableFrameOversized, setIsResizableFrameOversized ] =
 		useState( false );
-	const { name: routeKey, areas, widths } = route;
 	const animationRef = useMovingAnimation( {
 		triggerAnimationOnChange: routeKey + '-' + canvas,
 	} );

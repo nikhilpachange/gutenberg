@@ -170,7 +170,7 @@ export const SiteHubMobile = memo(
 								  }
 								: {
 										onClick: () => {
-											history.push( {} );
+											history.navigate( '/' );
 											navigate( 'back' );
 										},
 										label: __( 'Go to Site Editor' ),

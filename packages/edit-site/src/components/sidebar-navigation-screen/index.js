@@ -83,7 +83,7 @@ export default function SidebarNavigationScreen( {
 					{ ! isRoot && (
 						<SidebarButton
 							onClick={ () => {
-								history.push( backPath );
+								history.navigate( backPath );
 								navigate( 'back' );
 							} }
 							icon={ icon }
