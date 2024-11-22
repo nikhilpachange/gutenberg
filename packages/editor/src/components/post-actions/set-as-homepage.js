@@ -135,7 +135,7 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 					modalTranslatedString,
 					pageTitle,
 					currentHomePageTitle
-				) }{ ' ' }
+				) }
 			</Text>
 		);
 	};
