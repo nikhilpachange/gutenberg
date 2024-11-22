@@ -46,10 +46,10 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 	const shouldShowSetAsHomepageAction =
 		canManageOptions && ! hasFrontPageTemplate;
 
-	const { registerPostTypeActions } = unlock( useDispatch( editorStore ) );
+	const { registerPostTypeSchema } = unlock( useDispatch( editorStore ) );
 	useEffect( () => {
-		registerPostTypeActions( postType );
-	}, [ registerPostTypeActions, postType ] );
+		registerPostTypeSchema( postType );
+	}, [ registerPostTypeSchema, postType ] );
 
 	return useMemo( () => {
 		let actions = [

@@ -16,6 +16,7 @@
 
 ### Bug Fixes
 
+-   `Modal`: Modal: Increase size of the Close button ([#66792](https://github.com/WordPress/gutenberg/pull/66792)).
 -   `ToggleGroupControl`: Fix active background for `0` value ([#66855](https://github.com/WordPress/gutenberg/pull/66855)).
 -   `SlotFill`: Fix a bug where a stale value of `fillProps` could be used ([#67000](https://github.com/WordPress/gutenberg/pull/67000)).
 -   `ColorPalette`: Disable `Clear` button if there's no color value. ([#67108](https://github.com/WordPress/gutenberg/pull/67108)).
@@ -35,6 +36,7 @@
 
 -   `SlotFill`: fix dependencies of `Fill` registration effects ([#67071](https://github.com/WordPress/gutenberg/pull/67071)).
 -   `SlotFill`: rewrite the `Slot` component from class component to functional ([#67153](https://github.com/WordPress/gutenberg/pull/67153)).
+-   `Menu.ItemHelpText`: Fix text wrapping to prevent unintended word breaks ([#67011](https://github.com/WordPress/gutenberg/pull/67011)).
 
 ## 28.12.0 (2024-11-16)
 
