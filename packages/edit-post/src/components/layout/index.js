@@ -17,7 +17,7 @@ import {
 	store as editorStore,
 	privateApis as editorPrivateApis,
 } from '@wordpress/editor';
-import { useSelect, useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch, useRegistry } from '@wordpress/data';
 import {
 	privateApis as blockEditorPrivateApis,
 	store as blockEditorStore,
@@ -26,6 +26,7 @@ import { PluginArea } from '@wordpress/plugins';
 import { __, sprintf } from '@wordpress/i18n';
 import {
 	useCallback,
+	useEffect,
 	useMemo,
 	useId,
 	useRef,
@@ -153,17 +154,37 @@ function useEditorStyles( ...additionalStyles ) {
  * @param {boolean} props.isLegacy True when the editor canvas is not in an iframe.
  */
 function MetaBoxesMain( { isLegacy } ) {
-	const [ isOpen, openHeight, hasAnyVisible ] = useSelect( ( select ) => {
+	const [
+		hasInitialized,
+		isEditorReady,
+		isOpen,
+		openHeight,
+		hasAny,
+		hasAnyVisible,
+	] = useSelect( ( select ) => {
+		const { __unstableIsEditorReady } = select( editorStore );
 		const { get } = select( preferencesStore );
-		const { isMetaBoxLocationVisible } = select( editPostStore );
+		const {
+			areMetaBoxesInitialized,
+			getMetaBoxesPerLocation,
+			isMetaBoxLocationVisible,
+		} = select( editPostStore );
 		return [
+			areMetaBoxesInitialized(),
+			__unstableIsEditorReady(),
 			get( 'core/edit-post', 'metaBoxesMainIsOpen' ),
 			get( 'core/edit-post', 'metaBoxesMainOpenHeight' ),
+			[
+				...getMetaBoxesPerLocation( 'normal' ),
+				...getMetaBoxesPerLocation( 'advanced' ),
+				...getMetaBoxesPerLocation( 'side' ),
+			].length > 0,
 			isMetaBoxLocationVisible( 'normal' ) ||
 				isMetaBoxLocationVisible( 'advanced' ) ||
 				isMetaBoxLocationVisible( 'side' ),
 		];
 	}, [] );
+	const registry = useRegistry();
 	const { set: setPreference } = useDispatch( preferencesStore );
 	const metaBoxesMainRef = useRef();
 	const isShort = useMediaQuery( '(max-height: 549px)' );
@@ -225,6 +246,14 @@ function MetaBoxesMain( { isLegacy } ) {
 			} );
 		}
 	};
+
+	// When editor is ready, initialize postboxes (wp core script) and meta box
+	// saving. This initializes all meta box locations.
+	useEffect( () => {
+		if ( isEditorReady && hasAny && ! hasInitialized ) {
+			registry.dispatch( editPostStore ).initializeMetaBoxes();
+		}
+	}, [ isEditorReady, hasAny, hasInitialized, registry ] );
 
 	if ( ! hasAnyVisible ) {
 		return;
