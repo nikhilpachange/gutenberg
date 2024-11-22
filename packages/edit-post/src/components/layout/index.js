@@ -272,10 +272,11 @@ function MetaBoxesMain( { isLegacy } ) {
 		}
 	};
 	const className = 'edit-post-meta-boxes-main';
-	const paneLabel = __( 'Meta Boxes' );
+	const paneLabel = hasAnyVisible ? __( 'Meta Boxes' ) : undefined;
 	let Pane, paneProps;
 	if ( isShort ) {
-		Pane = NavigableRegion;
+		// Only use a NavigableRegion when the Meta Boxes area is visible.
+		Pane = hasAnyVisible ? NavigableRegion : 'div';
 		paneProps = {
 			className: clsx(
 				className,
@@ -286,7 +287,8 @@ function MetaBoxesMain( { isLegacy } ) {
 	} else {
 		Pane = ResizableBox;
 		paneProps = /** @type {Parameters<typeof ResizableBox>[0]} */ ( {
-			as: NavigableRegion,
+			// Only use a NavigableRegion when the Meta Boxes area is visible.
+			as: hasAnyVisible ? NavigableRegion : 'div',
 			ref: metaBoxesMainRef,
 			className: clsx(
 				className,
