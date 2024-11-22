@@ -1,5 +1,15 @@
+.interface-interface-skeleton__sidebar:has(.editor-collab-sidebar-panel) {
+	box-shadow: none;
+
+	.interface-complementary-area-header {
+		display: none;
+	}
+}
+
 .editor-collab-sidebar-panel {
 	padding: $grid-unit-20;
+	background: var(--wp--preset--color--base);
+	height: 100vw;
 
 	&__thread {
 		position: relative;
