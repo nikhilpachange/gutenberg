@@ -80,6 +80,8 @@ function ButtonTrigger< Item >( {
 			isDestructive={ action.isDestructive }
 			size="compact"
 			onClick={ onClick }
+			accessibleWhenDisabled
+			disabled={ action?.disabled }
 		/>
 	);
 }
