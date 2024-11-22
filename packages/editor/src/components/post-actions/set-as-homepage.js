@@ -62,14 +62,17 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 			}
 
 			// Save new home page settings.
-			await saveEntityRecord( 'root', 'site', {
+			await saveEditedEntityRecord( 'root', 'site', undefined, {
 				page_on_front: item.id,
 				show_on_front: 'page',
 			} );
 
 			closeModal?.();
 
-			await saveEditedEntityRecord( 'root', 'site', undefined, {
+			// This second call to a save function is a workaround for a bug in
+			// `saveEditedEntityRecord`. This forces the root site settings to be updated.
+			// See https://github.com/WordPress/gutenberg/issues/67161.
+			await saveEntityRecord( 'root', 'site', {
 				page_on_front: item.id,
 				show_on_front: 'page',
 			} );
