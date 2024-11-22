@@ -10,6 +10,10 @@
 	&.is-resizable {
 		padding-block-start: $grid-unit-30;
 	}
+
+	&.is-hidden {
+		display: none;
+	}
 }
 
 .edit-post-meta-boxes-main__presenter {

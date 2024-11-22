@@ -226,10 +226,6 @@ function MetaBoxesMain( { isLegacy } ) {
 		}
 	};
 
-	if ( ! hasAnyVisible ) {
-		return;
-	}
-
 	const contents = (
 		<div
 			className={ clsx(
@@ -281,14 +277,22 @@ function MetaBoxesMain( { isLegacy } ) {
 	if ( isShort ) {
 		Pane = NavigableRegion;
 		paneProps = {
-			className: clsx( className, 'is-toggle-only' ),
+			className: clsx(
+				className,
+				'is-toggle-only',
+				! hasAnyVisible && 'is-hidden'
+			),
 		};
 	} else {
 		Pane = ResizableBox;
 		paneProps = /** @type {Parameters<typeof ResizableBox>[0]} */ ( {
 			as: NavigableRegion,
 			ref: metaBoxesMainRef,
-			className: clsx( className, 'is-resizable' ),
+			className: clsx(
+				className,
+				'is-resizable',
+				! hasAnyVisible && 'is-hidden'
+			),
 			defaultSize: { height: openHeight },
 			minHeight: min,
 			maxHeight: usedMax,
