@@ -3,7 +3,6 @@
  */
 import type { Meta, StoryFn } from '@storybook/react';
 
-
 /**
  * WordPress dependencies
  */
@@ -13,10 +12,14 @@ import * as icons from '@wordpress/icons';
 /**
  * Internal dependencies
  */
-import Icon from '..';
+import Icon, { type Props, type IconType } from '..';
 import { VStack } from '../../v-stack';
 
-const meta: Meta< typeof Icon > = {
+type IconProps = Props & {
+	additionalProps: object;
+};
+
+const meta: Meta< IconProps > = {
 	title: 'Components/Icon',
 	component: Icon,
 	parameters: {
@@ -45,7 +48,7 @@ const meta: Meta< typeof Icon > = {
 };
 export default meta;
 
-const Template: StoryFn< typeof Icon > = function (args) {
+const Template: StoryFn< IconProps > = function ( args ) {
 	const { additionalProps, ...rest } = args;
 	const props = {
 		...rest,
@@ -53,7 +56,6 @@ const Template: StoryFn< typeof Icon > = function (args) {
 	};
 	return <Icon { ...props } />;
 };
-
 
 export const Default = Template.bind( {} );
 Default.args = {
@@ -106,7 +108,7 @@ WithAnSVG.args = {
  * as long as you are in a context where the Dashicons stylesheet is loaded. To simulate that here,
  * use the Global CSS Injector in the Storybook toolbar at the top and select the "WordPress" preset.
  */
-export const WithADashicon: StoryFn< typeof Icon > = ( args ) => {
+export const WithADashicon: StoryFn< IconProps > = ( args ) => {
 	return (
 		<VStack>
 			<Icon { ...args } />
@@ -122,15 +124,15 @@ WithADashicon.args = {
 	icon: 'wordpress',
 };
 
-export const WithAnIconFromTheLibrary: StoryFn< typeof Icon > = ( args ) => {
+export const WithAnIconFromTheLibrary: StoryFn< IconProps > = ( args ) => {
 	const { additionalProps, ...rest } = args;
 
 	const props = {
 		...rest,
 		...additionalProps,
-		icon: icons[ args.icon as keyof typeof icons ],
+		icon: icons[ args.icon as keyof typeof icons ] as IconType,
 	};
-	
+
 	return <Icon { ...props } />;
 };
 
