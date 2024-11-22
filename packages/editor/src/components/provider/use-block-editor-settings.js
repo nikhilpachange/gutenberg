@@ -108,6 +108,7 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 	const isLargeViewport = useViewportMatch( 'medium' );
 	const {
 		allowRightClickOverrides,
+		allowZoomLevel,
 		blockTypes,
 		focusMode,
 		hasFixedToolbar,
@@ -186,6 +187,7 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 				userPatternCategories: getUserPatternCategories(),
 				restBlockPatternCategories: getBlockPatternCategories(),
 				sectionRootClientId: getSectionRootBlock(),
+				allowZoomLevel: true,
 			};
 		},
 		[ postType, postId, isLargeViewport, renderingMode ]
@@ -285,6 +287,7 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 			[ globalStylesLinksDataKey ]: globalStylesLinksData,
 			allowedBlockTypes,
 			allowRightClickOverrides,
+			allowZoomLevel,
 			focusMode: focusMode && ! forceDisableFocusMode,
 			hasFixedToolbar,
 			isDistractionFree,
@@ -336,6 +339,7 @@ function useBlockEditorSettings( settings, postType, postId, renderingMode ) {
 
 		return blockEditorSettings;
 	}, [
+		allowZoomLevel,
 		allowedBlockTypes,
 		allowRightClickOverrides,
 		focusMode,

@@ -428,8 +428,12 @@ export const modifyContentLockBlock =
 export const setZoomLevel =
 	( zoom = 100 ) =>
 	( { select, dispatch } ) => {
+		// Disable zoom level if it's not allowed.
+		if ( ! select.getSettings()?.allowZoomLevel ) {
+			zoom = 100;
+		}
 		// When switching to zoom-out mode, we need to select the parent section
-		if ( zoom !== 100 ) {
+		else if ( zoom !== 100 ) {
 			const firstSelectedClientId = select.getBlockSelectionStart();
 			const sectionRootClientId = select.getSectionRootClientId();
 
