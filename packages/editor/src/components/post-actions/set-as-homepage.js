@@ -141,10 +141,9 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 	};
 
 	// translators: Button label to confirm setting the specified page as the homepage.
-	let modalButtonLabel = __( 'Set homepage' );
-	if ( isPageDraft ) {
-		modalButtonLabel = __( 'Publish and set homepage' );
-	}
+	const modalButtonLabel = isPageDraft
+		? __( 'Publish and set homepage' )
+		: __( 'Set homepage' );
 
 	return (
 		<form onSubmit={ onSetPageAsHomepage }>
