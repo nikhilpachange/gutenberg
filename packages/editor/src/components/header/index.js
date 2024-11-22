@@ -64,6 +64,7 @@ function Header( {
 		showIconLabels,
 		hasFixedToolbar,
 		hasBlockSelection,
+		canBeZoomedOut,
 	} = useSelect( ( select ) => {
 		const { get: getPreference } = select( preferencesStore );
 		const {
@@ -80,12 +81,11 @@ function Header( {
 			hasFixedToolbar: getPreference( 'core', 'fixedToolbar' ),
 			hasBlockSelection:
 				!! select( blockEditorStore ).getBlockSelectionStart(),
+			canBeZoomedOut:
+				select( blockEditorStore ).getSettings()?.allowZoomLevel &&
+				[ 'post', 'page', 'wp_template' ].includes( postType ),
 		};
 	}, [] );
-
-	const canBeZoomedOut = [ 'post', 'page', 'wp_template' ].includes(
-		postType
-	);
 
 	const disablePreviewOption = [
 		NAVIGATION_POST_TYPE,
