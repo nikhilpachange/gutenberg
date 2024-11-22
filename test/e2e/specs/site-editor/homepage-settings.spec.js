@@ -32,7 +32,7 @@ test.describe( 'Homepage Settings via Editor', () => {
 		] );
 	} );
 
-	test( 'should show "Set as homepage" action on published pages', async ( {
+	test( 'should show "Set as homepage" action on pages in `draft` or `publish` statuses', async ( {
 		page,
 	} ) => {
 		const samplePage = page
@@ -41,7 +41,7 @@ test.describe( 'Homepage Settings via Editor', () => {
 		const samplePageRow = page
 			.getByRole( 'row' )
 			.filter( { has: samplePage } );
-		await samplePageRow.click();
+		await samplePageRow.hover();
 		await samplePageRow
 			.getByRole( 'button', {
 				name: 'Actions',
@@ -50,18 +50,21 @@ test.describe( 'Homepage Settings via Editor', () => {
 		await expect(
 			page.getByRole( 'menuitem', { name: 'Set as homepage' } )
 		).toBeVisible();
-	} );
+		await samplePageRow
+			.getByRole( 'button', {
+				name: 'Actions',
+			} )
+			// Force click the actions button to close the menu.
+			// eslint-disable-next-line playwright/no-force-option
+			.click( { force: true } );
 
-	test( 'should show "Set as homepage" action on draft pages', async ( {
-		page,
-	} ) => {
 		const draftPage = page
 			.getByRole( 'gridcell' )
 			.getByLabel( 'Draft page' );
 		const draftPageRow = page
 			.getByRole( 'row' )
 			.filter( { has: draftPage } );
-		await draftPageRow.click();
+		await draftPageRow.hover();
 		await draftPageRow
 			.getByRole( 'button', {
 				name: 'Actions',
