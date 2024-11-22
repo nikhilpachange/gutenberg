@@ -53,8 +53,8 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 
 	return useMemo( () => {
 		let actions = [
-			shouldShowSetAsHomepageAction ? setAsHomepageAction : [],
 			...defaultActions,
+			shouldShowSetAsHomepageAction ? setAsHomepageAction : [],
 		];
 		// Filter actions based on provided context. If not provided
 		// all actions are returned. We'll have a single entry for getting the actions
