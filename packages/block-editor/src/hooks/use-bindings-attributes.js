@@ -1,7 +1,11 @@
 /**
  * WordPress dependencies
  */
-import { store as blocksStore } from '@wordpress/blocks';
+import {
+	store as blocksStore,
+	hasBlockSupport,
+	getBlockType,
+} from '@wordpress/blocks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { useRegistry, useSelect } from '@wordpress/data';
 import { useCallback, useMemo, useContext } from '@wordpress/element';
@@ -29,6 +33,7 @@ const BLOCK_BINDINGS_ALLOWED_BLOCKS = {
 	'core/heading': [ 'content' ],
 	'core/image': [ 'id', 'url', 'title', 'alt' ],
 	'core/button': [ 'url', 'text', 'linkTarget', 'rel' ],
+	'core/site-title': [ 'content' ],
 };
 
 const DEFAULT_ATTRIBUTE = '__default';
@@ -64,6 +69,18 @@ function replacePatternOverrideDefaultBindings( blockName, bindings ) {
 	}
 
 	return bindings;
+}
+
+function addBlockSupportsBindings( blockName, bindings ) {
+	const settings = getBlockType( blockName );
+	if ( ! hasBlockSupport( settings, 'blockBindings' ) ) {
+		return bindings;
+	}
+	const supportsBindings = settings.supports.blockBindings;
+	return {
+		...bindings,
+		...supportsBindings,
+	};
 }
 
 /**
@@ -104,14 +121,14 @@ export const withBlockBindingSupport = createHigherOrderComponent(
 			unlock( select( blocksStore ) ).getAllBlockBindingsSources()
 		);
 		const { name, clientId, context, setAttributes } = props;
-		const blockBindings = useMemo(
-			() =>
-				replacePatternOverrideDefaultBindings(
-					name,
-					props.attributes.metadata?.bindings
-				),
-			[ props.attributes.metadata?.bindings, name ]
-		);
+		const blockBindings = useMemo( () => {
+			const bindings = replacePatternOverrideDefaultBindings(
+				name,
+				props.attributes.metadata?.bindings
+			);
+
+			return addBlockSupportsBindings( name, bindings );
+		}, [ props.attributes.metadata?.bindings, name ] );
 
 		// While this hook doesn't directly call any selectors, `useSelect` is
 		// used purposely here to ensure `boundAttributes` is updated whenever

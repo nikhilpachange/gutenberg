@@ -6,7 +6,7 @@ import clsx from 'clsx';
 /**
  * WordPress dependencies
  */
-import { useDispatch, useSelect } from '@wordpress/data';
+import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { __ } from '@wordpress/i18n';
 import {
@@ -26,37 +26,25 @@ export default function SiteTitleEdit( {
 	setAttributes,
 	insertBlocksAfter,
 } ) {
-	const { level, levelOptions, textAlign, isLink, linkTarget } = attributes;
-	const { canUserEdit, title } = useSelect( ( select ) => {
-		const { canUser, getEntityRecord, getEditedEntityRecord } =
-			select( coreStore );
-		const canEdit = canUser( 'update', {
-			kind: 'root',
-			name: 'site',
-		} );
-		const settings = canEdit ? getEditedEntityRecord( 'root', 'site' ) : {};
-		const readOnlySettings = getEntityRecord( 'root', '__unstableBase' );
-
-		return {
-			canUserEdit: canEdit,
-			title: canEdit ? settings?.title : readOnlySettings?.name,
-		};
-	}, [] );
-	const { editEntityRecord } = useDispatch( coreStore );
-
-	function setTitle( newTitle ) {
-		editEntityRecord( 'root', 'site', undefined, {
-			title: newTitle,
-		} );
-	}
+	const { content, level, levelOptions, textAlign, isLink, linkTarget } =
+		attributes;
+	const canUserEdit = useSelect(
+		( select ) =>
+			select( coreStore ).canUser( 'update', {
+				kind: 'root',
+				name: 'site',
+			} ),
+		[]
+	);
 
 	const TagName = level === 0 ? 'p' : `h${ level }`;
 	const blockProps = useBlockProps( {
 		className: clsx( {
 			[ `has-text-align-${ textAlign }` ]: textAlign,
-			'wp-block-site-title__placeholder': ! canUserEdit && ! title,
+			'wp-block-site-title__placeholder': ! canUserEdit && ! content,
 		} ),
 	} );
+
 	const siteTitleContent = canUserEdit ? (
 		<TagName { ...blockProps }>
 			<RichText
@@ -64,8 +52,8 @@ export default function SiteTitleEdit( {
 				href={ isLink ? '#site-title-pseudo-link' : undefined }
 				aria-label={ __( 'Site title text' ) }
 				placeholder={ __( 'Write site title…' ) }
-				value={ title }
-				onChange={ setTitle }
+				value={ content }
+				onChange={ ( value ) => setAttributes( { content: value } ) }
 				allowedFormats={ [] }
 				disableLineBreaks
 				__unstableOnSplitAtEnd={ () =>
@@ -80,12 +68,12 @@ export default function SiteTitleEdit( {
 					href="#site-title-pseudo-link"
 					onClick={ ( event ) => event.preventDefault() }
 				>
-					{ decodeEntities( title ) ||
+					{ decodeEntities( content ) ||
 						__( 'Site Title placeholder' ) }
 				</a>
 			) : (
 				<span>
-					{ decodeEntities( title ) ||
+					{ decodeEntities( content ) ||
 						__( 'Site Title placeholder' ) }
 				</span>
 			) }

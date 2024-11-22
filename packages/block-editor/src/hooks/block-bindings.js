@@ -311,7 +311,6 @@ export const BlockBindingsPanel = ( { name: blockName, metadata } ) => {
 		</InspectorControls>
 	);
 };
-
 export default {
 	edit: BlockBindingsPanel,
 	attributeKeys: [ 'metadata' ],

@@ -7,6 +7,12 @@
 	"description": "Displays the name of this site. Update the block, and the changes apply everywhere it’s used. This will also appear in the browser title bar and in search results.",
 	"textdomain": "default",
 	"attributes": {
+		"content": {
+			"type": "rich-text",
+			"source": "rich-text",
+			"selector": "p,h1,h2,h3,h4,h5,h6",
+			"role": "content"
+		},
 		"level": {
 			"type": "number",
 			"default": 1
@@ -32,6 +38,14 @@
 	},
 	"supports": {
 		"align": [ "wide", "full" ],
+		"blockBindings": {
+			"content": {
+				"source": "core/site",
+				"args": {
+					"key": "title"
+				}
+			}
+		},
 		"html": false,
 		"color": {
 			"gradients": true,

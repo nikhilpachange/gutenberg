@@ -8,6 +8,7 @@ import { registerBlockBindingsSource } from '@wordpress/blocks';
  */
 import patternOverrides from './pattern-overrides';
 import postMeta from './post-meta';
+import site from './site';
 
 /**
  * Function to register core block bindings sources provided by the editor.
@@ -22,4 +23,5 @@ import postMeta from './post-meta';
 export function registerCoreBlockBindingsSources() {
 	registerBlockBindingsSource( patternOverrides );
 	registerBlockBindingsSource( postMeta );
+	registerBlockBindingsSource( site );
 }
