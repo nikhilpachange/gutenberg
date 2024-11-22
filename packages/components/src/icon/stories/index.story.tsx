@@ -3,11 +3,12 @@
  */
 import type { Meta, StoryFn } from '@storybook/react';
 
+
 /**
  * WordPress dependencies
  */
 import { SVG, Path } from '@wordpress/primitives';
-import { wordpress } from '@wordpress/icons';
+import * as icons from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -22,29 +23,50 @@ const meta: Meta< typeof Icon > = {
 		controls: { expanded: true },
 		docs: { canvas: { sourceState: 'shown' } },
 	},
+	args: {
+		additionalProps: {},
+		size: 24,
+	},
+	argTypes: {
+		size: {
+			control: {
+				type: 'range',
+				min: 1,
+				max: 200,
+			},
+		},
+		additionalProps: {
+			defaultValue: {},
+			table: {
+				type: { summary: 'object' },
+			},
+		},
+	},
 };
 export default meta;
 
-const Template: StoryFn< typeof Icon > = ( args ) => <Icon { ...args } />;
+const Template: StoryFn< typeof Icon > = function (args) {
+	const { additionalProps, ...rest } = args;
+	const props = {
+		...rest,
+		...additionalProps,
+	};
+	return <Icon { ...props } />;
+};
+
 
 export const Default = Template.bind( {} );
 Default.args = {
-	icon: wordpress,
+	icon: icons.wordpress,
 };
 
-export const FillColor: StoryFn< typeof Icon > = ( args ) => {
-	return (
-		<div
-			style={ {
-				fill: 'blue',
-			} }
-		>
-			<Icon { ...args } />
-		</div>
-	);
-};
+export const FillColor = Template.bind( {} );
+
 FillColor.args = {
 	...Default.args,
+	additionalProps: {
+		fill: 'blue',
+	},
 };
 
 export const WithAFunction = Template.bind( {} );
@@ -98,4 +120,29 @@ export const WithADashicon: StoryFn< typeof Icon > = ( args ) => {
 WithADashicon.args = {
 	...Default.args,
 	icon: 'wordpress',
+};
+
+export const WithAnIconFromTheLibrary: StoryFn< typeof Icon > = ( args ) => {
+	const { additionalProps, ...rest } = args;
+
+	const props = {
+		...rest,
+		...additionalProps,
+		icon: icons[ args.icon as keyof typeof icons ],
+	};
+	
+	return <Icon { ...props } />;
+};
+
+WithAnIconFromTheLibrary.args = {
+	...Default.args,
+	icon: 'wordpress',
+	size: 24,
+};
+
+WithAnIconFromTheLibrary.argTypes = {
+	icon: {
+		options: Object.keys( icons ),
+		control: 'select',
+	},
 };
