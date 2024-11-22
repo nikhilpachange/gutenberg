@@ -44,7 +44,7 @@ export function usePostActions( { postType, onActionPerformed, context } ) {
 
 	const setAsHomepageAction = useSetAsHomepageAction();
 	const shouldShowSetAsHomepageAction =
-		canManageOptions || ! hasFrontPageTemplate;
+		canManageOptions && ! hasFrontPageTemplate;
 
 	const { registerPostTypeActions } = unlock( useDispatch( editorStore ) );
 	useEffect( () => {
