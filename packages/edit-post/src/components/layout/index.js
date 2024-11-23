@@ -17,7 +17,7 @@ import {
 	store as editorStore,
 	privateApis as editorPrivateApis,
 } from '@wordpress/editor';
-import { useSelect, useDispatch, useRegistry } from '@wordpress/data';
+import { useSelect, useDispatch } from '@wordpress/data';
 import {
 	privateApis as blockEditorPrivateApis,
 	store as blockEditorStore,
@@ -26,7 +26,6 @@ import { PluginArea } from '@wordpress/plugins';
 import { __, sprintf } from '@wordpress/i18n';
 import {
 	useCallback,
-	useEffect,
 	useMemo,
 	useId,
 	useRef,
@@ -75,6 +74,7 @@ import useEditPostCommands from '../../commands/use-commands';
 import { usePaddingAppender } from './use-padding-appender';
 import { useShouldIframe } from './use-should-iframe';
 import useNavigateToEntityRecord from '../../hooks/use-navigate-to-entity-record';
+import useMetaBoxInitialization from '../meta-boxes/use-meta-box-initialization';
 
 const { getLayoutStyles } = unlock( blockEditorPrivateApis );
 const { useCommands } = unlock( coreCommandsPrivateApis );
@@ -154,37 +154,17 @@ function useEditorStyles( ...additionalStyles ) {
  * @param {boolean} props.isLegacy True when the editor canvas is not in an iframe.
  */
 function MetaBoxesMain( { isLegacy } ) {
-	const [
-		hasInitialized,
-		isEditorReady,
-		isOpen,
-		openHeight,
-		hasAny,
-		hasAnyVisible,
-	] = useSelect( ( select ) => {
-		const { __unstableIsEditorReady } = select( editorStore );
+	const [ isOpen, openHeight, hasAnyVisible ] = useSelect( ( select ) => {
 		const { get } = select( preferencesStore );
-		const {
-			areMetaBoxesInitialized,
-			getMetaBoxesPerLocation,
-			isMetaBoxLocationVisible,
-		} = select( editPostStore );
+		const { isMetaBoxLocationVisible } = select( editPostStore );
 		return [
-			areMetaBoxesInitialized(),
-			__unstableIsEditorReady(),
 			get( 'core/edit-post', 'metaBoxesMainIsOpen' ),
 			get( 'core/edit-post', 'metaBoxesMainOpenHeight' ),
-			[
-				...getMetaBoxesPerLocation( 'normal' ),
-				...getMetaBoxesPerLocation( 'advanced' ),
-				...getMetaBoxesPerLocation( 'side' ),
-			].length > 0,
 			isMetaBoxLocationVisible( 'normal' ) ||
 				isMetaBoxLocationVisible( 'advanced' ) ||
 				isMetaBoxLocationVisible( 'side' ),
 		];
 	}, [] );
-	const registry = useRegistry();
 	const { set: setPreference } = useDispatch( preferencesStore );
 	const metaBoxesMainRef = useRef();
 	const isShort = useMediaQuery( '(max-height: 549px)' );
@@ -246,14 +226,6 @@ function MetaBoxesMain( { isLegacy } ) {
 			} );
 		}
 	};
-
-	// When editor is ready, initialize postboxes (wp core script) and meta box
-	// saving. This initializes all meta box locations.
-	useEffect( () => {
-		if ( isEditorReady && hasAny && ! hasInitialized ) {
-			registry.dispatch( editPostStore ).initializeMetaBoxes();
-		}
-	}, [ isEditorReady, hasAny, hasInitialized, registry ] );
 
 	if ( ! hasAnyVisible ) {
 		return;
@@ -443,6 +415,8 @@ function Layout( {
 			const { isZoomOut } = unlock( select( blockEditorStore ) );
 			const { getEditorMode, getRenderingMode } = select( editorStore );
 			const isRenderingPostOnly = getRenderingMode() === 'post-only';
+			const isNotDesignPostType =
+				! DESIGN_POST_TYPES.includes( currentPostType );
 
 			return {
 				mode: getEditorMode(),
@@ -453,9 +427,7 @@ function Layout( {
 					!! select( blockEditorStore ).getBlockSelectionStart(),
 				showIconLabels: get( 'core', 'showIconLabels' ),
 				isDistractionFree: get( 'core', 'distractionFree' ),
-				showMetaBoxes:
-					! DESIGN_POST_TYPES.includes( currentPostType ) &&
-					! isZoomOut(),
+				showMetaBoxes: isNotDesignPostType && ! isZoomOut(),
 				isWelcomeGuideVisible: isFeatureActive( 'welcomeGuide' ),
 				templateId:
 					supportsTemplateMode &&
@@ -465,9 +437,7 @@ function Layout( {
 						? getTemplateId( currentPostType, currentPostId )
 						: null,
 				enablePaddingAppender:
-					! isZoomOut() &&
-					isRenderingPostOnly &&
-					! DESIGN_POST_TYPES.includes( currentPostType ),
+					! isZoomOut() && isRenderingPostOnly && isNotDesignPostType,
 			};
 		},
 		[
@@ -477,6 +447,7 @@ function Layout( {
 			settings.supportsTemplateMode,
 		]
 	);
+	useMetaBoxInitialization( showMetaBoxes );
 	const [ paddingAppenderRef, paddingStyle ] = usePaddingAppender(
 		enablePaddingAppender
 	);
