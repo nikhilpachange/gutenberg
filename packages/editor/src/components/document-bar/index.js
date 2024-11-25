@@ -49,7 +49,7 @@ const MotionButton = motion( Button );
  * @param {IconType} props.icon  An icon for the document, no default.
  *                               (A default icon indicating the document post type is no longer used.)
  *
- * @return {JSX.Element} The rendered DocumentBar component.
+ * @return {React.ReactNode} The rendered DocumentBar component.
  */
 export default function DocumentBar( props ) {
 	const {
