@@ -28,6 +28,7 @@
 
 -   `ColorPicker`: Update sizes of color format select and copy button ([#67093](https://github.com/WordPress/gutenberg/pull/67093)).
 -   `Autocomplete`: Increase option height ([#67214](https://github.com/WordPress/gutenberg/pull/67214)).
+-   `CircularOptionPicker`: Update `Button` sizes to be ready for 40px default size ([#67285#pullrequestreview-2459747278](https://github.com/WordPress/gutenberg/pull/67285#pullrequestreview-2459747278)).
 
 ### Experimental
 
