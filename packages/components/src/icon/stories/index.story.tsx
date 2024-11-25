@@ -75,7 +75,7 @@ WithAFunction.parameters = {
       alt="WordPress"
     />
   ) }
-/>;
+/>
 		`,
 		},
 	},
@@ -105,9 +105,7 @@ const MyIconComponent = ( { size } ) => (
   </SVG>
 );
 
-<Icon
-  icon={ <MyIconComponent /> }
-/>;
+<Icon icon={ <MyIconComponent /> } />
 		`,
 		},
 	},
