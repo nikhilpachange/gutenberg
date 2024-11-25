@@ -67,7 +67,4 @@ export default {
 			name: 'site',
 		} );
 	},
-	getFieldsList( { select, context } ) {
-		return getSiteFields( select, context );
-	},
 };
