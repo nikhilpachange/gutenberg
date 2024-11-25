@@ -124,6 +124,3 @@ export * from './deprecated';
 // Temporary: While the posts dashboard is being iterated on
 // it's being built in the same package as the site editor.
 export { initializePostsDashboard } from './posts';
-
-// Temp classic stylebook export similar to above posts dashboard.
-export { initializeClassicStylebook } from './classic-stylebook';
