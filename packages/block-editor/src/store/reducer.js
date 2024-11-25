@@ -2236,152 +2236,6 @@ function hasBindings( block ) {
 }
 
 /**
- * Determines the editing mode for a given block based on various factors.
- *
- * This function evaluates the editing mode of a block considering the following:
- * - Whether the editor is in zoomed out or navigation mode.
- * - The block's relationship to sections and synced patterns.
- * - The presence of bindings in the block's attributes.
- *
- * @param {Object}  state                          The current state object.
- * @param {string}  clientId                       The client ID of the block to evaluate.
- * @param {Object}  options                        Additional options for determining the editing mode.
- * @param {string}  options.sectionRootClientId    The client ID of the section root block.
- * @param {Array}   options.sectionClientIds       An array of client IDs for section blocks.
- * @param {Array}   options.syncedPatternClientIds An array of client IDs for synced pattern blocks.
- * @param {boolean} options.isZoomedOut            Whether the editor is in zoomed out mode.
- * @param {boolean} options.isNavMode              Whether the editor is in navigation mode.
- *
- * @return {string|undefined} The determined editing mode for the block: 'contentOnly', 'disabled', or undefined.
- */
-function getDerivedBlockEditingModeForBlock(
-	state,
-	clientId,
-	{
-		sectionRootClientId,
-		sectionClientIds,
-		syncedPatternClientIds,
-		isZoomedOut,
-		isNavMode,
-	}
-) {
-	if ( isZoomedOut || isNavMode ) {
-		// If the root block is the section root set its editing mode to contentOnly.
-		if ( clientId === sectionRootClientId ) {
-			return 'contentOnly';
-		}
-
-		// There are no sections, so everything else is disabled.
-		if ( ! sectionClientIds?.length ) {
-			return 'disabled';
-		}
-
-		if ( sectionClientIds.includes( clientId ) ) {
-			return 'contentOnly';
-		}
-
-		// If zoomed out, all blocks that aren't sections or the section root are
-		// disabled.
-		// If the tree root is not in a section, set its editing mode to disabled.
-		if (
-			isZoomedOut ||
-			! findParentInClientIdsList( state, clientId, sectionClientIds )
-		) {
-			return 'disabled';
-		}
-
-		// Next handle content blocks, which are either blocks with role: content
-		// or blocks that are inside synced patterns with bindings.
-		const block = state.blocks.tree.get( clientId );
-
-		// Handle synced pattern content so the inner blocks of a synced pattern are
-		// properly disabled.
-		if ( syncedPatternClientIds.length ) {
-			const parentPatternClientId = findParentInClientIdsList(
-				state,
-				clientId,
-				syncedPatternClientIds
-			);
-
-			if ( parentPatternClientId ) {
-				// This is a pattern nested in another pattern, it should be disabled.
-				if (
-					findParentInClientIdsList(
-						state,
-						parentPatternClientId,
-						syncedPatternClientIds
-					)
-				) {
-					return 'disabled';
-				}
-
-				if ( hasBindings( block ) ) {
-					return 'contentOnly';
-				}
-
-				// Synced pattern content without a binding isn't editable
-				// from the instance, the user has to edit the pattern source,
-				// so return 'disabled'.
-				return 'disabled';
-			}
-		}
-
-		if ( block?.name && isContentBlock( block.name ) ) {
-			return 'contentOnly';
-		}
-
-		return 'disabled';
-	}
-
-	if ( syncedPatternClientIds.length ) {
-		// Synced pattern blocks (core/block).
-		if ( syncedPatternClientIds.includes( clientId ) ) {
-			// This is a pattern nested in another pattern, it should be disabled.
-			if (
-				findParentInClientIdsList(
-					state,
-					clientId,
-					syncedPatternClientIds
-				)
-			) {
-				return 'disabled';
-			}
-
-			return 'contentOnly';
-		}
-
-		// Inner blocks of synced patterns.
-		const parentPatternClientId = findParentInClientIdsList(
-			state,
-			clientId,
-			syncedPatternClientIds
-		);
-		if ( parentPatternClientId ) {
-			// This is a pattern nested in another pattern, it should be disabled.
-			if (
-				findParentInClientIdsList(
-					state,
-					parentPatternClientId,
-					syncedPatternClientIds
-				)
-			) {
-				return 'disabled';
-			}
-
-			const block = state.blocks.tree.get( clientId );
-			if ( hasBindings( block ) ) {
-				return 'contentOnly';
-			}
-
-			// Synced pattern content without a binding isn't editable
-			// from the instance, the user has to edit the pattern source,
-			// so return 'disabled'.
-			return 'disabled';
-		}
-	}
-}
-
-/**
  * Computes and returns derived block editing modes for a given block tree.
  *
  * This function calculates the editing modes for each block in the tree, taking into account
@@ -2412,20 +2266,128 @@ function getDerivedBlockEditingModesForTree( state, treeClientId = '' ) {
 	);
 
 	traverseBlockTree( state, treeClientId, ( block ) => {
-		const _blockEditingMode = getDerivedBlockEditingModeForBlock(
-			state,
-			block.clientId,
-			{
-				sectionRootClientId,
-				sectionClientIds,
-				syncedPatternClientIds,
-				isZoomedOut,
-				isNavMode,
+		const { clientId, name: blockName } = block;
+		if ( isZoomedOut || isNavMode ) {
+			// If the root block is the section root set its editing mode to contentOnly.
+			if ( clientId === sectionRootClientId ) {
+				derivedBlockEditingModes.set( clientId, 'contentOnly' );
+				return;
 			}
-		);
 
-		if ( _blockEditingMode ) {
-			derivedBlockEditingModes.set( block.clientId, _blockEditingMode );
+			// There are no sections, so everything else is disabled.
+			if ( ! sectionClientIds?.length ) {
+				derivedBlockEditingModes.set( clientId, 'disabled' );
+				return;
+			}
+
+			if ( sectionClientIds.includes( clientId ) ) {
+				derivedBlockEditingModes.set( clientId, 'contentOnly' );
+				return;
+			}
+
+			// If zoomed out, all blocks that aren't sections or the section root are
+			// disabled.
+			// If the tree root is not in a section, set its editing mode to disabled.
+			if (
+				isZoomedOut ||
+				! findParentInClientIdsList( state, clientId, sectionClientIds )
+			) {
+				derivedBlockEditingModes.set( clientId, 'disabled' );
+				return;
+			}
+
+			// Handle synced pattern content so the inner blocks of a synced pattern are
+			// properly disabled.
+			if ( syncedPatternClientIds.length ) {
+				const parentPatternClientId = findParentInClientIdsList(
+					state,
+					clientId,
+					syncedPatternClientIds
+				);
+
+				if ( parentPatternClientId ) {
+					// This is a pattern nested in another pattern, it should be disabled.
+					if (
+						findParentInClientIdsList(
+							state,
+							parentPatternClientId,
+							syncedPatternClientIds
+						)
+					) {
+						derivedBlockEditingModes.set( clientId, 'disabled' );
+						return;
+					}
+
+					if ( hasBindings( block ) ) {
+						derivedBlockEditingModes.set( clientId, 'contentOnly' );
+						return;
+					}
+
+					// Synced pattern content without a binding isn't editable
+					// from the instance, the user has to edit the pattern source,
+					// so return 'disabled'.
+					derivedBlockEditingModes.set( clientId, 'disabled' );
+					return;
+				}
+			}
+
+			if ( blockName && isContentBlock( blockName ) ) {
+				derivedBlockEditingModes.set( clientId, 'contentOnly' );
+				return;
+			}
+
+			derivedBlockEditingModes.set( clientId, 'disabled' );
+			return;
+		}
+
+		if ( syncedPatternClientIds.length ) {
+			// Synced pattern blocks (core/block).
+			if ( syncedPatternClientIds.includes( clientId ) ) {
+				// This is a pattern nested in another pattern, it should be disabled.
+				if (
+					findParentInClientIdsList(
+						state,
+						clientId,
+						syncedPatternClientIds
+					)
+				) {
+					derivedBlockEditingModes.set( clientId, 'disabled' );
+					return;
+				}
+
+				derivedBlockEditingModes.set( clientId, 'contentOnly' );
+				return;
+			}
+
+			// Inner blocks of synced patterns.
+			const parentPatternClientId = findParentInClientIdsList(
+				state,
+				clientId,
+				syncedPatternClientIds
+			);
+			if ( parentPatternClientId ) {
+				// This is a pattern nested in another pattern, it should be disabled.
+				if (
+					findParentInClientIdsList(
+						state,
+						parentPatternClientId,
+						syncedPatternClientIds
+					)
+				) {
+					derivedBlockEditingModes.set( clientId, 'disabled' );
+					return;
+				}
+
+				if ( hasBindings( block ) ) {
+					derivedBlockEditingModes.set( clientId, 'contentOnly' );
+					return;
+				}
+
+				// Synced pattern content without a binding isn't editable
+				// from the instance, the user has to edit the pattern source,
+				// so return 'disabled'.
+				derivedBlockEditingModes.set( clientId, 'disabled' );
+			}
 		}
 	} );
 
