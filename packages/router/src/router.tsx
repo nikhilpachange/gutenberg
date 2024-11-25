@@ -19,7 +19,6 @@ import {
 	getPath,
 	buildQueryString,
 } from '@wordpress/url';
-import { compose } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -47,7 +46,7 @@ interface Match {
 	params?: Record< string, any >;
 }
 
-export type Middleware = ( arg: {
+export type BeforeNavigate = ( arg: {
 	path: string;
 	query: Record< string, any >;
 } ) => {
@@ -57,7 +56,7 @@ export type Middleware = ( arg: {
 
 interface Config {
 	pathArg: string;
-	middlewares?: Middleware[];
+	beforeNavigate?: BeforeNavigate;
 }
 
 export interface NavigationOptions {
@@ -87,19 +86,16 @@ export function useLocation() {
 }
 
 export function useHistory() {
-	const { pathArg, middlewares } = useContext( ConfigContext );
+	const { pathArg, beforeNavigate } = useContext( ConfigContext );
 	return useMemo(
 		() => ( {
 			navigate( rawPath: string, options: NavigationOptions = {} ) {
-				const runMiddlewares = (
-					middlewares
-						? compose( ...middlewares )
-						: ( i: unknown ) => i
-				) as Middleware;
 				const query = getQueryArgs( rawPath );
 				const path = getPath( 'http://domain.com/' + rawPath ) ?? '';
 				const performPush = () => {
-					const result = runMiddlewares( { path, query } );
+					const result = beforeNavigate
+						? beforeNavigate( { path, query } )
+						: { path, query };
 					return history.push(
 						{
 							search: buildQueryString( {
@@ -137,7 +133,7 @@ export function useHistory() {
 				} );
 			},
 		} ),
-		[ pathArg, middlewares ]
+		[ pathArg, beforeNavigate ]
 	);
 }
 
@@ -196,12 +192,12 @@ export default function useMatch(
 export function RouterProvider( {
 	routes,
 	pathArg,
-	middlewares,
+	beforeNavigate,
 	children,
 }: {
 	routes: Route[];
 	pathArg: string;
-	middlewares?: Middleware[];
+	beforeNavigate?: BeforeNavigate;
 	children: React.ReactNode;
 } ) {
 	const location = useSyncExternalStore(
@@ -211,8 +207,8 @@ export function RouterProvider( {
 	);
 	const match = useMatch( location, routes, pathArg );
 	const config = useMemo(
-		() => ( { middlewares, pathArg } ),
-		[ middlewares, pathArg ]
+		() => ( { beforeNavigate, pathArg } ),
+		[ beforeNavigate, pathArg ]
 	);
 
 	return (

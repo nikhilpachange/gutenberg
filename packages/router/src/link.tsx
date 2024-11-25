@@ -3,21 +3,15 @@
  */
 import { useContext, useMemo } from '@wordpress/element';
 import { getQueryArgs, getPath, buildQueryString } from '@wordpress/url';
-import { compose } from '@wordpress/compose';
 
 /**
  * Internal dependencies
  */
-import {
-	ConfigContext,
-	type Middleware,
-	type NavigationOptions,
-	useHistory,
-} from './router';
+import { ConfigContext, type NavigationOptions, useHistory } from './router';
 
 export function useLink( to: string, options: NavigationOptions = {} ) {
 	const history = useHistory();
-	const { pathArg, middlewares } = useContext( ConfigContext );
+	const { pathArg, beforeNavigate } = useContext( ConfigContext );
 	function onClick( event: React.SyntheticEvent< HTMLAnchorElement > ) {
 		event?.preventDefault();
 		history.navigate( to, options );
@@ -25,11 +19,10 @@ export function useLink( to: string, options: NavigationOptions = {} ) {
 	const query = getQueryArgs( to );
 	const path = getPath( 'http://domain.com/' + to ) ?? '';
 	const link = useMemo( () => {
-		const runMiddlewares = (
-			middlewares ? compose( ...middlewares ) : ( i: unknown ) => i
-		) as Middleware;
-		return runMiddlewares( { path, query } );
-	}, [ path, query, middlewares ] );
+		return beforeNavigate
+			? beforeNavigate( { path, query } )
+			: { path, query };
+	}, [ path, query, beforeNavigate ] );
 
 	const [ before ] = window.location.href.split( '?' );
 

@@ -7,7 +7,6 @@
 		"types": [ "gutenberg-env" ]
 	},
 	"references": [
-		{ "path": "../compose" },
 		{ "path": "../element" },
 		{ "path": "../private-apis" },
 		{ "path": "../url" }

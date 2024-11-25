@@ -11,7 +11,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 import { PluginArea } from '@wordpress/plugins';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
-import { useMemo } from '@wordpress/element';
+import { useCallback } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -54,27 +54,22 @@ export default function App() {
 			)
 		);
 	}
-	const middlewares = useMemo(
-		() => [
-			( { path, query } ) => {
-				if ( ! isPreviewingTheme() ) {
-					return { path, query };
-				}
+	const beforeNavigate = useCallback( ( { path, query } ) => {
+		if ( ! isPreviewingTheme() ) {
+			return { path, query };
+		}
 
-				return {
-					path,
-					query: {
-						...query,
-						wp_theme_preview:
-							'wp_theme_preview' in query
-								? query.wp_theme_preview
-								: currentlyPreviewingTheme(),
-					},
-				};
+		return {
+			path,
+			query: {
+				...query,
+				wp_theme_preview:
+					'wp_theme_preview' in query
+						? query.wp_theme_preview
+						: currentlyPreviewingTheme(),
 			},
-		],
-		[]
-	);
+		};
+	}, [] );
 
 	return (
 		<SlotFillProvider>
@@ -83,7 +78,7 @@ export default function App() {
 				<RouterProvider
 					routes={ routes }
 					pathArg="p"
-					middlewares={ middlewares }
+					beforeNavigate={ beforeNavigate }
 				>
 					<AppLayout />
 					<PluginArea onError={ onPluginAreaError } />
