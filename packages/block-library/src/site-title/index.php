@@ -15,11 +15,11 @@
  * @return string The render.
  */
 function render_block_core_site_title( $attributes ) {
-	$site_title = get_bloginfo( 'name' );
-	if ( ! $site_title ) {
+	if ( !  isset( $attributes['content'] ) ) {
 		return;
 	}
 
+	$site_title = $attributes['content'];
 	$tag_name = 'h1';
 	$classes  = empty( $attributes['textAlign'] ) ? '' : "has-text-align-{$attributes['textAlign']}";
 	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {

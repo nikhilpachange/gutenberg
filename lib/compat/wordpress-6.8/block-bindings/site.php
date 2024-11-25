@@ -18,7 +18,7 @@
  * @param WP_Block $block_instance The block instance.
  * @return mixed The value computed for the source.
  */
-function _block_bindings_post_meta_get_value( array $source_args, $block_instance ) {
+function _block_bindings_site_get_value( array $source_args, $block_instance ) {
 	if ( empty( $source_args['key'] ) ) {
 		return null;
 	}
@@ -36,7 +36,7 @@ function _block_bindings_post_meta_get_value( array $source_args, $block_instanc
  * @since 6.5.0
  * @access private
  */
-function _register_block_bindings_post_meta_source() {
+function _register_block_bindings_site_source() {
 	register_block_bindings_source(
 		'core/site',
 		array(
@@ -46,4 +46,4 @@ function _register_block_bindings_post_meta_source() {
 	);
 }
 
-add_action( 'init', '_register_block_bindings_post_meta_source' );
+add_action( 'init', '_register_block_bindings_site_source' );

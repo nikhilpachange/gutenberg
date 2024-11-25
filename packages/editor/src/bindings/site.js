@@ -30,7 +30,6 @@ function getSiteFields( select ) {
 
 export default {
 	name: 'core/site',
-	label: __( 'Site' ),
 	getValues( { select, bindings } ) {
 		const metaFields = getSiteFields( select );
 
