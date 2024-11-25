@@ -158,6 +158,11 @@ export type Field< Item > = {
 	 * Defaults to `item[ field.id ]`.
 	 */
 	getValue?: ( args: { item: Item } ) => any;
+
+	/**
+	 * True if the field is supposed to be used as a media field.
+	 */
+	isMediaField?: boolean;
 };
 
 export type NormalizedField< Item > = Field< Item > & {

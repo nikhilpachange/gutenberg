@@ -61,9 +61,22 @@
 }
 
 .dataviews-field-control__field:hover,
-.dataviews-field-control__field:focus-within {
+.dataviews-field-control__field:focus-within,
+.dataviews-field-control__field.is-interacting {
 	.dataviews-field-control__actions {
 		position: unset;
 		top: unset;
 	}
+}
+
+.dataviews-field-control__field-label {
+	display: block;
+}
+
+.dataviews-field-control__field-sub-label {
+	margin-top: $grid-unit-10;
+	margin-bottom: 0;
+	font-size: 11px;
+	font-style: normal;
+	color: $gray-700;
 }

@@ -2,6 +2,7 @@
  * External dependencies
  */
 import type { ChangeEvent } from 'react';
+import clsx from 'clsx';
 
 /**
  * WordPress dependencies
@@ -25,8 +26,15 @@ import {
 	BaseControl,
 } from '@wordpress/components';
 import { __, _x, sprintf } from '@wordpress/i18n';
-import { memo, useContext, useMemo } from '@wordpress/element';
-import { chevronDown, chevronUp, cog, seen, unseen } from '@wordpress/icons';
+import { memo, useContext, useMemo, useState } from '@wordpress/element';
+import {
+	chevronDown,
+	chevronUp,
+	cog,
+	seen,
+	unseen,
+	moreVertical,
+} from '@wordpress/icons';
 import warning from '@wordpress/warning';
 import { useInstanceId } from '@wordpress/compose';
 
@@ -37,6 +45,7 @@ import {
 	SORTING_DIRECTIONS,
 	LAYOUT_GRID,
 	LAYOUT_TABLE,
+	LAYOUT_LIST,
 	sortIcons,
 	sortLabels,
 } from '../../constants';
@@ -239,6 +248,47 @@ function ItemsPerPageControl() {
 	);
 }
 
+function BaseFieldItem( {
+	label,
+	subLabel,
+	actions,
+	isInteracting,
+}: {
+	label: string;
+	subLabel?: string;
+	actions: React.ReactNode;
+	isInteracting?: boolean;
+} ) {
+	return (
+		<Item>
+			<HStack
+				expanded
+				className={ clsx( 'dataviews-field-control__field', {
+					'is-interacting': isInteracting,
+				} ) }
+			>
+				<div>
+					<span className="dataviews-field-control__field-label">
+						{ label }
+					</span>
+					{ subLabel && (
+						<span className="dataviews-field-control__field-sub-label">
+							{ subLabel }
+						</span>
+					) }
+				</div>
+				<HStack
+					justify="flex-end"
+					expanded={ false }
+					className="dataviews-field-control__actions"
+				>
+					{ actions }
+				</HStack>
+			</HStack>
+		</Item>
+	);
+}
+
 interface FieldItemProps {
 	id: any;
 	label: string;
@@ -261,17 +311,10 @@ function FieldItem( {
 	const visibleFieldIds = getVisibleFieldIds( view, fields );
 
 	return (
-		<Item key={ id }>
-			<HStack
-				expanded
-				className={ `dataviews-field-control__field dataviews-field-control__field-${ id }` }
-			>
-				<span>{ label }</span>
-				<HStack
-					justify="flex-end"
-					expanded={ false }
-					className="dataviews-field-control__actions"
-				>
+		<BaseFieldItem
+			label={ label }
+			actions={
+				<>
 					{ view.type === LAYOUT_TABLE && isVisible && (
 						<>
 							<Button
@@ -371,10 +414,78 @@ function FieldItem( {
 								  )
 						}
 					/>
-				</HStack>
-			</HStack>
-		</Item>
+				</>
+			}
+		/>
 	);
+}
+
+function PreviewFieldItem( {
+	fields,
+	view,
+	onChangeView,
+}: {
+	fields: Field< any >[];
+	view: View;
+	onChangeView: ( view: View ) => void;
+} ) {
+	const [ isChangingPreview, setIsChangingPreview ] =
+		useState< boolean >( false );
+	const mediaFields = useMemo( () => {
+		return fields.filter( ( field ) => field.isMediaField );
+	}, [ fields ] );
+	if (
+		mediaFields.length >= 2 &&
+		( view.type === LAYOUT_GRID || view.type === LAYOUT_LIST )
+	) {
+		const mediaFieldId = view.layout?.mediaField;
+		const mediaField = mediaFields.find(
+			( field ) => field.id === mediaFieldId
+		);
+		return (
+			<BaseFieldItem
+				label={ __( 'Preview' ) }
+				isInteracting={ isChangingPreview }
+				subLabel={ mediaField?.label }
+				actions={
+					<Menu
+						trigger={
+							<Button
+								size="compact"
+								icon={ moreVertical }
+								label={ __( 'Preview' ) }
+							/>
+						}
+						onOpenChange={ setIsChangingPreview }
+					>
+						{ mediaFields.map( ( field ) => {
+							return (
+								<Menu.RadioItem
+									key={ field.id }
+									value={ field.id }
+									checked={ field.id === mediaFieldId }
+									onChange={ () => {
+										onChangeView( {
+											...view,
+											layout: {
+												...view.layout,
+												mediaField: field.id,
+											},
+										} );
+									} }
+								>
+									<Menu.ItemLabel>
+										{ field.label }
+									</Menu.ItemLabel>
+								</Menu.RadioItem>
+							);
+						} ) }
+					</Menu>
+				}
+			/>
+		);
+	}
+	return null;
 }
 
 function FieldControl() {
@@ -439,6 +550,11 @@ function FieldControl() {
 		<VStack spacing={ 6 } className="dataviews-field-control">
 			{ !! visibleFields?.length && (
 				<ItemGroup isBordered isSeparated>
+					<PreviewFieldItem
+						fields={ fields }
+						view={ view }
+						onChangeView={ onChangeView }
+					/>
 					{ visibleFields.map( ( field ) => (
 						<FieldItem
 							key={ field.id }

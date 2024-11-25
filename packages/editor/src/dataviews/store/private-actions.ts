@@ -34,6 +34,7 @@ import {
 	authorField,
 	titleField,
 } from '@wordpress/fields';
+import contentPreviewField from '../fields/content-preview';
 import duplicateTemplatePart from '../actions/duplicate-template-part';
 
 export function registerEntityAction< Item >(
@@ -169,6 +170,7 @@ export const registerPostTypeSchema =
 			parentField,
 			commentStatusField,
 			passwordField,
+			contentPreviewField,
 		];
 
 		registry.batch( () => {

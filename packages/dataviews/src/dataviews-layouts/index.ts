@@ -100,6 +100,12 @@ export function getVisibleFieldIds(
 	return visibleFields;
 }
 
+function getMediaFieldIds( fields: Field< any >[] ): string[] {
+	return fields
+		.filter( ( { isMediaField } ) => isMediaField )
+		.map( ( { id } ) => id );
+}
+
 export function getHiddenFieldIds(
 	view: View,
 	fields: Field< any >[]
@@ -107,16 +113,10 @@ export function getHiddenFieldIds(
 	const fieldsToExclude = [
 		...getCombinedFieldIds( view ),
 		...getVisibleFieldIds( view, fields ),
+		...( view.type === LAYOUT_GRID || view.type === LAYOUT_LIST
+			? getMediaFieldIds( fields )
+			: [] ),
 	];
-
-	// The media field does not need to be in the view.fields to be displayed.
-	if ( view.type === LAYOUT_GRID && view.layout?.mediaField ) {
-		fieldsToExclude.push( view.layout?.mediaField );
-	}
-
-	if ( view.type === LAYOUT_LIST && view.layout?.mediaField ) {
-		fieldsToExclude.push( view.layout?.mediaField );
-	}
 
 	return fields
 		.filter(
