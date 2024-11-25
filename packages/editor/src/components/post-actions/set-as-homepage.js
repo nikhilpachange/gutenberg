@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { __, sprintf } from '@wordpress/i18n';
-import { useMemo, useRef } from '@wordpress/element';
+import { useMemo } from '@wordpress/element';
 import {
 	Button,
 	__experimentalText as Text,
@@ -21,7 +21,7 @@ import { getItemTitle } from '../../dataviews/actions/utils';
 const SetAsHomepageModal = ( { items, closeModal } ) => {
 	const [ item ] = items;
 	const pageTitle = getItemTitle( item );
-	const { showOnFront, currentHomePage, isSavingSiteSettings } = useSelect(
+	const { showOnFront, currentHomePage, isSaving } = useSelect(
 		( select ) => {
 			const { getEntityRecord, isSavingEntityRecord } =
 				select( coreStore );
@@ -34,12 +34,10 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 			return {
 				showOnFront: siteSettings?.show_on_front,
 				currentHomePage: currentHomePageItem,
-				isSavingSiteSettings: isSavingEntityRecord( 'root', 'site' ),
+				isSaving: isSavingEntityRecord( 'root', 'site' ),
 			};
 		}
 	);
-	const isPageDraftRef = useRef( item.status === 'draft' );
-	const isPageDraft = isPageDraftRef.current;
 	const currentHomePageTitle = currentHomePage
 		? getItemTitle( currentHomePage )
 		: '';
@@ -53,21 +51,11 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 		event.preventDefault();
 
 		try {
-			// If selected page is set to draft, publish the page.
-			if ( isPageDraft ) {
-				await saveEntityRecord( 'postType', 'page', {
-					...item,
-					status: 'publish',
-				} );
-			}
-
 			// Save new home page settings.
 			await saveEditedEntityRecord( 'root', 'site', undefined, {
 				page_on_front: item.id,
 				show_on_front: 'page',
 			} );
-
-			closeModal?.();
 
 			// This second call to a save function is a workaround for a bug in
 			// `saveEditedEntityRecord`. This forces the root site settings to be updated.
@@ -77,6 +65,7 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 				show_on_front: 'page',
 			} );
 
+			closeModal?.();
 			createSuccessNotice( __( 'Homepage updated' ), {
 				type: 'snackbar',
 			} );
@@ -107,22 +96,6 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 			);
 		}
 
-		if ( isPageDraft ) {
-			return (
-				<>
-					<Text>
-						{ sprintf(
-							// translators: %s: title of the page to be set as the homepage.
-							__(
-								'"%s" is a draft and will be published automatically if set as the homepage. Publish page and set as the site homepage?'
-							),
-							pageTitle
-						) }
-					</Text>
-				</>
-			);
-		}
-
 		const modalTranslatedString =
 			// translators: %1$s: title of page to be set as the home page. %2$s: title of the current home page.
 			__(
@@ -141,9 +114,7 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 	};
 
 	// translators: Button label to confirm setting the specified page as the homepage.
-	const modalButtonLabel = isPageDraft
-		? __( 'Publish and set homepage' )
-		: __( 'Set homepage' );
+	const modalButtonLabel = __( 'Set homepage' );
 
 	return (
 		<form onSubmit={ onSetPageAsHomepage }>
@@ -156,7 +127,7 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 						onClick={ () => {
 							closeModal?.();
 						} }
-						disabled={ isSavingSiteSettings }
+						disabled={ isSaving }
 						accessibleWhenDisabled
 					>
 						{ __( 'Cancel' ) }
@@ -165,7 +136,7 @@ const SetAsHomepageModal = ( { items, closeModal } ) => {
 						__next40pxDefaultSize
 						variant="primary"
 						type="submit"
-						disabled={ isSavingSiteSettings }
+						disabled={ isSaving }
 						accessibleWhenDisabled
 					>
 						{ modalButtonLabel }
@@ -191,7 +162,7 @@ export const useSetAsHomepageAction = () => {
 			id: 'set-as-homepage',
 			label: __( 'Set as homepage' ),
 			isEligible( post ) {
-				if ( post.status !== 'draft' && post.status !== 'publish' ) {
+				if ( post.status !== 'publish' ) {
 					return false;
 				}
 
