@@ -10,7 +10,7 @@
 add_filter(
 	'block_editor_settings_all',
 	function ( $settings ) {
-		$settings['__experimentalDashboardLink'] = admin_url();
+		$settings['__experimentalDashboardLink'] = admin_url( '/' );
 		return $settings;
 	}
 );
