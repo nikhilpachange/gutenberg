@@ -4468,15 +4468,16 @@ describe( 'getBlockEditingMode', () => {
 	};
 
 	const hasContentRoleAttribute = jest.fn( () => false );
+	const get = jest.fn( () => 'edit' );
 
-	const fauxPrivateAPIs = {};
+	const mockedSelectors = { get };
 
-	lock( fauxPrivateAPIs, {
+	lock( mockedSelectors, {
 		hasContentRoleAttribute,
 	} );
 
 	getBlockEditingMode.registry = {
-		select: jest.fn( () => fauxPrivateAPIs ),
+		select: jest.fn( () => mockedSelectors ),
 	};
 
 	it( 'should return default by default', () => {
