@@ -19,6 +19,7 @@ import {
 	getPath,
 	buildQueryString,
 } from '@wordpress/url';
+import { compose } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -46,8 +47,17 @@ interface Match {
 	params?: Record< string, any >;
 }
 
+export type Middleware = ( arg: {
+	path: string;
+	query: Record< string, any >;
+} ) => {
+	path: string;
+	query: Record< string, any >;
+};
+
 interface Config {
 	pathArg: string;
+	middlewares?: Middleware[];
 }
 
 export interface NavigationOptions {
@@ -77,18 +87,24 @@ export function useLocation() {
 }
 
 export function useHistory() {
-	const { pathArg } = useContext( ConfigContext );
+	const { pathArg, middlewares } = useContext( ConfigContext );
 	return useMemo(
 		() => ( {
 			navigate( rawPath: string, options: NavigationOptions = {} ) {
+				const runMiddlewares = (
+					middlewares
+						? compose( ...middlewares )
+						: ( i: unknown ) => i
+				) as Middleware;
 				const query = getQueryArgs( rawPath );
-				const path = getPath( 'http://domain.com/' + rawPath );
+				const path = getPath( 'http://domain.com/' + rawPath ) ?? '';
 				const performPush = () => {
+					const result = runMiddlewares( { path, query } );
 					return history.push(
 						{
 							search: buildQueryString( {
-								[ pathArg ]: path,
-								...query,
+								[ pathArg ]: result.path,
+								...result.query,
 							} ),
 						},
 						options.state
@@ -121,7 +137,7 @@ export function useHistory() {
 				} );
 			},
 		} ),
-		[ pathArg ]
+		[ pathArg, middlewares ]
 	);
 }
 
@@ -180,10 +196,12 @@ export default function useMatch(
 export function RouterProvider( {
 	routes,
 	pathArg,
+	middlewares,
 	children,
 }: {
 	routes: Route[];
 	pathArg: string;
+	middlewares?: Middleware[];
 	children: React.ReactNode;
 } ) {
 	const location = useSyncExternalStore(
@@ -192,7 +210,10 @@ export function RouterProvider( {
 		getLocationWithQuery
 	);
 	const match = useMatch( location, routes, pathArg );
-	const config = useMemo( () => ( { pathArg } ), [ pathArg ] );
+	const config = useMemo(
+		() => ( { middlewares, pathArg } ),
+		[ middlewares, pathArg ]
+	);
 
 	return (
 		<ConfigContext.Provider value={ config }>

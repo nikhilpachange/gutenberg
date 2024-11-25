@@ -11,6 +11,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 import { PluginArea } from '@wordpress/plugins';
 import { privateApis as routerPrivateApis } from '@wordpress/router';
+import { useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -21,6 +22,10 @@ import { store as editSiteStore } from '../../store';
 import { useCommonCommands } from '../../hooks/commands/use-common-commands';
 import useSetCommandContext from '../../hooks/commands/use-set-command-context';
 import { useRegisterSiteEditorRoutes } from '../site-editor-routes';
+import {
+	currentlyPreviewingTheme,
+	isPreviewingTheme,
+} from '../../utils/is-previewing-theme';
 
 const { RouterProvider } = unlock( routerPrivateApis );
 const { GlobalStylesProvider } = unlock( editorPrivateApis );
@@ -49,12 +54,37 @@ export default function App() {
 			)
 		);
 	}
+	const middlewares = useMemo(
+		() => [
+			( { path, query } ) => {
+				if ( ! isPreviewingTheme() ) {
+					return { path, query };
+				}
+
+				return {
+					path,
+					query: {
+						...query,
+						wp_theme_preview:
+							'wp_theme_preview' in query
+								? query.wp_theme_preview
+								: currentlyPreviewingTheme(),
+					},
+				};
+			},
+		],
+		[]
+	);
 
 	return (
 		<SlotFillProvider>
 			<GlobalStylesProvider>
 				<UnsavedChangesWarning />
-				<RouterProvider routes={ routes } pathArg="p">
+				<RouterProvider
+					routes={ routes }
+					pathArg="p"
+					middlewares={ middlewares }
+				>
 					<AppLayout />
 					<PluginArea onError={ onPluginAreaError } />
 				</RouterProvider>
