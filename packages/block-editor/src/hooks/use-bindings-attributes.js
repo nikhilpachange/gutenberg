@@ -1,11 +1,7 @@
 /**
  * WordPress dependencies
  */
-import {
-	store as blocksStore,
-	hasBlockSupport,
-	getBlockType,
-} from '@wordpress/blocks';
+import { store as blocksStore, getBlockType } from '@wordpress/blocks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { useRegistry, useSelect } from '@wordpress/data';
 import { useCallback, useMemo, useContext } from '@wordpress/element';
@@ -71,15 +67,28 @@ function replacePatternOverrideDefaultBindings( blockName, bindings ) {
 	return bindings;
 }
 
-function addBlockSupportsBindings( blockName, bindings ) {
+/**
+ * Adds block type bindings defined in block.json to the existing bindings object.
+ * Block type bindings are defined in the block's attributes using the `binding` property.
+ *
+ * @param {string} blockName The name of the block (e.g. 'core/paragraph')
+ * @param {Object} bindings  The existing bindings object to add to.
+ *
+ * @return {Object} The merged bindings object containing both existing and block type bindings
+ */
+function addBlockTypeBindings( blockName, bindings ) {
 	const settings = getBlockType( blockName );
-	if ( ! hasBlockSupport( settings, 'blockBindings' ) ) {
-		return bindings;
-	}
-	const supportsBindings = settings.supports.blockBindings;
+	const attributes = settings.attributes ?? {};
+	const blockTypeBindings = {};
+	Object.keys( attributes ).forEach( ( attributeName ) => {
+		if ( attributes[ attributeName ].binding ) {
+			blockTypeBindings[ attributeName ] =
+				attributes[ attributeName ].binding;
+		}
+	} );
 	return {
 		...bindings,
-		...supportsBindings,
+		...blockTypeBindings,
 	};
 }
 
@@ -127,7 +136,7 @@ export const withBlockBindingSupport = createHigherOrderComponent(
 				props.attributes.metadata?.bindings
 			);
 
-			return addBlockSupportsBindings( name, bindings );
+			return addBlockTypeBindings( name, bindings );
 		}, [ props.attributes.metadata?.bindings, name ] );
 
 		// While this hook doesn't directly call any selectors, `useSelect` is

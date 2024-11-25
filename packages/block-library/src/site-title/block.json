@@ -11,7 +11,13 @@
 			"type": "rich-text",
 			"source": "rich-text",
 			"selector": "p,h1,h2,h3,h4,h5,h6",
-			"role": "content"
+			"role": "content",
+			"binding": {
+				"source": "core/site",
+				"args": {
+					"key": "title"
+				}
+			}
 		},
 		"level": {
 			"type": "number",
@@ -38,14 +44,6 @@
 	},
 	"supports": {
 		"align": [ "wide", "full" ],
-		"blockBindings": {
-			"content": {
-				"source": "core/site",
-				"args": {
-					"key": "title"
-				}
-			}
-		},
 		"html": false,
 		"color": {
 			"gradients": true,
