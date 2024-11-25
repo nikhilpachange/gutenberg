@@ -191,7 +191,7 @@ export const useSetAsHomepageAction = () => {
 			id: 'set-as-homepage',
 			label: __( 'Set as homepage' ),
 			isEligible( post ) {
-				if ( post.status === 'trash' ) {
+				if ( post.status !== 'draft' && post.status !== 'publish' ) {
 					return false;
 				}
 
