@@ -15,7 +15,7 @@ import {
 	__unstableAnimatePresence as AnimatePresence,
 } from '@wordpress/components';
 import { BlockIcon } from '@wordpress/block-editor';
-import { chevronLeftSmall, chevronRightSmall } from '@wordpress/icons';
+import { chevronLeftSmall, chevronRightSmall, layout } from '@wordpress/icons';
 import { displayShortcut } from '@wordpress/keycodes';
 import { store as coreStore } from '@wordpress/core-data';
 import { store as commandsStore } from '@wordpress/commands';
@@ -49,7 +49,7 @@ const MotionButton = motion( Button );
  * @param {IconType} props.icon  An icon for the document, no default.
  *                               (A default icon indicating the document post type is no longer used.)
  *
- * @return {JSX.Element} The rendered DocumentBar component.
+ * @return {React.ReactNode} The rendered DocumentBar component.
  */
 export default function DocumentBar( props ) {
 	const {
@@ -59,12 +59,14 @@ export default function DocumentBar( props ) {
 		isNotFound,
 		templateTitle,
 		onNavigateToPreviousEntityRecord,
+		isTemplatePreview,
 	} = useSelect( ( select ) => {
 		const {
 			getCurrentPostType,
 			getCurrentPostId,
 			getEditorSettings,
 			__experimentalGetTemplateInfo: getTemplateInfo,
+			getRenderingMode,
 		} = select( editorStore );
 		const {
 			getEditedEntityRecord,
@@ -96,6 +98,7 @@ export default function DocumentBar( props ) {
 			templateTitle: _templateInfo.title,
 			onNavigateToPreviousEntityRecord:
 				getEditorSettings().onNavigateToPreviousEntityRecord,
+			isTemplatePreview: getRenderingMode() === 'template-locked',
 		};
 	}, [] );
 
@@ -146,6 +149,12 @@ export default function DocumentBar( props ) {
 					</MotionButton>
 				) }
 			</AnimatePresence>
+			{ ! isTemplate && isTemplatePreview && (
+				<BlockIcon
+					icon={ layout }
+					className="editor-document-bar__icon-layout"
+				/>
+			) }
 			{ isNotFound ? (
 				<Text>{ __( 'Document not found' ) }</Text>
 			) : (
