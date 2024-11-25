@@ -88,9 +88,10 @@ function PostEditForm( { postType, postId } ) {
 				'parent',
 				'comment_status',
 				{
+					label: __( 'Template' ),
+					labelPosition: 'side',
 					id: 'template',
 					layout: 'regular',
-					labelPosition: 'side',
 				},
 			].filter(
 				( field ) =>

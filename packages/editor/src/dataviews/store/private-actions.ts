@@ -33,6 +33,7 @@ import {
 	statusField,
 	authorField,
 	titleField,
+	templateField,
 } from '@wordpress/fields';
 import duplicateTemplatePart from '../actions/duplicate-template-part';
 
@@ -169,6 +170,7 @@ export const registerPostTypeSchema =
 			parentField,
 			commentStatusField,
 			passwordField,
+			templateField,
 		];
 
 		registry.batch( () => {
