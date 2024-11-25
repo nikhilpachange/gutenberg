@@ -12,17 +12,10 @@ import {
 /**
  * Internal dependencies
  */
-import type { FormField } from '../../types';
+import type { Form, FieldLayoutProps } from '../../types';
 import DataFormContext from '../../components/dataform-context';
 import { DataFormLayout } from '../data-form-layout';
-
-interface FormFieldProps< Item > {
-	data: Item;
-	field: FormField;
-	onChange: ( value: any ) => void;
-	hideLabelFromVision?: boolean;
-	defaultLayout?: string;
-}
+import { isCombinedField } from '../is-combined-field';
 
 function Header( { title }: { title: string } ) {
 	return (
@@ -42,45 +35,53 @@ export default function FormRegularField< Item >( {
 	field,
 	onChange,
 	hideLabelFromVision,
-	defaultLayout,
-}: FormFieldProps< Item > ) {
-	const { getFieldDefinition } = useContext( DataFormContext );
-	const fieldDefinition = getFieldDefinition( field );
-	const labelPosition = field.labelPosition ?? 'top';
-	const childrenFields = useMemo( () => {
-		if ( typeof field !== 'string' && field.children ) {
-			return field.children.map( ( child ) => {
-				if ( typeof child === 'string' ) {
-					return {
-						id: child,
-					};
-				}
-				return child;
-			} );
+}: FieldLayoutProps< Item > ) {
+	const { fields } = useContext( DataFormContext );
+
+	const form = useMemo( () => {
+		if ( isCombinedField( field ) ) {
+			return {
+				fields: field.children.map( ( child ) => {
+					if ( typeof child === 'string' ) {
+						return {
+							id: child,
+						};
+					}
+					return child;
+				} ),
+				type: 'regular' as const,
+			};
 		}
-		return [];
+
+		return {
+			type: 'regular' as const,
+			fields: [],
+		};
 	}, [ field ] );
 
-	if ( ! fieldDefinition ) {
-		return null;
-	}
-
-	if ( childrenFields.length > 0 ) {
+	if ( isCombinedField( field ) ) {
 		return (
 			<>
-				{ ! hideLabelFromVision && (
-					<Header title={ fieldDefinition.label } />
+				{ ! hideLabelFromVision && field.label && (
+					<Header title={ field.label } />
 				) }
 				<DataFormLayout
 					data={ data }
-					fields={ childrenFields }
+					form={ form as Form }
 					onChange={ onChange }
-					defaultLayout={ defaultLayout }
 				/>
 			</>
 		);
 	}
 
+	const labelPosition = field.labelPosition ?? 'top';
+	const fieldDefinition = fields.find(
+		( fieldDef ) => fieldDef.id === field.id
+	);
+
+	if ( ! fieldDefinition ) {
+		return null;
+	}
 	if ( labelPosition === 'side' ) {
 		return (
 			<HStack className="dataforms-layouts-regular__field">
@@ -101,11 +102,15 @@ export default function FormRegularField< Item >( {
 	}
 
 	return (
-		<fieldDefinition.Edit
-			data={ data }
-			field={ fieldDefinition }
-			onChange={ onChange }
-			hideLabelFromVision={ hideLabelFromVision }
-		/>
+		<div className="dataforms-layouts-regular__field">
+			<fieldDefinition.Edit
+				data={ data }
+				field={ fieldDefinition }
+				onChange={ onChange }
+				hideLabelFromVision={
+					labelPosition === 'none' ? true : hideLabelFromVision
+				}
+			/>
+		</div>
 	);
 }

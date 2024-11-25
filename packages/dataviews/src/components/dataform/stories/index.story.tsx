@@ -8,7 +8,7 @@ import { ToggleControl } from '@wordpress/components';
  * Internal dependencies
  */
 import DataForm from '../index';
-import type { Field, Form, FormField } from '../../../types';
+import type { Field, Form } from '../../../types';
 
 type SamplePost = {
 	title: string;
@@ -29,12 +29,12 @@ const meta = {
 			control: { type: 'select' },
 			description:
 				'Chooses the default layout of each field. "regular" is the default layout.',
-			options: [ 'regular', 'panel' ],
+			options: [ 'default', 'regular', 'panel' ],
 		},
 		labelPosition: {
 			control: { type: 'select' },
 			description: 'Chooses the label position of the layout.',
-			options: [ 'default', 'top', 'side' ],
+			options: [ 'default', 'top', 'side', 'none' ],
 		},
 	},
 };
@@ -123,39 +123,12 @@ const fields = [
 	},
 ] as Field< SamplePost >[];
 
-function toFormField(
-	formFields: Array< string | FormField >,
-	labelPosition: 'default' | 'top' | 'side',
-	type: 'panel' | 'regular'
-): FormField[] {
-	return formFields.map( ( field ) => {
-		if ( typeof field === 'string' ) {
-			return {
-				id: field,
-				layout: type,
-				labelPosition:
-					labelPosition === 'default' ? undefined : labelPosition,
-			};
-		} else if (
-			typeof field !== 'string' &&
-			field.children &&
-			type !== 'panel'
-		) {
-			return {
-				...field,
-				children: toFormField( field.children, labelPosition, type ),
-			};
-		}
-		return field;
-	} );
-}
-
 export const Default = ( {
 	type,
 	labelPosition,
 }: {
-	type: 'panel' | 'regular';
-	labelPosition: 'default' | 'top' | 'side';
+	type: 'default' | 'regular' | 'panel';
+	labelPosition: 'default' | 'top' | 'side' | 'none';
 } ) => {
 	const [ post, setPost ] = useState( {
 		title: 'Hello, World!',
@@ -170,27 +143,22 @@ export const Default = ( {
 
 	const form = useMemo(
 		() => ( {
-			fields: toFormField(
-				[
-					'title',
-					'order',
-					{
-						id: 'sticky',
-						layout: 'regular',
-						labelPosition:
-							type === 'regular' && labelPosition !== 'default'
-								? labelPosition
-								: 'side',
-					},
-					'author',
-					'reviewer',
-					'password',
-					'date',
-					'birthdate',
-				],
-				labelPosition,
-				type
-			),
+			type,
+			labelPosition,
+			fields: [
+				'title',
+				'order',
+				{
+					id: 'sticky',
+					layout: 'regular',
+					labelPosition: 'side',
+				},
+				'author',
+				'reviewer',
+				'password',
+				'date',
+				'birthdate',
+			],
 		} ),
 		[ type, labelPosition ]
 	) as Form;
@@ -199,10 +167,7 @@ export const Default = ( {
 		<DataForm< SamplePost >
 			data={ post }
 			fields={ fields }
-			form={ {
-				...form,
-				type,
-			} }
+			form={ form }
 			onChange={ ( edits ) =>
 				setPost( ( prev ) => ( {
 					...prev,
@@ -214,11 +179,11 @@ export const Default = ( {
 };
 
 const CombinedFieldsComponent = ( {
-	type = 'regular',
+	type,
 	labelPosition,
 }: {
-	type: 'panel' | 'regular';
-	labelPosition: 'default' | 'top' | 'side';
+	type: 'default' | 'regular' | 'panel';
+	labelPosition: 'default' | 'top' | 'side' | 'none';
 } ) => {
 	const [ post, setPost ] = useState< SamplePost >( {
 		title: 'Hello, World!',
@@ -232,19 +197,18 @@ const CombinedFieldsComponent = ( {
 
 	const form = useMemo(
 		() => ( {
-			fields: toFormField(
-				[
-					'title',
-					{
-						id: 'status',
-						children: [ 'status', 'password' ],
-					},
-					'order',
-					'author',
-				],
-				labelPosition,
-				type
-			),
+			type,
+			labelPosition,
+			fields: [
+				'title',
+				{
+					id: 'status',
+					label: 'Status & Visibility',
+					children: [ 'status', 'password' ],
+				},
+				'order',
+				'author',
+			],
 		} ),
 		[ type, labelPosition ]
 	) as Form;
@@ -253,10 +217,7 @@ const CombinedFieldsComponent = ( {
 		<DataForm< SamplePost >
 			data={ post }
 			fields={ fields }
-			form={ {
-				...form,
-				type,
-			} }
+			form={ form }
 			onChange={ ( edits ) =>
 				setPost( ( prev ) => ( {
 					...prev,

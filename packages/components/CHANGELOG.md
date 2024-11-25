@@ -4,7 +4,50 @@
 
 ### Deprecations
 
+-   `DimensionControl`: Deprecate 36px default size ([#66705](https://github.com/WordPress/gutenberg/pull/66705)).
+-   `TextControl`: Deprecate 36px default size ([#66745](https://github.com/WordPress/gutenberg/pull/66745).
+-   `FontSizePicker`: Deprecate 36px default size ([#66920](https://github.com/WordPress/gutenberg/pull/66920)).
+-   `ComboboxControl`: Deprecate 36px default size ([#66900](https://github.com/WordPress/gutenberg/pull/66900)).
+-   `ToggleGroupControl`: Deprecate 36px default size ([#66747](https://github.com/WordPress/gutenberg/pull/66747)).
+
+### Bug Fixes
+
+-   `Modal`: Modal: Increase size of the Close button ([#66792](https://github.com/WordPress/gutenberg/pull/66792)).
+-   `ToggleGroupControl`: Fix active background for `0` value ([#66855](https://github.com/WordPress/gutenberg/pull/66855)).
+-   `SlotFill`: Fix a bug where a stale value of `fillProps` could be used ([#67000](https://github.com/WordPress/gutenberg/pull/67000)).
+-   `ColorPalette`: Disable `Clear` button if there's no color value. ([#67108](https://github.com/WordPress/gutenberg/pull/67108)).
+-   `GradientPicker`: Disable `Clear` button if there's no value. ([#67108](https://github.com/WordPress/gutenberg/pull/67108)).
+-   `DuotonePicker`: Disable `Clear` button if there's no value. ([#67108](https://github.com/WordPress/gutenberg/pull/67108)).
+-   `ColorPicker`: Add accessible label for copy button ([#67094](https://github.com/WordPress/gutenberg/pull/67094)).
+-   `FormFileUpload`: Prevent HEIC and HEIF files from being uploaded on Safari ([#67139](https://github.com/WordPress/gutenberg/pull/67139)).
+-   `Composite.Hover`: Restore functionality ([#67212](https://github.com/WordPress/gutenberg/pull/67212)).
+-   `Composite.Typeahead`: Restore functionality ([#67212](https://github.com/WordPress/gutenberg/pull/67212)).
+
+### Enhancements
+
+-   `ColorPicker`: Update sizes of color format select and copy button ([#67093](https://github.com/WordPress/gutenberg/pull/67093)).
+-   `Autocomplete`: Increase option height ([#67214](https://github.com/WordPress/gutenberg/pull/67214)).
+
+### Experimental
+
+-   `SlotFill`: Remove registration API methods from return value of `__experimentalUseSlot` ([#67070](https://github.com/WordPress/gutenberg/pull/67070)).
+-   `SlotFill`: Remove the `createPrivateSlotFill` private API ([#67238](https://github.com/WordPress/gutenberg/pull/67238)).
+
+### Internal
+
+-   `SlotFill`: fix dependencies of `Fill` registration effects ([#67071](https://github.com/WordPress/gutenberg/pull/67071)).
+-   `SlotFill`: rewrite the `Slot` component from class component to functional ([#67153](https://github.com/WordPress/gutenberg/pull/67153)).
+-   `Menu.ItemHelpText`: Fix text wrapping to prevent unintended word breaks ([#67011](https://github.com/WordPress/gutenberg/pull/67011)).
+
+## 28.12.0 (2024-11-16)
+
+### Deprecations
+
 -   `Radio`: Deprecate 36px default size ([#66572](https://github.com/WordPress/gutenberg/pull/66572)).
+
+### Bug Fixes
+
+-   `Popover`: Fix missing label of the headerTitle Close button ([#66813](https://github.com/WordPress/gutenberg/pull/66813)).
 
 ### Enhancements
 
@@ -17,6 +60,7 @@
 ### Internal
 
 -   `Snackbar`: Use link variant for action Button ([#66560](https://github.com/WordPress/gutenberg/pull/66560)).
+-   `BorderControl`: Remove unnecessary boolean assignments ([#66857](https://github.com/WordPress/gutenberg/pull/66857)).
 
 ## 28.11.0 (2024-10-30)
 

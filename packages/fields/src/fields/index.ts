@@ -5,3 +5,7 @@ export { default as featuredImageField } from './featured-image';
 export { default as templateField } from './template';
 export { default as parentField } from './parent';
 export { default as passwordField } from './password';
+export { default as statusField } from './status';
+export { default as commentStatusField } from './comment-status';
+export { default as dateField } from './date';
+export { default as authorField } from './author';

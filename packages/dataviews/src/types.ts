@@ -329,6 +329,8 @@ export interface ColumnStyle {
 	minWidth?: string | number;
 }
 
+export type Density = 'compact' | 'balanced' | 'comfortable';
+
 export interface ViewTable extends ViewBase {
 	type: 'table';
 
@@ -347,6 +349,11 @@ export interface ViewTable extends ViewBase {
 		 * The styles for the columns.
 		 */
 		styles?: Record< string, ColumnStyle >;
+
+		/**
+		 * The density of the view.
+		 */
+		density?: Density;
 	};
 }
 
@@ -389,6 +396,11 @@ export interface ViewGrid extends ViewBase {
 		 * The fields to use as badge fields.
 		 */
 		badgeFields?: string[];
+
+		/**
+		 * The preview size of the grid.
+		 */
+		previewSize?: number;
 	};
 }
 
@@ -498,8 +510,9 @@ export interface ViewBaseProps< Item > {
 	onChangeSelection: SetSelection;
 	selection: string[];
 	setOpenedFilter: ( fieldId: string ) => void;
+	onClickItem: ( item: Item ) => void;
+	isItemClickable: ( item: Item ) => boolean;
 	view: View;
-	density: number;
 }
 
 export interface ViewTableProps< Item > extends ViewBaseProps< Item > {
@@ -525,13 +538,21 @@ export interface SupportedLayouts {
 	table?: Omit< ViewTable, 'type' >;
 }
 
-export type FormField = {
+export type SimpleFormField = {
+	id: string;
+	layout?: 'regular' | 'panel';
+	labelPosition?: 'side' | 'top' | 'none';
+};
+
+export type CombinedFormField = {
 	id: string;
 	label?: string;
 	layout?: 'regular' | 'panel';
-	labelPosition?: 'side' | 'top';
-	children?: Array< FormField | string >;
+	labelPosition?: 'side' | 'top' | 'none';
+	children: Array< FormField | string >;
 };
+
+export type FormField = SimpleFormField | CombinedFormField;
 
 /**
  * The form configuration.
@@ -539,6 +560,7 @@ export type FormField = {
 export type Form = {
 	type?: 'regular' | 'panel';
 	fields?: Array< FormField | string >;
+	labelPosition?: 'side' | 'top' | 'none';
 };
 
 export interface DataFormProps< Item > {
@@ -546,4 +568,11 @@ export interface DataFormProps< Item > {
 	fields: Field< Item >[];
 	form: Form;
 	onChange: ( value: Record< string, any > ) => void;
+}
+
+export interface FieldLayoutProps< Item > {
+	data: Item;
+	field: FormField;
+	onChange: ( value: any ) => void;
+	hideLabelFromVision?: boolean;
 }

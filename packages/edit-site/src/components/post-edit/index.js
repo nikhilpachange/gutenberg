@@ -18,12 +18,11 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
  * Internal dependencies
  */
 import Page from '../page';
-import usePostFields from '../post-fields';
 import { unlock } from '../../lock-unlock';
 import usePatternSettings from '../page-patterns/use-pattern-settings';
 import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
 
-const { PostCardPanel } = unlock( editorPrivateApis );
+const { PostCardPanel, usePostFields } = unlock( editorPrivateApis );
 
 const fieldsWithBulkEditSupport = [
 	'title',
@@ -73,12 +72,14 @@ function PostEditForm( { postType, postId } ) {
 		() => ( {
 			type: 'panel',
 			fields: [
-				'featured_media',
+				{
+					id: 'featured_media',
+					layout: 'regular',
+				},
 				'title',
 				{
 					id: 'status',
 					label: __( 'Status & Visibility' ),
-					layout: 'panel',
 					children: [ 'status', 'password' ],
 				},
 				'author',

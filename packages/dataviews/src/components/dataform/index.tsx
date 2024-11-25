@@ -12,12 +12,14 @@ import { normalizeFields } from '../../normalize-fields';
 import { DataFormLayout } from '../../dataforms-layouts/data-form-layout';
 
 export default function DataForm< Item >( {
+	data,
 	form,
-	...props
+	fields,
+	onChange,
 }: DataFormProps< Item > ) {
 	const normalizedFields = useMemo(
-		() => normalizeFields( props.fields ),
-		[ props.fields ]
+		() => normalizeFields( fields ),
+		[ fields ]
 	);
 
 	if ( ! form.fields ) {
@@ -26,12 +28,7 @@ export default function DataForm< Item >( {
 
 	return (
 		<DataFormProvider fields={ normalizedFields }>
-			<DataFormLayout
-				defaultLayout={ form.type }
-				data={ props.data }
-				fields={ form.fields }
-				onChange={ props.onChange }
-			/>
+			<DataFormLayout data={ data } form={ form } onChange={ onChange } />
 		</DataFormProvider>
 	);
 }
