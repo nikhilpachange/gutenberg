@@ -15,13 +15,13 @@
  * @return string The render.
  */
 function render_block_core_site_title( $attributes ) {
-	if ( !  isset( $attributes['content'] ) ) {
+	if ( ! isset( $attributes['content'] ) ) {
 		return;
 	}
 
 	$site_title = $attributes['content'];
-	$tag_name = 'h1';
-	$classes  = empty( $attributes['textAlign'] ) ? '' : "has-text-align-{$attributes['textAlign']}";
+	$tag_name   = 'h1';
+	$classes    = empty( $attributes['textAlign'] ) ? '' : "has-text-align-{$attributes['textAlign']}";
 	if ( isset( $attributes['style']['elements']['link']['color']['text'] ) ) {
 		$classes .= ' has-link-color';
 	}
