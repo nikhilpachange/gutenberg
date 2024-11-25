@@ -97,23 +97,23 @@ function gutenberg_get_site_editor_redirection() {
 
 	// The following redirects are for backward compatibility with the old site editor URLs.
 	if ( isset( $_REQUEST['path'] ) && '/wp_template_part/all' === $_REQUEST['path'] ) {
-		return gutenberg_get_site_editor_url( '/pattern?postType=wp_template_part', gutenberg_remove_query_args( 'path' ) );
+		return gutenberg_get_site_editor_url( '/pattern', array_merge( array( 'postType' => 'wp_template_part' ), gutenberg_remove_query_args( array( 'path' ) ) ) );
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/page' === $_REQUEST['path'] ) {
-		return gutenberg_get_site_editor_url( '/page', gutenberg_remove_query_args( 'path' ) );
+		return gutenberg_get_site_editor_url( '/page', gutenberg_remove_query_args( array( 'path' ) ) );
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/wp_template' === $_REQUEST['path'] ) {
-		return gutenberg_get_site_editor_url( '/template', gutenberg_remove_query_args( 'path' ) );
+		return gutenberg_get_site_editor_url( '/template', gutenberg_remove_query_args( array( 'path' ) ) );
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/patterns' === $_REQUEST['path'] ) {
-		return gutenberg_get_site_editor_url( '/pattern', gutenberg_remove_query_args( 'path' ) );
+		return gutenberg_get_site_editor_url( '/pattern', gutenberg_remove_query_args( array( 'path' ) ) );
 	}
 
 	if ( isset( $_REQUEST['path'] ) && '/navigation' === $_REQUEST['path'] ) {
-		return gutenberg_get_site_editor_url( '/navigation', gutenberg_remove_query_args( 'path' ) );
+		return gutenberg_get_site_editor_url( '/navigation', gutenberg_remove_query_args( array( 'path' ) ) );
 	}
 
 	return gutenberg_get_site_editor_url( '', gutenberg_remove_query_args() );
