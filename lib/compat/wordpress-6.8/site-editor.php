@@ -144,3 +144,19 @@ function gutenberg_redirect_posts_dataviews_to_post() {
 }
 
 add_action( 'admin_init', 'gutenberg_redirect_posts_dataviews_to_post' );
+
+
+/**
+ * Filter the `wp_die_handler` to allow access to the Site Editor's new pages page
+ * for Classic themes.
+ *
+ * @param callable $default_handler The default handler.
+ * @return callable The default handler or a custom handler.
+ */
+function gutenberg_styles_wp_die_handler( $default_handler ) {
+	if ( ! wp_is_block_theme() && str_contains( $_SERVER['REQUEST_URI'], 'site-editor.php' ) && isset( $_GET['p'] ) ) {
+		return '__return_false';
+	}
+	return $default_handler;
+}
+add_filter( 'wp_die_handler', 'gutenberg_styles_wp_die_handler' );
