@@ -3866,7 +3866,10 @@ describe( 'state', () => {
 					return select( storeName );
 				} );
 
-				const { derivedBlockEditingModes } = dispatchActions(
+				const {
+					derivedBlockEditingModes,
+					derivedNavModeBlockEditingModes,
+				} = dispatchActions(
 					[
 						{
 							type: 'SET_EDITOR_MODE',
@@ -3878,6 +3881,21 @@ describe( 'state', () => {
 				);
 
 				expect( derivedBlockEditingModes ).toEqual(
+					new Map(
+						Object.entries( {
+							'root-pattern': 'contentOnly', // Pattern and section.
+							'pattern-paragraph': 'disabled',
+							'pattern-group': 'disabled',
+							'pattern-paragraph-with-overrides': 'contentOnly', // Pattern child with bindings.
+							'nested-pattern': 'disabled',
+							'nested-paragraph': 'disabled',
+							'nested-group': 'disabled',
+							'nested-paragraph-with-overrides': 'disabled',
+						} )
+					)
+				);
+
+				expect( derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'contentOnly', // Section root.
@@ -4003,7 +4021,7 @@ describe( 'state', () => {
 			} );
 
 			it( 'returns the expected block editing modes', () => {
-				expect( initialState.derivedBlockEditingModes ).toEqual(
+				expect( initialState.derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'contentOnly', // Section root.
@@ -4017,7 +4035,7 @@ describe( 'state', () => {
 			} );
 
 			it( 'removes block editing modes when blocks are removed', () => {
-				const { derivedBlockEditingModes } = dispatchActions(
+				const { derivedNavModeBlockEditingModes } = dispatchActions(
 					[
 						{
 							type: 'REMOVE_BLOCKS',
@@ -4028,7 +4046,7 @@ describe( 'state', () => {
 					initialState
 				);
 
-				expect( derivedBlockEditingModes ).toEqual(
+				expect( derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'contentOnly',
@@ -4040,7 +4058,7 @@ describe( 'state', () => {
 			} );
 
 			it( 'updates block editing modes when new blocks are inserted', () => {
-				const { derivedBlockEditingModes } = dispatchActions(
+				const { derivedNavModeBlockEditingModes } = dispatchActions(
 					[
 						{
 							type: 'INSERT_BLOCKS',
@@ -4072,7 +4090,7 @@ describe( 'state', () => {
 					initialState
 				);
 
-				expect( derivedBlockEditingModes ).toEqual(
+				expect( derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'contentOnly', // Section root.
@@ -4089,7 +4107,7 @@ describe( 'state', () => {
 			} );
 
 			it( 'updates block editing modes when blocks are moved to a new position', () => {
-				const { derivedBlockEditingModes } = dispatchActions(
+				const { derivedNavModeBlockEditingModes } = dispatchActions(
 					[
 						{
 							type: 'MOVE_BLOCKS_TO_POSITION',
@@ -4101,7 +4119,7 @@ describe( 'state', () => {
 					testReducer,
 					initialState
 				);
-				expect( derivedBlockEditingModes ).toEqual(
+				expect( derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'contentOnly', // Section root.
@@ -4115,7 +4133,7 @@ describe( 'state', () => {
 			} );
 
 			it( 'handles changes to the section root', () => {
-				const { derivedBlockEditingModes } = dispatchActions(
+				const { derivedNavModeBlockEditingModes } = dispatchActions(
 					[
 						{
 							type: 'UPDATE_SETTINGS',
@@ -4128,7 +4146,7 @@ describe( 'state', () => {
 					initialState
 				);
 
-				expect( derivedBlockEditingModes ).toEqual(
+				expect( derivedNavModeBlockEditingModes ).toEqual(
 					new Map(
 						Object.entries( {
 							'': 'disabled',

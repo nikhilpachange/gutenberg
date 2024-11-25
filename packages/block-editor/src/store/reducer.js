@@ -13,7 +13,6 @@ import {
 	store as blocksStore,
 	privateApis as blocksPrivateApis,
 } from '@wordpress/blocks';
-import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
  * Internal dependencies
@@ -2241,17 +2240,18 @@ function hasBindings( block ) {
  * This function calculates the editing modes for each block in the tree, taking into account
  * various factors such as zoom level, navigation mode, sections, and synced patterns.
  *
- * @param {Object} state        The current state object.
- * @param {string} treeClientId The client ID of the root block for the tree. Defaults to an empty string.
- *
+ * @param {Object}  state        The current state object.
+ * @param {boolean} isNavMode    Whether the navigation mode is active.
+ * @param {string}  treeClientId The client ID of the root block for the tree. Defaults to an empty string.
  * @return {Map} A Map containing the derived block editing modes, keyed by block client ID.
  */
-function getDerivedBlockEditingModesForTree( state, treeClientId = '' ) {
+function getDerivedBlockEditingModesForTree(
+	state,
+	isNavMode = false,
+	treeClientId = ''
+) {
 	const isZoomedOut =
 		state?.zoomLevel < 100 || state?.zoomLevel === 'auto-scaled';
-	const isNavMode =
-		select( preferencesStore )?.get( 'core', 'editorTool' ) ===
-		'navigation';
 	const derivedBlockEditingModes = new Map();
 
 	// When there are sections, the majority of blocks are disabled,
@@ -2402,12 +2402,12 @@ function getDerivedBlockEditingModesForTree( state, treeClientId = '' ) {
  *
  * It only returns a value when modifications are made to the block editing modes.
  *
- * @param {Object} options                    The options for updating derived block editing modes.
- * @param {Object} options.prevState          The previous state object.
- * @param {Object} options.nextState          The next state object.
- * @param {Array}  [options.addedBlocks]      An array of blocks that were added.
- * @param {Array}  [options.removedClientIds] An array of client IDs of blocks that were removed.
- *
+ * @param {Object}  options                    The options for updating derived block editing modes.
+ * @param {Object}  options.prevState          The previous state object.
+ * @param {Object}  options.nextState          The next state object.
+ * @param {Array}   [options.addedBlocks]      An array of blocks that were added.
+ * @param {Array}   [options.removedClientIds] An array of client IDs of blocks that were removed.
+ * @param {boolean} [options.isNavMode]        Whether the navigation mode is active.
  * @return {Map|undefined} The updated derived block editing modes, or undefined if no changes were made.
  */
 function getDerivedBlockEditingModesUpdates( {
@@ -2415,8 +2415,11 @@ function getDerivedBlockEditingModesUpdates( {
 	nextState,
 	addedBlocks,
 	removedClientIds,
+	isNavMode = false,
 } ) {
-	const prevDerivedBlockEditingModes = prevState.derivedBlockEditingModes;
+	const prevDerivedBlockEditingModes = isNavMode
+		? prevState.derivedNavModeBlockEditingModes
+		: prevState.derivedBlockEditingModes;
 	let nextDerivedBlockEditingModes;
 
 	// Perform removals before additions to handle cases like the `MOVE_BLOCKS_TO_POSITION` action.
@@ -2442,6 +2445,7 @@ function getDerivedBlockEditingModesUpdates( {
 		traverseBlockTree( nextState, addedBlock.clientId, ( block ) => {
 			const updates = getDerivedBlockEditingModesForTree(
 				nextState,
+				isNavMode,
 				block.clientId
 			);
 
@@ -2497,12 +2501,28 @@ export function withDerivedBlockEditingModes( reducer ) {
 						prevState: state,
 						nextState,
 						removedClientIds: action.clientIds,
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						removedClientIds: action.clientIds,
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
@@ -2514,12 +2534,28 @@ export function withDerivedBlockEditingModes( reducer ) {
 						prevState: state,
 						nextState,
 						addedBlocks: action.blocks,
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks: action.blocks,
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
@@ -2532,17 +2568,34 @@ export function withDerivedBlockEditingModes( reducer ) {
 				if ( ! updatedBlock ) {
 					break;
 				}
+
 				const nextDerivedBlockEditingModes =
 					getDerivedBlockEditingModesUpdates( {
 						prevState: state,
 						nextState,
 						addedBlocks: [ updatedBlock ],
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks: [ updatedBlock ],
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
@@ -2554,54 +2607,105 @@ export function withDerivedBlockEditingModes( reducer ) {
 						nextState,
 						addedBlocks: action.blocks,
 						removedClientIds: action.clientIds,
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks: action.blocks,
+						removedClientIds: action.clientIds,
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
 			}
 			case 'REPLACE_INNER_BLOCKS': {
+				// Get the clientIds of the blocks that are being replaced
+				// from the old state, before they were removed.
+				const removedClientIds = state.blocks.order.get(
+					action.rootClientId
+				);
 				const nextDerivedBlockEditingModes =
 					getDerivedBlockEditingModesUpdates( {
 						prevState: state,
 						nextState,
 						addedBlocks: action.blocks,
-						// Get the clientIds of the blocks that are being replaced
-						// from the old state, before they were removed.
-						removedClientIds: state.blocks.order.get(
-							action.rootClientId
-						),
+						removedClientIds,
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks: action.blocks,
+						removedClientIds,
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
 			}
 			case 'MOVE_BLOCKS_TO_POSITION': {
+				const addedBlocks = action.clientIds.map( ( clientId ) => {
+					return nextState.blocks.byClientId.get( clientId );
+				} );
 				const nextDerivedBlockEditingModes =
 					getDerivedBlockEditingModesUpdates( {
 						prevState: state,
 						nextState,
-						addedBlocks: action.clientIds.map( ( clientId ) => {
-							return nextState.blocks.byClientId.get( clientId );
-						} ),
-						// Get the clientIds of the blocks that are being replaced
-						// from the old state, before they were removed.
+						addedBlocks,
 						removedClientIds: action.clientIds,
+						isNavMode: false,
+					} );
+				const nextDerivedNavModeBlockEditingModes =
+					getDerivedBlockEditingModesUpdates( {
+						prevState: state,
+						nextState,
+						addedBlocks,
+						removedClientIds: action.clientIds,
+						isNavMode: true,
 					} );
 
-				if ( nextDerivedBlockEditingModes ) {
+				if (
+					nextDerivedBlockEditingModes ||
+					nextDerivedNavModeBlockEditingModes
+				) {
 					return {
 						...nextState,
-						derivedBlockEditingModes: nextDerivedBlockEditingModes,
+						derivedBlockEditingModes:
+							nextDerivedBlockEditingModes ??
+							state.derivedBlockEditingModes,
+						derivedNavModeBlockEditingModes:
+							nextDerivedNavModeBlockEditingModes ??
+							state.derivedNavModeBlockEditingModes,
 					};
 				}
 				break;
@@ -2615,7 +2719,15 @@ export function withDerivedBlockEditingModes( reducer ) {
 					return {
 						...nextState,
 						derivedBlockEditingModes:
-							getDerivedBlockEditingModesForTree( nextState ),
+							getDerivedBlockEditingModesForTree(
+								nextState,
+								false /* Nav mode off */
+							),
+						derivedNavModeBlockEditingModes:
+							getDerivedBlockEditingModesForTree(
+								nextState,
+								true /* Nav mode on */
+							),
 					};
 				}
 				break;
@@ -2629,7 +2741,15 @@ export function withDerivedBlockEditingModes( reducer ) {
 				return {
 					...nextState,
 					derivedBlockEditingModes:
-						getDerivedBlockEditingModesForTree( nextState ),
+						getDerivedBlockEditingModesForTree(
+							nextState,
+							false /* Nav mode off */
+						),
+					derivedNavModeBlockEditingModes:
+						getDerivedBlockEditingModesForTree(
+							nextState,
+							true /* Nav mode on */
+						),
 				};
 			}
 		}
@@ -2638,6 +2758,8 @@ export function withDerivedBlockEditingModes( reducer ) {
 		// state need to be preserved.
 		nextState.derivedBlockEditingModes =
 			state?.derivedBlockEditingModes ?? new Map();
+		nextState.derivedNavModeBlockEditingModes =
+			state?.derivedNavModeBlockEditingModes ?? new Map();
 
 		return nextState;
 	};
