@@ -5,14 +5,23 @@ import { useEffect, useRef, useCallback } from '@wordpress/element';
 import { useReducedMotion, useResizeObserver } from '@wordpress/compose';
 
 /**
+ * @typedef {Object} TransitionState
+ * @property {number} scaleValue   Scale of the canvas.
+ * @property {number} frameSize    Size of the frame/offset around the canvas.
+ * @property {number} clientHeight ClientHeight of the iframe.
+ * @property {number} scrollTop    ScrollTop of the iframe.
+ * @property {number} scrollHeight ScrollHeight of the iframe.
+ */
+
+/**
  * Calculate the scale of the canvas.
  *
- * @param {Object} root0                     Object of options
- * @param {number} root0.frameSize           The size of the frame/offset around the canvas
- * @param {number} root0.containerWidth      Actual width of the canvas container
- * @param {number} root0.maxContainerWidth   Maximum width of the container to use for the scale calculation. This locks the canvas to a maximum width when zooming out.
- * @param {number} root0.scaleContainerWidth Width the of the container wrapping the canvas container
- * @return {number} scale value between 0 and/or equal to 1
+ * @param {Object} options                     Object of options
+ * @param {number} options.frameSize           Size of the frame/offset around the canvas
+ * @param {number} options.containerWidth      Actual width of the canvas container
+ * @param {number} options.maxContainerWidth   Maximum width of the container to use for the scale calculation. This locks the canvas to a maximum width when zooming out.
+ * @param {number} options.scaleContainerWidth Width the of the container wrapping the canvas container
+ * @return {number} Scale value between 0 and/or equal to 1
  */
 function calculateScale( {
 	frameSize,
@@ -29,9 +38,9 @@ function calculateScale( {
 /**
  * Compute the next scrollTop position after scaling the iframe content.
  *
- * @param {Object} transitionFrom The starting point of the transition
- * @param {Object} transitionTo   The ending state of the transition
- * @return {number} The next scrollTop position after scaling the iframe content.
+ * @param {TransitionState} transitionFrom Starting point of the transition
+ * @param {TransitionState} transitionTo   Ending state of the transition
+ * @return {number} Next scrollTop position after scaling the iframe content.
  */
 function computeScrollTopNext( transitionFrom, transitionTo ) {
 	const {
@@ -82,9 +91,9 @@ function computeScrollTopNext( transitionFrom, transitionTo ) {
 /**
  * Generate the keyframes to use for the zoom out animation.
  *
- * @param {Object} transitionFrom Object of the starting transition state
- * @param {Object} transitionTo   Object of the ending transition state
- * @return {Object[]} An array of keyframes to use for the animation
+ * @param {TransitionState} transitionFrom Starting transition state.
+ * @param {TransitionState} transitionTo   Ending transition state.
+ * @return {Object[]} An array of keyframes to use for the animation.
  */
 function getAnimationKeyframes( transitionFrom, transitionTo ) {
 	const {
@@ -111,19 +120,23 @@ function getAnimationKeyframes( transitionFrom, transitionTo ) {
 }
 
 /**
+ * @typedef {Object} ScaleCanvasResult
+ * @property {boolean} isZoomedOut             A boolean indicating if the canvas is zoomed out.
+ * @property {number}  scaleContainerWidth     The width of the container used to calculate the scale.
+ * @property {Object}  contentResizeListener   A resize observer for the content.
+ * @property {Object}  containerResizeListener A resize observer for the container.
+ */
+
+/**
  * Handles scaling the canvas for the zoom out mode and animating between
  * the states.
  *
- * @param {Object}        root0
- * @param {number}        root0.frameSize         The size of the frame around the content.
- * @param {Document}      root0.iframeDocument    The document of the iframe.
- * @param {number}        root0.maxContainerWidth The max width of the canvas to use as the starting scale point. Defaults to 750.
- * @param {number|string} root0.scale             The scale of the canvas. Can be an decimal between 0 and 1, 1, or 'auto-scaled'.
- * @return {Object} An object containing the following properties:
- *                  isZoomedOut: A boolean indicating if the canvas is zoomed out.
- *                  scaleContainerWidth: The width of the container used to calculate the scale.
- *                  contentResizeListener: A resize observer for the content.
- *                  containerResizeListener: A resize observer for the container.
+ * @param {Object}        options                   Object of options.
+ * @param {number}        options.frameSize         Size of the frame around the content.
+ * @param {Document}      options.iframeDocument    Document of the iframe.
+ * @param {number}        options.maxContainerWidth Max width of the canvas to use as the starting scale point. Defaults to 750.
+ * @param {number|string} options.scale             Scale of the canvas. Can be an decimal between 0 and 1, 1, or 'auto-scaled'.
+ * @return {ScaleCanvasResult} Properties of the result.
  */
 export function useScaleCanvas( {
 	frameSize,
@@ -168,6 +181,7 @@ export function useScaleCanvas( {
 
 	/**
 	 * The starting transition state for the zoom out animation.
+	 * @type {import('react').RefObject<TransitionState>}
 	 */
 	const transitionFrom = useRef( {
 		scaleValue,
@@ -179,6 +193,7 @@ export function useScaleCanvas( {
 
 	/**
 	 * The ending transition state for the zoom out animation.
+	 * @type {import('react').RefObject<TransitionState>}
 	 */
 	const transitionTo = useRef( {
 		scaleValue,
