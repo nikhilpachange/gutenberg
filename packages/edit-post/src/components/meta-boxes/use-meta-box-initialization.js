@@ -11,34 +11,22 @@ import { useEffect } from '@wordpress/element';
 import { store as editPostStore } from '../../store';
 
 /**
- * Initializes postboxes (wp core script) and meta box saving for all meta box locations.
+ * Initializes WordPress `postboxes` script and the logic for saving meta boxes.
  *
  * @param { boolean } enabled
  */
 export default ( enabled ) => {
-	const { areInitialized, isEditorReady, hasAny } = useSelect(
-		( select ) => {
-			if ( ! enabled ) {
-				return {};
-			}
-			const { __unstableIsEditorReady } = select( editorStore );
-			const { areMetaBoxesInitialized, getMetaBoxesPerLocation } =
-				select( editPostStore );
-			return {
-				areInitialized: areMetaBoxesInitialized(),
-				isEditorReady: __unstableIsEditorReady(),
-				hasAny:
-					getMetaBoxesPerLocation( 'normal' ).length > 0 ||
-					getMetaBoxesPerLocation( 'advanced' ).length > 0 ||
-					getMetaBoxesPerLocation( 'side' ).length > 0,
-			};
-		},
+	const isEnabledAndEditorReady = useSelect(
+		( select ) =>
+			enabled && select( editorStore ).__unstableIsEditorReady(),
 		[ enabled ]
 	);
 	const { initializeMetaBoxes } = useDispatch( editPostStore );
+	// The effect has to rerun when the editor is ready because initializeMetaBoxes
+	// will noop until then.
 	useEffect( () => {
-		if ( isEditorReady && hasAny && ! areInitialized ) {
+		if ( isEnabledAndEditorReady ) {
 			initializeMetaBoxes();
 		}
-	}, [ isEditorReady, hasAny, areInitialized, initializeMetaBoxes ] );
+	}, [ isEnabledAndEditorReady, initializeMetaBoxes ] );
 };

@@ -447,7 +447,8 @@ function Layout( {
 			settings.supportsTemplateMode,
 		]
 	);
-	useMetaBoxInitialization( showMetaBoxes );
+	useMetaBoxInitialization( hasActiveMetaboxes );
+
 	const [ paddingAppenderRef, paddingStyle ] = usePaddingAppender(
 		enablePaddingAppender
 	);
