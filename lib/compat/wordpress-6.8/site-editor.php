@@ -1,4 +1,11 @@
 <?php
+/**
+ * Updates to the site editor in 6.8.
+ *
+ * Adds a mandatory dashboard link and redirects old urls.
+ *
+ * @package gutenberg
+ */
 
 add_filter(
 	'block_editor_settings_all',
@@ -125,7 +132,7 @@ function gutenberg_redirect_site_editor_to_design() {
 		exit;
 	}
 
-	wp_redirect( gutenberg_get_site_editor_url( '', gutenberg_remove_query_args()), 301 );
+	wp_redirect( gutenberg_get_site_editor_url( '', gutenberg_remove_query_args() ), 301 );
 	exit;
 }
 add_action( 'admin_init', 'gutenberg_redirect_site_editor_to_design' );

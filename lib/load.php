@@ -98,6 +98,7 @@ require __DIR__ . '/compat/wordpress-6.8/preload.php';
 require __DIR__ . '/compat/wordpress-6.8/blocks.php';
 require __DIR__ . '/compat/wordpress-6.8/functions.php';
 require __DIR__ . '/compat/wordpress-6.8/post.php';
+require __DIR__ . '/compat/wordpress-6.8/site-editor.php';
 
 // Experimental features.
 require __DIR__ . '/experimental/block-editor-settings-mobile.php';
@@ -108,7 +109,6 @@ require __DIR__ . '/experimental/l10n.php';
 require __DIR__ . '/experimental/synchronization.php';
 require __DIR__ . '/experimental/script-modules.php';
 require __DIR__ . '/experimental/posts/load.php';
-require __DIR__ . '/experimental/site-editor-permalinks.php';
 
 if ( gutenberg_is_experiment_enabled( 'gutenberg-no-tinymce' ) ) {
 	require __DIR__ . '/experimental/disable-tinymce.php';
