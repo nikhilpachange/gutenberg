@@ -29,17 +29,17 @@ function calculateScale( {
 /**
  * Compute the next scrollTop position after scaling the iframe content.
  *
- * @param {number} scrollHeight   Scaled height of the current iframe content.
  * @param {Object} transitionFrom The starting point of the transition
  * @param {Object} transitionTo   The ending state of the transition
  * @return {number} The next scrollTop position after scaling the iframe content.
  */
-function computeScrollTopNext( scrollHeight, transitionFrom, transitionTo ) {
+function computeScrollTopNext( transitionFrom, transitionTo ) {
 	const {
 		clientHeight: prevClientHeight,
 		frameSize: prevFrameSize,
 		scaleValue: prevScale,
-		scrollTop: scrollTop,
+		scrollTop,
+		scrollHeight,
 	} = transitionFrom;
 	const { clientHeight, frameSize, scaleValue } = transitionTo;
 	// Step 0: Start with the current scrollTop.
@@ -174,6 +174,7 @@ export function useScaleCanvas( {
 		frameSize,
 		clientHeight: 0,
 		scrollTop: 0,
+		scrollHeight: 0,
 	} );
 
 	/**
@@ -184,6 +185,7 @@ export function useScaleCanvas( {
 		frameSize,
 		clientHeight: 0,
 		scrollTop: 0,
+		scrollHeight: 0,
 	} );
 
 	/**
@@ -384,6 +386,8 @@ export function useScaleCanvas( {
 					transitionFrom.current.clientHeight ?? clientHeight;
 				transitionFrom.current.scrollTop =
 					iframeDocument.documentElement.scrollTop;
+				transitionFrom.current.scrollHeight =
+					iframeDocument.documentElement.scrollHeight;
 
 				transitionTo.current = {
 					scaleValue,
@@ -391,7 +395,6 @@ export function useScaleCanvas( {
 					clientHeight,
 				};
 				transitionTo.current.scrollTop = computeScrollTopNext(
-					iframeDocument.documentElement.scrollHeight,
 					transitionFrom.current,
 					transitionTo.current
 				);
