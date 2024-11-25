@@ -2,10 +2,8 @@
  * WordPress dependencies
  */
 import { createRegistry } from '@wordpress/data';
-// eslint-disable-next-line no-restricted-syntax
-import type { WPDataRegistry } from '@wordpress/data/build-types/registry';
-// @ts-ignore -- No types available yet.
-import { store as preferencesStore } from '@wordpress/preferences';
+
+type WPDataRegistry = ReturnType< typeof createRegistry >;
 
 /**
  * Internal dependencies
@@ -21,15 +19,11 @@ jest.mock( '@wordpress/blob', () => ( {
 	revokeBlobURL: jest.fn(),
 } ) );
 
-jest.mock( '../utils/vips', () => ( {
-	vipsCancelOperations: jest.fn( () => true ),
-} ) );
-
 function createRegistryWithStores() {
 	// Create a registry and register used stores.
 	const registry = createRegistry();
 	// @ts-ignore
-	[ uploadStore, preferencesStore ].forEach( registry.register );
+	[ uploadStore ].forEach( registry.register );
 	return registry;
 }
 

@@ -4,7 +4,6 @@
 import {
 	type AddAction,
 	type AddOperationsAction,
-	type ApproveUploadAction,
 	type CacheBlobUrlAction,
 	type CancelAction,
 	ItemStatus,
@@ -28,12 +27,9 @@ const noop = () => {};
 const DEFAULT_STATE: State = {
 	queue: [],
 	queueStatus: 'active',
-	pendingApproval: undefined,
 	blobUrls: {},
 	settings: {
 		mediaUpload: noop,
-		mediaSideload: noop,
-		imageSizes: {},
 	},
 };
 
@@ -46,7 +42,6 @@ type Action =
 	| PauseQueueAction
 	| ResumeQueueAction
 	| AddOperationsAction
-	| ApproveUploadAction
 	| OperationFinishAction
 	| OperationStartAction
 	| CacheBlobUrlAction
@@ -91,15 +86,6 @@ function reducer(
 							  }
 							: item
 				),
-				pendingApproval:
-					state.pendingApproval !== action.id
-						? state.pendingApproval
-						: state.queue.find(
-								( item ) =>
-									item.status ===
-										ItemStatus.PendingApproval &&
-									item.id !== action.id
-						  )?.id || undefined,
 			};
 
 		case Type.Remove:
@@ -202,32 +188,6 @@ function reducer(
 						},
 					};
 				} ),
-				// eslint-disable-next-line no-nested-ternary
-				pendingApproval: state.pendingApproval
-					? state.pendingApproval
-					: action.item.status === ItemStatus.PendingApproval
-					? action.id
-					: undefined,
-			};
-
-		case Type.ApproveUpload:
-			return {
-				...state,
-				queue: state.queue.map(
-					( item ): QueueItem =>
-						item.id === action.id
-							? {
-									...item,
-									status: ItemStatus.Processing,
-							  }
-							: item
-				),
-				pendingApproval:
-					state.queue.find(
-						( item ) =>
-							item.status === ItemStatus.PendingApproval &&
-							item.id !== action.id
-					)?.id || undefined,
 			};
 
 		case Type.CacheBlobUrl: {

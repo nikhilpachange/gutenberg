@@ -1,18 +1,8 @@
 /**
- * External dependencies
- */
-import mime from 'mime/lite';
-
-/**
  * WordPress dependencies
  */
 import { getFilename } from '@wordpress/url';
-import { __, _x, sprintf } from '@wordpress/i18n';
-
-/**
- * Internal dependencies
- */
-import { UploadError } from './upload-error';
+import { _x } from '@wordpress/i18n';
 
 /**
  * Converts a Blob to a File with a default name like "image.png".
@@ -97,109 +87,4 @@ export function getFileBasename( name: string ): string {
  */
 export function getFileNameFromUrl( url: string ) {
 	return getFilename( url ) || _x( 'unnamed', 'file name' );
-}
-
-/**
- * Fetches a remote file and returns a File instance.
- *
- * @param url          URL.
- * @param nameOverride File name to use, instead of deriving it from the URL.
- */
-export async function fetchFile( url: string, nameOverride?: string ) {
-	const response = await fetch( url );
-	if ( ! response.ok ) {
-		throw new Error( `Could not fetch remote file: ${ response.status }` );
-	}
-
-	const name = nameOverride || getFileNameFromUrl( url );
-	const blob = await response.blob();
-
-	const ext = getFileExtension( name );
-	const guessedMimeType = ext ? mime.getType( ext ) : '';
-
-	let type = '';
-
-	// blob.type can be an empty string when server does not return a correct Content-Type.
-	if ( blob.type && blob.type !== 'application/octet-stream' ) {
-		type = blob.type;
-	} else if ( guessedMimeType ) {
-		type = guessedMimeType;
-	}
-
-	const file = new File( [ blob ], name, { type } );
-
-	if ( ! type ) {
-		throw new UploadError( {
-			code: 'FETCH_REMOTE_FILE_ERROR',
-			message: 'File could not be downloaded',
-			file,
-		} );
-	}
-
-	return file;
-}
-
-/**
- * Verifies if the caller supports this mime type.
- *
- * @param file         File object.
- * @param allowedTypes List of allowed mime types.
- */
-export function validateMimeType( file: File, allowedTypes?: string[] ) {
-	if ( ! allowedTypes ) {
-		return;
-	}
-
-	// Allowed type specified by consumer.
-	const isAllowedType = allowedTypes.some( ( allowedType ) => {
-		// If a complete mimetype is specified verify if it matches exactly the mime type of the file.
-		if ( allowedType.includes( '/' ) ) {
-			return allowedType === file.type;
-		}
-		// Otherwise a general mime type is used, and we should verify if the file mimetype starts with it.
-		return file.type.startsWith( `${ allowedType }/` );
-	} );
-
-	if ( file.type && ! isAllowedType ) {
-		throw new UploadError( {
-			code: 'MIME_TYPE_NOT_SUPPORTED',
-			message: sprintf(
-				// translators: %s: file name.
-				__( '%s: Sorry, this file type is not supported here.' ),
-				file.name
-			),
-			file,
-		} );
-	}
-}
-
-/**
- * Determines whether a given file type is supported for client-side processing.
- *
- * @param type Mime type.
- * @return Whether the file type is supported.
- */
-export function isImageTypeSupported(
-	type: string
-): type is
-	| 'image/avif'
-	| 'image/gif'
-	| 'image/heic'
-	| 'image/heif'
-	| 'image/jpeg'
-	| 'image/jxl'
-	| 'image/png'
-	| 'image/tiff'
-	| 'image/webp' {
-	return [
-		'image/avif',
-		'image/gif',
-		'image/heic',
-		'image/heif',
-		'image/jpeg',
-		'image/jxl',
-		'image/png',
-		'image/tiff',
-		'image/webp',
-	].includes( type );
 }

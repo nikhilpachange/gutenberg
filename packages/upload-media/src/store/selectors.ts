@@ -4,92 +4,14 @@
 import { ItemStatus, type QueueItem, type Settings, type State } from './types';
 
 /**
- * Returns all items currently being uploaded, without sub-sizes (children).
+ * Returns all items currently being uploaded.
  *
  * @param state Upload state.
  *
  * @return Queue items.
  */
 export function getItems( state: State ): QueueItem[] {
-	return state.queue.filter( ( item ) => ! item.parentId );
-}
-
-/**
- * Determines whether there is an item pending approval.
- *
- * @param state Upload state.
- *
- * @return Whether there is an item pending approval.
- */
-export function isPendingApproval( state: State ): boolean {
-	return state.queue.some(
-		( item ) => item.status === ItemStatus.PendingApproval
-	);
-}
-
-/**
- * Determines whether an item is the first one pending approval given its associated attachment ID.
- *
- * @param state        Upload state.
- * @param attachmentId Attachment ID.
- *
- * @return Whether the item is first in the list of items pending approval.
- */
-export function isPendingApprovalByAttachmentId(
-	state: State,
-	attachmentId: number
-): boolean {
-	if ( ! state.pendingApproval ) {
-		return false;
-	}
-
-	return state.queue.some(
-		( item ) =>
-			item.status === ItemStatus.PendingApproval &&
-			item.id === state.pendingApproval &&
-			( item.attachment?.id === attachmentId ||
-				item.sourceAttachmentId === attachmentId )
-	);
-}
-
-/**
- * Returns data to compare the old file vs. the optimized file, given the attachment ID.
- *
- * Includes both the URLs and the respective file sizes and the size difference in percentage.
- *
- * @param state        Upload state.
- * @param attachmentId Attachment ID.
- *
- * @return Comparison data.
- */
-export function getComparisonDataForApproval(
-	state: State,
-	attachmentId: number
-): {
-	oldUrl: string | undefined;
-	oldSize: number;
-	newSize: number;
-	newUrl: string | undefined;
-	sizeDiff: number;
-} | null {
-	const foundItem = state.queue.find(
-		( item ) =>
-			( item.attachment?.id === attachmentId ||
-				item.sourceAttachmentId === attachmentId ) &&
-			item.status === ItemStatus.PendingApproval
-	);
-
-	if ( ! foundItem ) {
-		return null;
-	}
-
-	return {
-		oldUrl: foundItem.sourceUrl,
-		oldSize: foundItem.sourceFile.size,
-		newSize: foundItem.file.size,
-		newUrl: foundItem.attachment?.url,
-		sizeDiff: foundItem.file.size / foundItem.sourceFile.size - 1,
-	};
+	return state.queue;
 }
 
 /**

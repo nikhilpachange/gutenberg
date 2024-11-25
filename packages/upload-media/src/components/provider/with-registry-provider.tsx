@@ -2,7 +2,11 @@
  * WordPress dependencies
  */
 import { useState } from '@wordpress/element';
-import { useRegistry, createRegistry, RegistryProvider } from '@wordpress/data';
+import {
+	useRegistry,
+	createRegistry,
+	RegistryProvider,
+} from '@wordpress/data';
 import { createHigherOrderComponent } from '@wordpress/compose';
 
 /**

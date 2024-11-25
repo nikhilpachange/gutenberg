@@ -22,17 +22,12 @@ export interface QueueItem {
 	batchId?: string;
 	sourceUrl?: string;
 	sourceAttachmentId?: number;
-	blurHash?: string;
-	dominantColor?: string;
-	generatedPosterId?: number;
-	parentId?: QueueItemId;
 	abortController?: AbortController;
 }
 
 export interface State {
 	queue: QueueItem[];
 	queueStatus: QueueStatus;
-	pendingApproval: QueueItemId | undefined;
 	blobUrls: Record< QueueItemId, string[] >;
 	settings: Settings;
 }
@@ -47,7 +42,6 @@ export enum Type {
 	ResumeItem = 'RESUME_ITEM',
 	PauseQueue = 'PAUSE_QUEUE',
 	ResumeQueue = 'RESUME_QUEUE',
-	ApproveUpload = 'APPROVE_UPLOAD',
 	OperationStart = 'OPERATION_START',
 	OperationFinish = 'OPERATION_FINISH',
 	AddOperations = 'ADD_OPERATIONS',
@@ -82,10 +76,6 @@ export type OperationFinishAction = Action<
 export type AddOperationsAction = Action<
 	Type.AddOperations,
 	{ id: QueueItemId; operations: Operation[] }
->;
-export type ApproveUploadAction = Action<
-	Type.ApproveUpload,
-	{ id: QueueItemId }
 >;
 export type CancelAction = Action<
 	Type.Cancel,
@@ -130,25 +120,8 @@ interface UploadMediaArgs {
 	signal?: AbortSignal;
 }
 
-interface SideloadMediaArgs {
-	// Additional data to include in the request.
-	additionalData?: SideloadAdditionalData;
-	// File to sideload.
-	file: File;
-	// Attachment ID.
-	attachmentId: number;
-	// Function called when an error happens.
-	onError?: OnErrorHandler;
-	// Function called each time a file or a temporary representation of the file is available.
-	onFileChange?: OnChangeHandler;
-	// Abort signal.
-	signal?: AbortSignal;
-}
-
 export interface Settings {
 	mediaUpload: ( args: UploadMediaArgs ) => void;
-	mediaSideload: ( args: SideloadMediaArgs ) => void;
-	imageSizes: Record< string, ImageSizeCrop >;
 }
 
 // Must match the Attachment type from the media-utils package.
@@ -175,41 +148,14 @@ export type OnBatchSuccessHandler = () => void;
 export enum ItemStatus {
 	Processing = 'PROCESSING',
 	Paused = 'PAUSED',
-	PendingApproval = 'PENDING_APPROVAL',
 }
 
 export enum OperationType {
 	Prepare = 'PREPARE',
-	UploadOriginal = 'UPLOAD_ORIGINAL',
-	ThumbnailGeneration = 'THUMBNAIL_GENERATION',
-	ResizeCrop = 'RESIZE_CROP',
-	TranscodeImage = 'TRANSCODE_IMAGE',
-	Compress = 'TRANSCODE_COMPRESS',
-	FetchRemoteFile = 'FETCH_REMOTE_FILE',
-	GenerateMetadata = 'GENERATE_METADATA',
 	Upload = 'UPLOAD',
 }
 
-export interface OperationArgs {
-	[ OperationType.Compress ]: {
-		requireApproval?: boolean;
-	};
-	[ OperationType.FetchRemoteFile ]: {
-		url: string;
-		fileName: string;
-		newFileName?: string;
-		skipAttachment?: boolean;
-		allowedTypes?: string[];
-	};
-	[ OperationType.TranscodeImage ]: {
-		requireApproval?: boolean;
-		outputFormat?: ImageFormat;
-		outputQuality?: number;
-		interlaced?: boolean;
-	};
-	[ OperationType.ResizeCrop ]: { resize?: ImageSizeCrop };
-	[ OperationType.UploadOriginal ]: { force?: boolean };
-}
+export interface OperationArgs {}
 
 type OperationWithArgs< T extends keyof OperationArgs = keyof OperationArgs > =
 	[ T, OperationArgs[ T ] ];
@@ -218,21 +164,4 @@ export type Operation = OperationType | OperationWithArgs;
 
 export type AdditionalData = Record< string, unknown >;
 
-export type SideloadAdditionalData = Record< string, unknown >;
-
-export interface ImageSizeCrop {
-	name?: string; // Only set if dealing with sub-sizes, not for general cropping.
-	width: number;
-	height: number;
-	crop?:
-		| boolean
-		| [ 'left' | 'center' | 'right', 'top' | 'center' | 'bottom' ];
-}
-
 export type ImageFormat = 'jpeg' | 'webp' | 'avif' | 'png' | 'gif';
-
-export type VideoFormat = 'mp4' | 'webm';
-
-export type AudioFormat = 'mp3' | 'ogg';
-
-export type ThumbnailGeneration = 'server' | 'client' | 'smart';
