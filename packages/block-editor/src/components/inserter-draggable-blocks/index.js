@@ -50,10 +50,21 @@ const InserterDraggableBlocks = ( {
 
 	return (
 		<Draggable
+			// To do: remove in favour of `wp-block:*` items.
 			__experimentalTransferDataType="wp-blocks"
 			transferData={ { type: 'inserter', blocks: parsedBlocks } }
-			onDragStart={ () => {
+			onDragStart={ ( event ) => {
+				if ( ! event.dataTransfer ) {
+					return;
+				}
 				startDragging();
+
+				for ( const block of parsedBlocks ) {
+					event.dataTransfer.items.add(
+						JSON.stringify( block ),
+						`wp-block:${ block.name }`
+					);
+				}
 			} }
 			onDragEnd={ () => {
 				stopDragging();

@@ -385,7 +385,33 @@ export function MediaPlaceholder( {
 			return null;
 		}
 
-		return <DropZone onFilesDrop={ onFilesUpload } onDrop={ onDrop } />;
+		return (
+			<DropZone
+				onFilesDrop={ onFilesUpload }
+				onDrop={ onDrop }
+				isEligible={ ( dataTransfer ) => {
+					const types = dataTransfer.types.filter( ( type ) =>
+						type.startsWith( 'wp-block:' )
+					);
+					const typeMap = {
+						image: 'wp-block:core/image',
+						audio: 'wp-block:core/audio',
+						video: 'wp-block:core/video',
+					};
+					const allowed = allowedTypes
+						.map( ( type ) => typeMap[ type ] )
+						.filter( Boolean );
+
+					if ( ! multiple ) {
+						return (
+							types.length === 1 && allowed.includes( types[ 0 ] )
+						);
+					}
+
+					return types.every( ( type ) => allowed.includes( type ) );
+				} }
+			/>
+		);
 	};
 
 	const renderCancelLink = () => {
