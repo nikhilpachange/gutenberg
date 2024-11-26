@@ -19,6 +19,7 @@ import {
 	getPath,
 	buildQueryString,
 } from '@wordpress/url';
+import { useEvent } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -91,53 +92,58 @@ export function useLocation() {
 
 export function useHistory() {
 	const { pathArg, beforeNavigate } = useContext( ConfigContext );
+
+	const navigate = useEvent(
+		( rawPath: string, options: NavigationOptions = {} ) => {
+			const query = getQueryArgs( rawPath );
+			const path = getPath( 'http://domain.com/' + rawPath ) ?? '';
+			const performPush = () => {
+				const result = beforeNavigate
+					? beforeNavigate( { path, query } )
+					: { path, query };
+				return history.push(
+					{
+						search: buildQueryString( {
+							[ pathArg ]: result.path,
+							...result.query,
+						} ),
+					},
+					options.state
+				);
+			};
+
+			/*
+			 * Skip transition in mobile, otherwise it crashes the browser.
+			 * See: https://github.com/WordPress/gutenberg/pull/63002.
+			 */
+			const isMediumOrBigger =
+				window.matchMedia( '(min-width: 782px)' ).matches;
+			if (
+				! isMediumOrBigger ||
+				// @ts-expect-error
+				! document.startViewTransition ||
+				! options.transition
+			) {
+				return performPush();
+			}
+			document.documentElement.classList.add( options.transition );
+			// @ts-expect-error
+			const transition = document.startViewTransition( () =>
+				performPush()
+			);
+			transition.finished.finally( () => {
+				document.documentElement.classList.remove(
+					options.transition ?? ''
+				);
+			} );
+		}
+	);
+
 	return useMemo(
 		() => ( {
-			navigate( rawPath: string, options: NavigationOptions = {} ) {
-				const query = getQueryArgs( rawPath );
-				const path = getPath( 'http://domain.com/' + rawPath ) ?? '';
-				const performPush = () => {
-					const result = beforeNavigate
-						? beforeNavigate( { path, query } )
-						: { path, query };
-					return history.push(
-						{
-							search: buildQueryString( {
-								[ pathArg ]: result.path,
-								...result.query,
-							} ),
-						},
-						options.state
-					);
-				};
-
-				/*
-				 * Skip transition in mobile, otherwise it crashes the browser.
-				 * See: https://github.com/WordPress/gutenberg/pull/63002.
-				 */
-				const isMediumOrBigger =
-					window.matchMedia( '(min-width: 782px)' ).matches;
-				if (
-					! isMediumOrBigger ||
-					// @ts-expect-error
-					! document.startViewTransition ||
-					! options.transition
-				) {
-					return performPush();
-				}
-				document.documentElement.classList.add( options.transition );
-				// @ts-expect-error
-				const transition = document.startViewTransition( () =>
-					performPush()
-				);
-				transition.finished.finally( () => {
-					document.documentElement.classList.remove(
-						options.transition ?? ''
-					);
-				} );
-			},
+			navigate,
 		} ),
-		[ pathArg, beforeNavigate ]
+		[ navigate ]
 	);
 }
 
