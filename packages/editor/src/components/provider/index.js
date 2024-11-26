@@ -72,8 +72,7 @@ const NON_CONTEXTUAL_POST_TYPES = [
  * @return {Array} Block editor props.
  */
 function useBlockEditorProps( post, template, mode ) {
-	const rootLevelPost =
-		mode === 'post-only' || ! template ? 'post' : 'template';
+	const rootLevelPost = mode === 'template-locked' ? 'template' : 'post';
 	const [ postBlocks, onInput, onChange ] = useEntityBlockEditor(
 		'postType',
 		post.type,
@@ -164,50 +163,68 @@ export const ExperimentalEditorProvider = withRegistryProvider(
 		BlockEditorProviderComponent = ExperimentalBlockEditorProvider,
 		__unstableTemplate: template,
 	} ) => {
-		const { editorSettings, selection, isReady, mode, postTypes } =
-			useSelect( ( select ) => {
+		const {
+			editorSettings,
+			selection,
+			isReady,
+			mode,
+			defaultMode,
+			postTypeEntities,
+			hasLoadedPostObject,
+		} = useSelect(
+			( select ) => {
 				const {
 					getEditorSettings,
 					getEditorSelection,
 					getRenderingMode,
 					__unstableIsEditorReady,
 				} = select( editorStore );
-				const { getPostTypes } = select( coreStore );
+				const { getEntitiesConfig } = select( coreStore );
+
+				const postTypeObject = select( coreStore ).getPostType(
+					post.type
+				);
+
+				const _hasLoadedPostObject = select(
+					coreStore
+				).hasFinishedResolution( 'getPostType', [ post.type ] );
 
 				return {
+					hasLoadedPostObject: _hasLoadedPostObject,
 					editorSettings: getEditorSettings(),
 					isReady: __unstableIsEditorReady(),
 					mode: getRenderingMode(),
+					defaultMode:
+						postTypeObject?.default_rendering_mode ?? 'post-only',
 					selection: getEditorSelection(),
-					postTypes: getPostTypes( { per_page: -1 } ),
+					postTypeEntities:
+						post.type === 'wp_template'
+							? getEntitiesConfig( 'postType' )
+							: null,
 				};
-			}, [] );
+			},
+			[ post.type ]
+		);
 		const shouldRenderTemplate = !! template && mode !== 'post-only';
 		const rootLevelPost = shouldRenderTemplate ? template : post;
 		const defaultBlockContext = useMemo( () => {
 			const postContext = {};
-			// If it is a template, try to inherit the post type from the slug.
+			// If it is a template, try to inherit the post type from the name.
 			if ( post.type === 'wp_template' ) {
-				if ( ! post.is_custom ) {
-					const [ kind ] = post.slug.split( '-' );
-					switch ( kind ) {
-						case 'page':
-							postContext.postType = 'page';
-							break;
-						case 'single':
-							// Infer the post type from the slug.
-							const postTypesSlugs =
-								postTypes?.map( ( entity ) => entity.slug ) ||
-								[];
-							const match = post.slug.match(
-								`^single-(${ postTypesSlugs.join(
-									'|'
-								) })(?:-.+)?$`
-							);
-							if ( match ) {
-								postContext.postType = match[ 1 ];
-							}
-							break;
+				if ( post.slug === 'page' ) {
+					postContext.postType = 'page';
+				} else if ( post.slug === 'single' ) {
+					postContext.postType = 'post';
+				} else if ( post.slug.split( '-' )[ 0 ] === 'single' ) {
+					// If the slug is single-{postType}, infer the post type from the name.
+					const postTypeNames =
+						postTypeEntities?.map( ( entity ) => entity.name ) ||
+						[];
+					const match = post.slug.match(
+						`^single-(${ postTypeNames.join( '|' ) })(?:-.+)?$`
+					);
+					if ( match ) {
+						postContext.postType = match[ 1 ];
 					}
 				}
 			} else if (
@@ -229,9 +246,10 @@ export const ExperimentalEditorProvider = withRegistryProvider(
 			shouldRenderTemplate,
 			post.id,
 			post.type,
+			post.slug,
 			rootLevelPost.type,
 			rootLevelPost.slug,
-			postTypes,
+			postTypeEntities,
 		] );
 		const { id, type } = rootLevelPost;
 		const blockEditorSettings = useBlockEditorSettings(
@@ -281,7 +299,15 @@ export const ExperimentalEditorProvider = withRegistryProvider(
 					}
 				);
 			}
-		}, [] );
+		}, [
+			createWarningNotice,
+			initialEdits,
+			settings,
+			post,
+			recovery,
+			setupEditor,
+			updatePostLock,
+		] );
 
 		// Synchronizes the active post with the state
 		useEffect( () => {
@@ -300,15 +326,15 @@ export const ExperimentalEditorProvider = withRegistryProvider(
 
 		// Sets the right rendering mode when loading the editor.
 		useEffect( () => {
-			setRenderingMode( settings.defaultRenderingMode ?? 'post-only' );
-		}, [ settings.defaultRenderingMode, setRenderingMode ] );
+			setRenderingMode( defaultMode );
+		}, [ defaultMode, setRenderingMode ] );
 
 		useHideBlocksFromInserter( post.type, mode );
 
 		// Register the editor commands.
 		useCommands();
 
-		if ( ! isReady ) {
+		if ( ! isReady || ! mode || ! hasLoadedPostObject ) {
 			return null;
 		}
 
@@ -329,7 +355,7 @@ export const ExperimentalEditorProvider = withRegistryProvider(
 							useSubRegistry={ false }
 						>
 							{ children }
-							{ ! settings.__unstableIsPreviewMode && (
+							{ ! settings.isPreviewMode && (
 								<>
 									<PatternsMenuItems />
 									<TemplatePartMenuItems />
@@ -385,7 +411,7 @@ export const ExperimentalEditorProvider = withRegistryProvider(
  * </EditorProvider>
  * ```
  *
- * @return {JSX.Element} The rendered EditorProvider component.
+ * @return {React.ReactNode} The rendered EditorProvider component.
  */
 export function EditorProvider( props ) {
 	return (

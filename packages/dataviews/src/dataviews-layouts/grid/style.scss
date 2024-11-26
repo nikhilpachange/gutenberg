@@ -16,8 +16,15 @@
 		}
 
 		.dataviews-view-grid__primary-field {
-			min-height: $grid-unit-40; // Preserve layout when there is no ellipsis button
+			min-height: $grid-unit-30; // Preserve layout when there is no ellipsis button
+			display: flex;
+			align-items: center;
+
+			&--clickable {
+				width: fit-content;
+			}
 		}
+
 
 		&.is-selected {
 			.dataviews-view-grid__fields .dataviews-view-grid__field .dataviews-view-grid__field-value {
@@ -162,4 +169,12 @@
 .dataviews-view-grid__card:focus-within .dataviews-selection-checkbox,
 .dataviews-view-grid__card.is-selected .dataviews-selection-checkbox {
 	top: $grid-unit-10;
+}
+
+/* stylelint-disable-next-line scss/at-rule-no-unknown -- '@container' not globally permitted */
+@container (max-width: 430px) {
+	.dataviews-view-grid {
+		padding-left: $grid-unit-30;
+		padding-right: $grid-unit-30;
+	}
 }

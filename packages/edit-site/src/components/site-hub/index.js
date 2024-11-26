@@ -62,14 +62,13 @@ const SiteHub = memo(
 						) }
 					>
 						<Button
-							// TODO: Switch to `true` (40px size) if possible
-							__next40pxDefaultSize={ false }
+							__next40pxDefaultSize
 							ref={ ref }
 							href={ dashboardLink }
 							label={ __( 'Go to the Dashboard' ) }
 							className="edit-site-layout__view-mode-toggle"
 							style={ {
-								transform: 'scale(0.5)',
+								transform: 'scale(0.5333) translateX(-4px)', // Offset to position the icon 12px from viewport edge
 								borderRadius: 4,
 							} }
 						>
@@ -80,8 +79,7 @@ const SiteHub = memo(
 					<HStack>
 						<div className="edit-site-site-hub__title">
 							<Button
-								// TODO: Switch to `true` (40px size) if possible
-								__next40pxDefaultSize={ false }
+								__next40pxDefaultSize
 								variant="link"
 								href={ homeUrl }
 								target="_blank"
@@ -101,8 +99,7 @@ const SiteHub = memo(
 							className="edit-site-site-hub__actions"
 						>
 							<Button
-								// TODO: Switch to `true` (40px size) if possible
-								__next40pxDefaultSize={ false }
+								size="compact"
 								className="edit-site-site-hub_toggle-command-center"
 								icon={ search }
 								onClick={ () => openCommandCenter() }
@@ -124,17 +121,27 @@ export const SiteHubMobile = memo(
 		const history = useHistory();
 		const { navigate } = useContext( SidebarNavigationContext );
 
-		const { homeUrl, siteTitle } = useSelect( ( select ) => {
-			const { getEntityRecord } = select( coreStore );
-			const _site = getEntityRecord( 'root', 'site' );
-			return {
-				homeUrl: getEntityRecord( 'root', '__unstableBase' )?.home,
-				siteTitle:
-					! _site?.title && !! _site?.url
-						? filterURLForDisplay( _site?.url )
-						: _site?.title,
-			};
-		}, [] );
+		const { dashboardLink, isBlockTheme, homeUrl, siteTitle } = useSelect(
+			( select ) => {
+				const { getSettings } = unlock( select( editSiteStore ) );
+
+				const { getEntityRecord, getCurrentTheme } =
+					select( coreStore );
+				const _site = getEntityRecord( 'root', 'site' );
+				return {
+					dashboardLink:
+						getSettings().__experimentalDashboardLink ||
+						'index.php',
+					isBlockTheme: getCurrentTheme()?.is_block_theme,
+					homeUrl: getEntityRecord( 'root', '__unstableBase' )?.home,
+					siteTitle:
+						! _site?.title && !! _site?.url
+							? filterURLForDisplay( _site?.url )
+							: _site?.title,
+				};
+			},
+			[]
+		);
 		const { open: openCommandCenter } = useDispatch( commandsStore );
 
 		return (
@@ -149,19 +156,25 @@ export const SiteHubMobile = memo(
 						) }
 					>
 						<Button
-							// TODO: Switch to `true` (40px size) if possible
-							__next40pxDefaultSize={ false }
+							__next40pxDefaultSize
 							ref={ ref }
-							label={ __( 'Go to Site Editor' ) }
 							className="edit-site-layout__view-mode-toggle"
 							style={ {
 								transform: 'scale(0.5)',
 								borderRadius: 4,
 							} }
-							onClick={ () => {
-								history.push( {} );
-								navigate( 'back' );
-							} }
+							{ ...( ! isBlockTheme
+								? {
+										href: dashboardLink,
+										label: __( 'Go to the Dashboard' ),
+								  }
+								: {
+										onClick: () => {
+											history.push( {} );
+											navigate( 'back' );
+										},
+										label: __( 'Go to Site Editor' ),
+								  } ) }
 						>
 							<SiteIcon className="edit-site-layout__view-mode-toggle-icon" />
 						</Button>
@@ -170,8 +183,7 @@ export const SiteHubMobile = memo(
 					<HStack>
 						<div className="edit-site-site-hub__title">
 							<Button
-								// TODO: Switch to `true` (40px size) if possible
-								__next40pxDefaultSize={ false }
+								__next40pxDefaultSize
 								variant="link"
 								href={ homeUrl }
 								target="_blank"
@@ -186,8 +198,7 @@ export const SiteHubMobile = memo(
 							className="edit-site-site-hub__actions"
 						>
 							<Button
-								// TODO: Switch to `true` (40px size) if possible
-								__next40pxDefaultSize={ false }
+								__next40pxDefaultSize
 								className="edit-site-site-hub_toggle-command-center"
 								icon={ search }
 								onClick={ () => openCommandCenter() }

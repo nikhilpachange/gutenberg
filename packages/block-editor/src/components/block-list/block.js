@@ -24,6 +24,7 @@ import {
 	isReusableBlock,
 	getBlockDefaultClassName,
 	hasBlockSupport,
+	createBlock,
 	store as blocksStore,
 } from '@wordpress/blocks';
 import { withFilters } from '@wordpress/components';
@@ -310,6 +311,7 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 			function switchToDefaultOrRemove() {
 				const block = getBlock( clientId );
 				const defaultBlockName = getDefaultBlockName();
+				const defaultBlockType = getBlockType( defaultBlockName );
 				if ( getBlockName( clientId ) !== defaultBlockName ) {
 					const replacement = switchToBlockType(
 						block,
@@ -326,6 +328,15 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 							selectBlock( nextBlockClientId );
 						} );
 					}
+				} else if ( defaultBlockType.merge ) {
+					const attributes = defaultBlockType.merge(
+						{},
+						block.attributes
+					);
+					replaceBlocks(
+						[ clientId ],
+						[ createBlock( defaultBlockName, attributes ) ]
+					);
 				}
 			}
 
@@ -339,6 +350,9 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 			 *                                  to the moved block.
 			 */
 			function moveFirstItemUp( _clientId, changeSelection = true ) {
+				const wrapperBlockName = getBlockName( _clientId );
+				const wrapperBlockType = getBlockType( wrapperBlockName );
+				const isTextualWrapper = wrapperBlockType.category === 'text';
 				const targetRootClientId = getBlockRootClientId( _clientId );
 				const blockOrder = getBlockOrder( _clientId );
 				const [ firstClientId ] = blockOrder;
@@ -348,7 +362,7 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 					isUnmodifiedBlock( getBlock( firstClientId ) )
 				) {
 					removeBlock( _clientId );
-				} else {
+				} else if ( isTextualWrapper ) {
 					registry.batch( () => {
 						if (
 							canInsertBlockType(
@@ -397,6 +411,8 @@ const applyWithDispatch = withDispatch( ( dispatch, ownProps, registry ) => {
 							removeBlock( _clientId, false );
 						}
 					} );
+				} else {
+					switchToDefaultOrRemove();
 				}
 			}
 
@@ -549,6 +565,7 @@ function BlockListBlockProvider( props ) {
 				getBlockMode,
 				isSelectionEnabled,
 				getTemplateLock,
+				isSectionBlock: _isSectionBlock,
 				getBlockWithoutAttributes,
 				getBlockAttributes,
 				canRemoveBlock,
@@ -571,10 +588,7 @@ function BlockListBlockProvider( props ) {
 				__unstableSelectionHasUnmergeableBlock,
 				isBlockBeingDragged,
 				isDragging,
-				hasBlockMovingClientId,
-				canInsertBlockType,
 				__unstableHasActiveBlockOverlayActive,
-				__unstableGetEditorMode,
 				getSelectedBlocksInitialCaretPosition,
 			} = unlock( select( blockEditorStore ) );
 			const blockWithoutAttributes =
@@ -595,8 +609,7 @@ function BlockListBlockProvider( props ) {
 			const attributes = getBlockAttributes( clientId );
 			const { name: blockName, isValid } = blockWithoutAttributes;
 			const blockType = getBlockType( blockName );
-			const { supportsLayout, __unstableIsPreviewMode: isPreviewMode } =
-				getSettings();
+			const { supportsLayout, isPreviewMode } = getSettings();
 			const hasLightBlockWrapper = blockType?.apiVersion > 1;
 			const previewContext = {
 				isPreviewMode,
@@ -632,7 +645,6 @@ function BlockListBlockProvider( props ) {
 				clientId,
 				checkDeep
 			);
-			const movingClientId = hasBlockMovingClientId();
 			const blockEditingMode = getBlockEditingMode( clientId );
 
 			const multiple = hasBlockSupport( blockName, 'multiple', true );
@@ -646,14 +658,12 @@ function BlockListBlockProvider( props ) {
 				blocksWithSameName.length &&
 				blocksWithSameName[ 0 ] !== clientId;
 
-			const editorMode = __unstableGetEditorMode();
-
 			return {
 				...previewContext,
 				mode: getBlockMode( clientId ),
 				isSelectionEnabled: isSelectionEnabled(),
 				isLocked: !! getTemplateLock( rootClientId ),
-				templateLock: getTemplateLock( clientId ),
+				isSectionBlock: _isSectionBlock( clientId ),
 				canRemove,
 				canMove,
 				isSelected: _isSelected,
@@ -674,18 +684,15 @@ function BlockListBlockProvider( props ) {
 					) && hasSelectedInnerBlock( clientId ),
 				blockApiVersion: blockType?.apiVersion || 1,
 				blockTitle: match?.title || blockType?.title,
-				editorMode,
 				isSubtreeDisabled:
 					blockEditingMode === 'disabled' &&
 					isBlockSubtreeDisabled( clientId ),
 				hasOverlay:
 					__unstableHasActiveBlockOverlayActive( clientId ) &&
 					! isDragging(),
-				initialPosition:
-					_isSelected &&
-					( editorMode === 'edit' || editorMode === 'zoom-out' ) // Don't recalculate the initialPosition when toggling in/out of zoom-out mode
-						? getSelectedBlocksInitialCaretPosition()
-						: undefined,
+				initialPosition: _isSelected
+					? getSelectedBlocksInitialCaretPosition()
+					: undefined,
 				isHighlighted: isBlockHighlighted( clientId ),
 				isMultiSelected,
 				isPartiallySelected:
@@ -694,13 +701,6 @@ function BlockListBlockProvider( props ) {
 					! __unstableSelectionHasUnmergeableBlock(),
 				isDragging: isBlockBeingDragged( clientId ),
 				hasChildSelected: isAncestorOfSelectedBlock,
-				isBlockMovingMode: !! movingClientId,
-				canInsertMovingBlock:
-					movingClientId &&
-					canInsertBlockType(
-						getBlockName( movingClientId ),
-						rootClientId
-					),
 				isEditingDisabled: blockEditingMode === 'disabled',
 				hasEditableOutline:
 					blockEditingMode !== 'disabled' &&
@@ -730,7 +730,6 @@ function BlockListBlockProvider( props ) {
 		themeSupportsLayout,
 		isTemporarilyEditingAsBlocks,
 		blockEditingMode,
-		editorMode,
 		mayDisplayControls,
 		mayDisplayParentControls,
 		index,
@@ -745,9 +744,7 @@ function BlockListBlockProvider( props ) {
 		isReusable,
 		isDragging,
 		hasChildSelected,
-		isBlockMovingMode,
-		canInsertMovingBlock,
-		templateLock,
+		isSectionBlock,
 		isEditingDisabled,
 		hasEditableOutline,
 		className,
@@ -785,16 +782,13 @@ function BlockListBlockProvider( props ) {
 		hasOverlay,
 		initialPosition,
 		blockEditingMode,
-		editorMode,
 		isHighlighted,
 		isMultiSelected,
 		isPartiallySelected,
 		isReusable,
 		isDragging,
 		hasChildSelected,
-		isBlockMovingMode,
-		canInsertMovingBlock,
-		templateLock,
+		isSectionBlock,
 		isEditingDisabled,
 		hasEditableOutline,
 		isTemporarilyEditingAsBlocks,

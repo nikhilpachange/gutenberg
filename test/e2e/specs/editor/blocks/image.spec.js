@@ -437,7 +437,8 @@ test.describe( 'Image', () => {
 
 		async function openMediaTab() {
 			const blockInserter = page.getByRole( 'button', {
-				name: 'Toggle block inserter',
+				name: 'Block Inserter',
+				exact: true,
 			} );
 			const isClosed =
 				( await blockInserter.getAttribute( 'aria-pressed' ) ) ===
@@ -544,7 +545,7 @@ test.describe( 'Image', () => {
 			dummy.style.left = 0;
 			dummy.draggable = 'true';
 			dummy.addEventListener( 'dragstart', ( event ) => {
-				event.dataTransfer.setData( 'text/html', _html );
+				event.dataTransfer.setData( 'default', _html );
 				setTimeout( () => {
 					dummy.remove();
 				}, 0 );

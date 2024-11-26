@@ -2,17 +2,12 @@
  * WordPress dependencies
  */
 import { store as coreStore } from '@wordpress/core-data';
-import type { Action } from '@wordpress/dataviews';
+import type { Action, Field } from '@wordpress/dataviews';
 import { doAction } from '@wordpress/hooks';
 
 /**
  * Internal dependencies
  */
-import duplicateTemplatePart from '../actions/duplicate-template-part';
-import resetPost from '../actions/reset-post';
-import trashPost from '../actions/trash-post';
-import renamePost from '../actions/rename-post';
-import restorePost from '../actions/restore-post';
 import type { PostType } from '../types';
 import { store as editorStore } from '../../store';
 import { unlock } from '../../lock-unlock';
@@ -24,8 +19,22 @@ import {
 	reorderPage,
 	exportPattern,
 	permanentlyDeletePost,
+	restorePost,
+	trashPost,
+	renamePost,
+	resetPost,
+	deletePost,
+	featuredImageField,
+	dateField,
+	parentField,
+	passwordField,
+	commentStatusField,
+	slugField,
+	statusField,
+	authorField,
+	titleField,
 } from '@wordpress/fields';
-import deletePost from '../actions/delete-post';
+import duplicateTemplatePart from '../actions/duplicate-template-part';
 
 export function registerEntityAction< Item >(
 	kind: string,
@@ -53,6 +62,32 @@ export function unregisterEntityAction(
 	};
 }
 
+export function registerEntityField< Item >(
+	kind: string,
+	name: string,
+	config: Field< Item >
+) {
+	return {
+		type: 'REGISTER_ENTITY_FIELD' as const,
+		kind,
+		name,
+		config,
+	};
+}
+
+export function unregisterEntityField(
+	kind: string,
+	name: string,
+	fieldId: string
+) {
+	return {
+		type: 'UNREGISTER_ENTITY_FIELD' as const,
+		kind,
+		name,
+		fieldId,
+	};
+}
+
 export function setIsReady( kind: string, name: string ) {
 	return {
 		type: 'SET_IS_READY' as const,
@@ -61,7 +96,7 @@ export function setIsReady( kind: string, name: string ) {
 	};
 }
 
-export const registerPostTypeActions =
+export const registerPostTypeSchema =
 	( postType: string ) =>
 	async ( { registry }: { registry: any } ) => {
 		const isReady = unlock( registry.select( editorStore ) ).isEntityReady(
@@ -117,11 +152,23 @@ export const registerPostTypeActions =
 				? reorderPage
 				: undefined,
 			postTypeConfig.slug === 'wp_block' ? exportPattern : undefined,
-			resetPost,
 			restorePost,
+			resetPost,
 			deletePost,
 			trashPost,
 			permanentlyDeletePost,
+		];
+
+		const fields = [
+			featuredImageField,
+			titleField,
+			authorField,
+			statusField,
+			dateField,
+			slugField,
+			parentField,
+			commentStatusField,
+			passwordField,
 		];
 
 		registry.batch( () => {
@@ -135,7 +182,14 @@ export const registerPostTypeActions =
 					action
 				);
 			} );
+			fields.forEach( ( field ) => {
+				unlock( registry.dispatch( editorStore ) ).registerEntityField(
+					'postType',
+					postType,
+					field
+				);
+			} );
 		} );
 
-		doAction( 'core.registerPostTypeActions', postType );
+		doAction( 'core.registerPostTypeSchema', postType );
 	};
