@@ -76,7 +76,25 @@ export function useEventHandlers( { clientId, isSelected } ) {
 			 * @param {DragEvent} event Drag event.
 			 */
 			function onDragStart( event ) {
-				event.preventDefault();
+				const { ownerDocument } = node;
+				const { defaultView } = ownerDocument;
+				const selection = defaultView.getSelection();
+				if (
+					node !== event.target ||
+					node.contains( selection.anchorNode ) ||
+					node.contains( selection.focusNode )
+				) {
+					event.preventDefault();
+					return;
+				}
+				const data = JSON.stringify( {
+					type: 'block',
+					srcClientIds: [ clientId ],
+					srcRootClientId: getBlockRootClientId( clientId ),
+				} );
+				event.dataTransfer.clearData();
+				event.dataTransfer.setData( 'wp-blocks', data );
+				selection.removeAllRanges();
 			}
 
 			node.addEventListener( 'keydown', onKeyDown );

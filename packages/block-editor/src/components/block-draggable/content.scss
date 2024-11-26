@@ -18,3 +18,7 @@
 		content: none !important;
 	}
 }
+
+img:not([draggable]) {
+	pointer-events: none;
+}
