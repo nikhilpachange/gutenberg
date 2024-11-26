@@ -29,14 +29,12 @@ import {
 } from '@wordpress/icons';
 import { store as noticesStore } from '@wordpress/notices';
 // @ts-ignore
-import { store as blockEditorStore } from '@wordpress/block-editor';
 // @ts-ignore
 import { serialize } from '@wordpress/blocks';
 
 /**
  * Internal dependencies
  */
-
 import {
 	getCleanTemplatePartSlug,
 	getUniqueTemplatePartTitle,
@@ -97,22 +95,6 @@ const getTemplatePartIcon = ( iconName: string ) => {
 	return symbolFilledIcon;
 };
 
-const getDefaultTemplatePartAreas = (
-	settings: Record< string, any > & {
-		defaultTemplatePartAreas?: Array< {
-			icon: string;
-			label: string;
-			area: string;
-			description: string;
-		} >;
-	}
-) => {
-	const areas = settings.defaultTemplatePartAreas ?? [];
-	return areas.map( ( item ) => {
-		return { ...item, icon: getTemplatePartIcon( item.icon ) };
-	} );
-};
-
 /**
  * A React component that renders the content of a model for creating a template part.
  * This component should not live in this package; it should be moved to a dedicated package responsible for managing template.
@@ -144,13 +126,22 @@ export function CreateTemplatePartModalContents( {
 	const [ isSubmitting, setIsSubmitting ] = useState( false );
 	const instanceId = useInstanceId( CreateTemplatePartModal );
 
-	const settings = useSelect(
-		// @ts-ignore
-		( select ) => select( blockEditorStore ).getSettings(),
-		[]
-	);
+	const defaultTemplatePartAreas = useSelect( ( select ) => {
+		const areas =
+			// @ts-expect-error The default_template_part_areas is not part of the core store type.
+			select( coreStore ).getEntityRecord< {
+				default_template_part_areas: Array< {
+					area: string;
+					label: string;
+					icon: string;
+					description: string;
+				} >;
+			} >( 'root', '__unstableBase' )?.default_template_part_areas || [];
 
-	const defaultTemplatePartAreas = getDefaultTemplatePartAreas( settings );
+		return areas.map( ( item ) => {
+			return { ...item, icon: getTemplatePartIcon( item.icon ) };
+		} );
+	}, [] );
 
 	async function createTemplatePart() {
 		if ( ! title || isSubmitting ) {
