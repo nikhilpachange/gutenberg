@@ -25,6 +25,7 @@ import DataViewsViewConfig from '../dataviews-view-config';
 import { normalizeFields } from '../../normalize-fields';
 import type { Action, Field, View, SupportedLayouts } from '../../types';
 import type { SelectionOrUpdater } from '../../private-types';
+import { migrateViewConfig } from '../../migrations';
 
 type ItemWithId = { id: string };
 
@@ -89,6 +90,7 @@ export default function DataViews< Item >( {
 			onChangeSelection( newValue );
 		}
 	}
+	const _view = useMemo( () => migrateViewConfig( view ), [ view ] );
 	const _fields = useMemo( () => normalizeFields( fields ), [ fields ] );
 	const _selection = useMemo( () => {
 		return selection.filter( ( id ) =>
@@ -96,7 +98,7 @@ export default function DataViews< Item >( {
 		);
 	}, [ selection, data, getItemId ] );
 
-	const filters = useFilters( _fields, view );
+	const filters = useFilters( _fields, _view );
 	const [ isShowingFilter, setIsShowingFilter ] = useState< boolean >( () =>
 		( filters || [] ).some( ( filter ) => filter.isPrimary )
 	);
@@ -104,7 +106,7 @@ export default function DataViews< Item >( {
 	return (
 		<DataViewsContext.Provider
 			value={ {
-				view,
+				view: _view,
 				onChangeView,
 				fields: _fields,
 				actions,
@@ -135,7 +137,7 @@ export default function DataViews< Item >( {
 						{ search && <DataViewsSearch label={ searchLabel } /> }
 						<FiltersToggle
 							filters={ filters }
-							view={ view }
+							view={ _view }
 							onChangeView={ onChangeView }
 							setOpenedFilter={ setOpenedFilter }
 							setIsShowingFilter={ setIsShowingFilter }

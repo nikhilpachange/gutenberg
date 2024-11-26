@@ -249,6 +249,11 @@ export interface NormalizedFilter {
 
 interface ViewBase {
 	/**
+	 * The version of the API.
+	 */
+	apiVersion?: number;
+
+	/**
 	 * The layout of the view.
 	 */
 	type: string;

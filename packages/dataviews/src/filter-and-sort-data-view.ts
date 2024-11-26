@@ -16,6 +16,7 @@ import {
 } from './constants';
 import { normalizeFields } from './normalize-fields';
 import type { Field, View } from './types';
+import { migrateViewConfig } from './migrations';
 
 function normalizeSearchInput( input = '' ) {
 	return removeAccents( input.trim().toLowerCase() );
@@ -46,11 +47,13 @@ export function filterSortAndPaginate< Item >(
 			paginationInfo: { totalItems: 0, totalPages: 0 },
 		};
 	}
+
+	const _view = migrateViewConfig( view );
 	const _fields = normalizeFields( fields );
 	let filteredData = [ ...data ];
 	// Handle global search.
-	if ( view.search ) {
-		const normalizedSearch = normalizeSearchInput( view.search );
+	if ( _view.search ) {
+		const normalizedSearch = normalizeSearchInput( _view.search );
 		filteredData = filteredData.filter( ( item ) => {
 			return _fields
 				.filter( ( field ) => field.enableGlobalSearch )
@@ -61,8 +64,8 @@ export function filterSortAndPaginate< Item >(
 		} );
 	}
 
-	if ( view.filters && view.filters?.length > 0 ) {
-		view.filters.forEach( ( filter ) => {
+	if ( _view.filters && _view.filters?.length > 0 ) {
+		_view.filters.forEach( ( filter ) => {
 			const field = _fields.find(
 				( _field ) => _field.id === filter.field
 			);
@@ -133,14 +136,18 @@ export function filterSortAndPaginate< Item >(
 	}
 
 	// Handle sorting.
-	if ( view.sort ) {
-		const fieldId = view.sort.field;
+	if ( _view.sort ) {
+		const fieldId = _view.sort.field;
 		const fieldToSort = _fields.find( ( field ) => {
 			return field.id === fieldId;
 		} );
 		if ( fieldToSort ) {
 			filteredData.sort( ( a, b ) => {
-				return fieldToSort.sort( a, b, view.sort?.direction ?? 'desc' );
+				return fieldToSort.sort(
+					a,
+					b,
+					_view.sort?.direction ?? 'desc'
+				);
 			} );
 		}
 	}
@@ -148,11 +155,11 @@ export function filterSortAndPaginate< Item >(
 	// Handle pagination.
 	let totalItems = filteredData.length;
 	let totalPages = 1;
-	if ( view.page !== undefined && view.perPage !== undefined ) {
-		const start = ( view.page - 1 ) * view.perPage;
+	if ( _view.page !== undefined && _view.perPage !== undefined ) {
+		const start = ( _view.page - 1 ) * _view.perPage;
 		totalItems = filteredData?.length || 0;
-		totalPages = Math.ceil( totalItems / view.perPage );
-		filteredData = filteredData?.slice( start, start + view.perPage );
+		totalPages = Math.ceil( totalItems / _view.perPage );
+		filteredData = filteredData?.slice( start, start + _view.perPage );
 	}
 
 	return {
