@@ -25,18 +25,7 @@ module.exports = [
 	//
 	// These need to be specified as both `es.` and `esnext.` due to the way
 	// internal dependencies are set up in Babel / core-js.
-	'es.set.difference.v2',
-	'es.set.is-disjoint-from.v2',
-	'es.set.is-subset-of.v2',
-	'es.set.is-superset-of.v2',
-	'es.set.symmetric-difference.v2',
-	'es.set.union.v2',
-	'es.set.intersection.v2',
-	'esnext.set.difference.v2',
-	'esnext.set.is-disjoint-from.v2',
-	'esnext.set.is-subset-of.v2',
-	'esnext.set.is-superset-of.v2',
-	'esnext.set.symmetric-difference.v2',
-	'esnext.set.union.v2',
-	'esnext.set.intersection.v2',
+	//
+	// @see https://github.com/WordPress/gutenberg/pull/67230
+	/^es(next)?\.set\./,
 ];
