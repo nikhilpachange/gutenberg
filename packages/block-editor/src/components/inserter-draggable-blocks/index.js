@@ -29,15 +29,6 @@ const InserterDraggableBlocks = ( {
 		blocks,
 	};
 
-	const blocksContainMedia =
-		blocks.filter(
-			( block ) =>
-				( block.name === 'core/image' ||
-					block.name === 'core/audio' ||
-					block.name === 'core/video' ) &&
-				( block.attributes.url || block.attributes.src )
-		).length > 0;
-
 	const blockTypeIcon = useSelect(
 		( select ) => {
 			const { getBlockType } = select( blocksStore );
@@ -72,7 +63,7 @@ const InserterDraggableBlocks = ( {
 						? [ createBlock( 'core/block', { ref: pattern.id } ) ]
 						: blocks;
 				event.dataTransfer.setData(
-					blocksContainMedia ? 'default' : 'text/html',
+					'text/html',
 					serialize( parsedBlocks )
 				);
 			} }
