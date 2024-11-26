@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.8.1-next.0 (2024-11-26)
+
 ### Bug Fixes
 
 -   Fix focus loss when removing all filters or resetting ([#67003](https://github.com/WordPress/gutenberg/pull/67003)).
