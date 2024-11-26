@@ -227,6 +227,12 @@ test.describe( 'Pattern Overrides', () => {
 	} );
 
 	test.describe( 'block editing modes', () => {
+		test.beforeEach( async ( { page } ) => {
+			await page.addInitScript( () => {
+				window.__experimentalEditorWriteMode = true;
+			} );
+		} );
+
 		test( 'blocks with bindings in a synced pattern are editable, and all other blocks are disabled', async ( {
 			admin,
 			editor,
