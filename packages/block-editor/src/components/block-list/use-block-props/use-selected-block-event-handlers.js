@@ -79,10 +79,19 @@ export function useEventHandlers( { clientId, isSelected } ) {
 				const { ownerDocument } = node;
 				const { defaultView } = ownerDocument;
 				const selection = defaultView.getSelection();
+				let { anchorNode, focusNode } = selection;
+				if ( anchorNode !== anchorNode.ELEMENT_NODE ) {
+					anchorNode = anchorNode.parentElement;
+				}
+				if ( focusNode !== focusNode.ELEMENT_NODE ) {
+					focusNode = focusNode.parentElement;
+				}
 				if (
 					node !== event.target ||
-					node.contains( selection.anchorNode ) ||
-					node.contains( selection.focusNode )
+					( node.contains( anchorNode ) &&
+						anchorNode.isContentEditable ) ||
+					( node.contains( focusNode ) &&
+						focusNode.isContentEditable )
 				) {
 					event.preventDefault();
 					return;
