@@ -20,6 +20,11 @@ const InserterDraggableBlocks = ( {
 	children,
 	pattern,
 } ) => {
+	const transferData = {
+		type: 'inserter',
+		blocks,
+	};
+
 	const blockTypeIcon = useSelect(
 		( select ) => {
 			const { getBlockType } = select( blocksStore );
@@ -42,22 +47,20 @@ const InserterDraggableBlocks = ( {
 		} );
 	}
 
-	const parsedBlocks =
-		pattern?.type === INSERTER_PATTERN_TYPES.user &&
-		pattern?.syncStatus !== 'unsynced'
-			? [ createBlock( 'core/block', { ref: pattern.id } ) ]
-			: blocks;
-
 	return (
 		<Draggable
-			// To do: remove in favour of `wp-block:*` items.
 			__experimentalTransferDataType="wp-blocks"
-			transferData={ { type: 'inserter', blocks: parsedBlocks } }
+			transferData={ transferData }
 			onDragStart={ ( event ) => {
 				if ( ! event.dataTransfer ) {
 					return;
 				}
 				startDragging();
+				const parsedBlocks =
+					pattern?.type === INSERTER_PATTERN_TYPES.user &&
+					pattern?.syncStatus !== 'unsynced'
+						? [ createBlock( 'core/block', { ref: pattern.id } ) ]
+						: blocks;
 
 				for ( const block of parsedBlocks ) {
 					event.dataTransfer.items.add(
