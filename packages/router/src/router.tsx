@@ -82,7 +82,11 @@ function getLocationWithQuery() {
 }
 
 export function useLocation() {
-	return useContext( RoutesContext );
+	const context = useContext( RoutesContext );
+	if ( ! context ) {
+		throw new Error( 'useLocation must be used within a RouterProvider' );
+	}
+	return context;
 }
 
 export function useHistory() {
