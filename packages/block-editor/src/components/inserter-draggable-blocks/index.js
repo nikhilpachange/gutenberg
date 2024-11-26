@@ -2,11 +2,7 @@
  * WordPress dependencies
  */
 import { Draggable } from '@wordpress/components';
-import {
-	createBlock,
-	serialize,
-	store as blocksStore,
-} from '@wordpress/blocks';
+import { createBlock, store as blocksStore } from '@wordpress/blocks';
 import { useDispatch, useSelect } from '@wordpress/data';
 
 /**
@@ -24,11 +20,6 @@ const InserterDraggableBlocks = ( {
 	children,
 	pattern,
 } ) => {
-	const transferData = {
-		type: 'inserter',
-		blocks,
-	};
-
 	const blockTypeIcon = useSelect(
 		( select ) => {
 			const { getBlockType } = select( blocksStore );
@@ -51,21 +42,18 @@ const InserterDraggableBlocks = ( {
 		} );
 	}
 
+	const parsedBlocks =
+		pattern?.type === INSERTER_PATTERN_TYPES.user &&
+		pattern?.syncStatus !== 'unsynced'
+			? [ createBlock( 'core/block', { ref: pattern.id } ) ]
+			: blocks;
+
 	return (
 		<Draggable
 			__experimentalTransferDataType="wp-blocks"
-			transferData={ transferData }
-			onDragStart={ ( event ) => {
+			transferData={ { type: 'inserter', blocks: parsedBlocks } }
+			onDragStart={ () => {
 				startDragging();
-				const parsedBlocks =
-					pattern?.type === INSERTER_PATTERN_TYPES.user &&
-					pattern?.syncStatus !== 'unsynced'
-						? [ createBlock( 'core/block', { ref: pattern.id } ) ]
-						: blocks;
-				event.dataTransfer.setData(
-					'text/html',
-					serialize( parsedBlocks )
-				);
 			} }
 			onDragEnd={ () => {
 				stopDragging();

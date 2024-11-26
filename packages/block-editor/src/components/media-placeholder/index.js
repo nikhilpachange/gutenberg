@@ -19,7 +19,6 @@ import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { keyboardReturn } from '@wordpress/icons';
-import { pasteHandler } from '@wordpress/blocks';
 import deprecated from '@wordpress/deprecated';
 
 /**
@@ -29,6 +28,7 @@ import MediaUpload from '../media-upload';
 import MediaUploadCheck from '../media-upload/check';
 import URLPopover from '../url-popover';
 import { store as blockEditorStore } from '../../store';
+import { parseDropEvent } from '../use-on-block-drop';
 
 const noop = () => {};
 
@@ -292,9 +292,11 @@ export function MediaPlaceholder( {
 		}
 	}
 
-	async function onHTMLDrop( HTML ) {
-		const blocks = pasteHandler( { HTML } );
-		return await handleBlocksDrop( blocks );
+	function onDrop( event ) {
+		const { blocks } = parseDropEvent( event );
+		if ( blocks ) {
+			handleBlocksDrop( blocks );
+		}
 	}
 
 	const onUpload = ( event ) => {
@@ -383,9 +385,7 @@ export function MediaPlaceholder( {
 			return null;
 		}
 
-		return (
-			<DropZone onFilesDrop={ onFilesUpload } onHTMLDrop={ onHTMLDrop } />
-		);
+		return <DropZone onFilesDrop={ onFilesUpload } onDrop={ onDrop } />;
 	};
 
 	const renderCancelLink = () => {
